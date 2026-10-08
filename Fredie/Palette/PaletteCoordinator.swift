@@ -144,9 +144,13 @@ final class PaletteCoordinator {
         palette.forceExpanded = true
     }
 
-    /// Resize the panel to the current collapsed state, when it flips while open.
+    var paletteSurface: PaletteSurface {
+        PaletteSurface(
+            mode: palette.mode, collapsed: paletteIsCollapsed, metrics: settings.interfaceSize.metrics)
+    }
+
     func syncPaletteSize() {
-        windowController.applyCollapsed(paletteIsCollapsed)
+        windowController.applySurface()
     }
 
     // MARK: - Dragging

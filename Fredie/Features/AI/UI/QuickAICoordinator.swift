@@ -34,7 +34,14 @@ final class QuickAICoordinator {
         paletteCoordinator.showPalette(mode: .ai)
     }
 
-    /// ⇥ and the AI fallback: a fresh chat that carries the question, already asked.
+    func askFromLauncher(_ prompt: String) {
+        guard settings.aiEnabled else {
+            core.settingsCoordinator.showSettings(tab: .ai)
+            return
+        }
+        ask(prompt)
+    }
+
     func ask(_ prompt: String) {
         guard settings.aiEnabled else { return }
         // No question is no reason to skip the open policy: this is a summon, not an ask.

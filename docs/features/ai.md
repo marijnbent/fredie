@@ -6,17 +6,19 @@ builds that chat's route through `AIProviderFactory` to stream an `AIRequest`.
 Chat is the first consumer and [Quick Actions](quick-actions.md) the second; the provider layer
 depends on neither, and Quick Actions carries its own route rather than borrowing this one.
 
-Chat has two surfaces over one history, as Raycast's does. **Quick AI** is the palette screen: Tab
-from the launcher asks what you typed, and the answer appears in place. **AI Chat** is a window —
+Chat has two surfaces over one history. **Quick AI** is the palette screen: **Ask AI** or **⌘Return**
+from the launcher asks what you typed, and the answer appears in place. Tab remains an alternative
+when AI is enabled. With AI disabled, Ask AI opens Settings → AI without enabling a provider or
+sending the query. **AI Chat** is a window —
 saved conversations in a sidebar on the left, the open one on the right, and a composer at the
 bottom with the model picker. ⌘J hands a Quick AI conversation to the window.
 
 ## Invariants
 
 - **AI is off out of the box, and off means fully off.** `AppSettings.aiEnabled` is the flag:
-  no `Quick AI` or `AI Chat` command in the launcher, no history database opened or created, no Codex
+  no active chat command in the launcher, no history database opened or created, no Codex
   helper for chat, no stop for it on Tab's ring, the palette leaves `.ai` and the window closes.
-  Installed providers may still remain available for Quick Actions, which has its own switch and route. Turning AI off cancels
+  The launcher’s Ask AI button only opens AI settings while disabled. Installed providers may still remain available for Quick Actions, which has its own switch and route. Turning AI off cancels
   every streaming reply and drops both transcripts, but touches neither the saved conversations in
   `ai-chats.sqlite3` nor a Keychain key. `aiEnabled` is excluded from settings backups like every
   other AI key, so an import can never arm a feature it cannot configure.

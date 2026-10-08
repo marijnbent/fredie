@@ -43,7 +43,7 @@ enum PaletteMode: String, CaseIterable, Identifiable {
     }
     var placeholder: String {
         switch self {
-        case .launcher: return "Search for apps and commands…"
+        case .launcher: return "Search apps…"
         case .ai: return "Ask anything…"
         case .aiHistory: return "Search chats…"
         case .calculatorHistory: return "Do math, convert units, or search your past calculations…"

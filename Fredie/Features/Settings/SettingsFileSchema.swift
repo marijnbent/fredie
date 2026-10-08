@@ -46,7 +46,6 @@ enum SettingsFileSchema {
         case .hyperKeyIncludesShift: return bind(settings, \.hyperKeyIncludesShift)
         case .hyperKeyQuickPress: return bind(settings, \.hyperKeyQuickPress)
         case .calcNumberStyle: return bind(settings, \.calcNumberStyle)
-        case .launcherShowsSuggestions: return bind(settings, \.launcherShowsSuggestions)
         case .rootSearchSensitivity: return bind(settings, \.rootSearchSensitivity)
         case .applicationsEnabled: return launcher.kindBinding(for: key, kind: .application)
         case .searchScopes: return bind(settings, \.searchScopes) { SearchScopes.normalize($0) }

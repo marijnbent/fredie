@@ -83,6 +83,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` |
 | `palette-selection-test` | `Features/PaletteRowIndex.swift` |
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift`, `Extensions/Model/ExtensionFormMetrics.swift` |
+| `palette-surface-test` | Compact launcher and full-panel sizing, stable anchors across modes, and the transparent gap between search and results |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
@@ -178,8 +179,7 @@ find ~/Library/Developer/Xcode/DerivedData -name "Fredie*.app" -maxdepth 6 -prin
 
 - Zero **new** warnings. Pre-existing ones are not your problem; new ones are.
 - No `@unchecked Sendable`, `nonisolated(unsafe)` or `assumeIsolated` added without a stated reason.
-- The type-checker did not time out. `LauncherList.rows` already carries an explicit annotation for
-  this reason; the fix for a timeout is an annotation, not a restructure.
+- The type-checker did not time out. The fix for a timeout is an annotation, not a restructure.
 - Release binary growth under **2%** for an ordinary change.
 
 ### Lint

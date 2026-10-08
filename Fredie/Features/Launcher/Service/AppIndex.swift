@@ -315,12 +315,9 @@ extension AppEntry.Kind {
 final class AppIndex {
     private(set) var apps: [AppEntry] = []
 
-    /// The launcher's rows in order, with the size of each pinned section at their head.
     struct Results: Equatable {
         var entries: [AppEntry] = []
         var favoriteCount = 0
-        var meetingCount = 0
-        var suggestionCount = 0
     }
 
     private struct MatchKey: Equatable {
@@ -331,20 +328,17 @@ final class AppIndex {
         let sensitivity: SearchSensitivity
     }
 
-    private struct ResultsKey: Equatable {
+    private struct AppResultsKey: Equatable {
         let match: MatchKey
         let visibilityRevision: Int
         let favoritesRevision: Int
-        let hotKeysRevision: Int
-        let showsSuggestions: Bool
-        /// Suggestions and usage order age with the clock, which no revision tracks.
+        let fallbackLimit: Int
         let minute: Int
     }
 
     /// Repeated renders for the same query reuse the ranking instead of re-matching every frame.
     @ObservationIgnored private var matchMemo = Memo<MatchKey, [AppEntry]>()
-    @ObservationIgnored private var resultsMemo = Memo<ResultsKey, Results>()
-    /// Bumped whenever `apps` changes, so both memos above name the entry set they were built from.
+    @ObservationIgnored private var appResultsMemo = Memo<AppResultsKey, Results>()
     private var entriesRevision = 0
 
     private static let systemActionEntries: [AppEntry] = SystemActionCatalog.all
@@ -655,34 +649,37 @@ final class AppIndex {
         return byUsage(listed, usage: ranking.snapshot())
     }
 
-    /// The launcher's rows: ranked matches, or favorites, suggestions and each kind by usage.
-    func orderedResults(
-        query: String, visibility: VisibilityStore, favorites: FavoritesStore, hotKeys: HotKeyManager
+    func appResults(
+        query: String, visibility: VisibilityStore, favorites: FavoritesStore, fallbackLimit: Int
     ) -> Results {
         let q = query.trimmingCharacters(in: .whitespaces)
-        let showsSuggestions = settings?.launcherShowsSuggestions ?? true
         let usage = ranking.snapshot()
-        let key = ResultsKey(
+        let key = AppResultsKey(
             match: matchKey(q), visibilityRevision: visibility.revision,
-            favoritesRevision: favorites.revision, hotKeysRevision: hotKeys.revision,
-            showsSuggestions: showsSuggestions, minute: Int(usage.now.timeIntervalSince1970 / 60))
-        return resultsMemo.value(for: key) {
-            // Filtering stays downstream of `matches` so that memo is never keyed on hidden state.
-            let visible = matches(q).filter(visibility.isVisible)
-            guard q.isEmpty else { return Results(entries: visible) }
-            let split = favorites.ordered(visible)
-            let suggested =
-                showsSuggestions ? suggestions(from: split.rest, usage: usage, hotKeys: hotKeys) : []
-            let shown = Set(suggested.map(\.id))
-            let rest = byUsage(split.rest.filter { !shown.contains($0.id) }, usage: usage)
-            // Above Suggestions: a meeting is worth opening only until it ends.
-            let meetings = rest.filter { $0.kind == .meeting }
-            return Results(
-                entries: split.favorites + meetings + suggested + rest.filter { $0.kind != .meeting },
-                favoriteCount: split.favorites.count, meetingCount: meetings.count,
-                suggestionCount: suggested.count)
+            favoritesRevision: favorites.revision, fallbackLimit: fallbackLimit,
+            minute: Int(usage.now.timeIntervalSince1970 / 60))
+        return appResultsMemo.value(for: key) {
+            let isIncluded = { (entry: AppEntry) in
+                entry.kind == .application && visibility.isVisible(entry)
+            }
+            let signals = { (entry: AppEntry) in self.signals(for: entry, usage: usage) }
+            guard q.isEmpty else {
+                return Results(
+                    entries: Signposts.interval("AppIndex.appResults") {
+                        LauncherAppResults.matches(
+                            apps, query: LauncherOrder.Query(q), sensitivity: sensitivity,
+                            limit: Self.appResultLimit, isIncluded: isIncluded, key: \.preferenceKey,
+                            profile: \.search, signals: signals)
+                    })
+            }
+            let pinned = LauncherAppResults.pinned(
+                apps, favoriteKeys: favorites.keys, fallbackLimit: fallbackLimit,
+                isIncluded: isIncluded, key: favorites.key(for:), signals: signals)
+            return Results(entries: pinned.items, favoriteCount: pinned.pinnedCount)
         }
     }
+
+    private static let appResultLimit = 200
 
     private var sensitivity: SearchSensitivity { settings?.rootSearchSensitivity ?? .default }
 
@@ -718,27 +715,6 @@ final class AppIndex {
         }
         return ordered
     }
-
-    /// Meetings keep their own card, AI is never pushed, and Fredie opening Fredie goes nowhere.
-    private func suggestions(
-        from entries: [AppEntry], usage: LauncherRankingStore.Snapshot, hotKeys: HotKeyManager
-    ) -> [AppEntry] {
-        let eligible = entries.filter {
-            $0.kind != .meeting && $0.settingsOwner != .ai
-                && !($0.bundleID?.hasPrefix(Self.ownBundlePrefix) ?? false)
-        }
-        return LauncherSuggestions.select(from: eligible, now: usage.now) { entry in
-            // `hotKeyAction` is nil for an extension command, whose shortcut is keyed by entry ID.
-            let action: HotKeyAction? =
-                entry.kind == .extensionCommand ? .extensionCommand(entryID: entry.id) : entry.hotKeyAction
-            return LauncherSuggestions.Traits(
-                signals: signals(for: entry, usage: usage), installedAt: entry.installedAt,
-                hasHotKey: action.flatMap(hotKeys.binding(for:)) != nil,
-                priority: CommandCatalog.command(for: entry)?.suggestionPriority)
-        }
-    }
-
-    private static let ownBundlePrefix = "nl.bentjes.fredie"
 
     private func signals(
         for entry: AppEntry, usage: LauncherRankingStore.Snapshot

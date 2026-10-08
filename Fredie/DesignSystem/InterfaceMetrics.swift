@@ -40,6 +40,7 @@ struct InterfaceMetrics: Equatable, Sendable {
         var panel: CGFloat { scaledPoints(Theme.Radius.panel, scale) }
         var row: CGFloat { scaledPoints(Theme.Radius.row, scale) }
         var emojiCell: CGFloat { scaledPoints(Theme.Radius.emojiCell, scale) }
+        var appTile: CGFloat { scaledPoints(Theme.Radius.appTile, scale) }
         var menu: CGFloat { scaledPoints(Theme.Radius.menu, scale) }
         var menuRow: CGFloat { scaledPoints(Theme.Radius.menuRow, scale) }
         var barControl: CGFloat { scaledPoints(Theme.Radius.barControl, scale) }
@@ -60,6 +61,8 @@ struct InterfaceMetrics: Equatable, Sendable {
 
         var panelWidth: CGFloat { scaledPoints(Theme.Size.panelWidth, scale) }
         var panelHeight: CGFloat { scaledPoints(Theme.Size.panelHeight, scale) }
+        var launcherWidth: CGFloat { scaledPoints(Theme.Size.launcherWidth, scale) }
+        var launcherHeight: CGFloat { scaledPoints(Theme.Size.launcherHeight, scale) }
         var headerHeight: CGFloat { scaledPoints(Theme.Size.headerHeight, scale) }
         var headerIconSlot: CGFloat { scaledPoints(Theme.Size.headerIconSlot, scale) }
         var searchFieldMinWidth: CGFloat { scaledPoints(Theme.Size.searchFieldMinWidth, scale) }
@@ -70,6 +73,8 @@ struct InterfaceMetrics: Equatable, Sendable {
         var barButtonHeight: CGFloat { scaledPoints(Theme.Size.barButtonHeight, scale) }
         var rowIcon: CGFloat { scaledPoints(Theme.Size.rowIcon, scale) }
         var resultRowIcon: CGFloat { scaledPoints(Theme.Size.resultRowIcon, scale) }
+        var appTile: CGFloat { scaledPoints(Theme.Size.appTile, scale) }
+        var appTileIcon: CGFloat { scaledPoints(Theme.Size.appTileIcon, scale) }
         var colorDot: CGFloat { scaledPoints(Theme.Size.colorDot, scale) }
         var calendarBarWidth: CGFloat { scaledPoints(Theme.Size.calendarBarWidth, scale) }
         var calendarBarHeight: CGFloat { scaledPoints(Theme.Size.calendarBarHeight, scale) }

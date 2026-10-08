@@ -97,7 +97,7 @@ final class MenuPanelController {
         core.palette.disarmHoverHighlight(pointerAt: NSEvent.mouseLocation)
         layout(
             corner: corner, parent: parent, metrics: core.settings.interfaceSize.metrics,
-            resetMotion: true)
+            headerExtent: core.paletteCoordinator.paletteSurface.headerExtent, resetMotion: true)
         if !wasVisible, panel.parent == nil { parent.addChildWindow(panel, ordered: .above) }
         startReveal(in: panel, transition: transition, motion: motion)
         panel.makeKey()
@@ -116,7 +116,7 @@ final class MenuPanelController {
             clipPath: clipPath, in: panel)
         layout(
             corner: corner, parent: parent, metrics: core.settings.interfaceSize.metrics,
-            resetMotion: false)
+            headerExtent: core.paletteCoordinator.paletteSurface.headerExtent, resetMotion: false)
     }
 
     private func setContent(
@@ -260,7 +260,8 @@ final class MenuPanelController {
 
     /// Sizes to the hosted menu, then seats it against the palette's frame in screen space.
     private func layout(
-        corner: MenuPanelCorner, parent: NSWindow, metrics: InterfaceMetrics, resetMotion: Bool
+        corner: MenuPanelCorner, parent: NSWindow, metrics: InterfaceMetrics, headerExtent: CGFloat,
+        resetMotion: Bool
     ) {
         guard let panel, let hosting, let motion else { return }
         let size = hosting.intrinsicContentSize
@@ -269,7 +270,7 @@ final class MenuPanelController {
         let inset = metrics.spacing.md
         let frame = corner.frame(
             contentSize: size, parentFrame: parent.frame, inset: inset,
-            headerExtent: metrics.size.headerPadding + metrics.size.headerHeight)
+            headerExtent: headerExtent)
         let canvas = corner.scaledFrame(frame, by: motion.maximumScale)
         let next = Placement(canvas: canvas, corner: corner)
         // Every arrow key re-pushes the tree; reconfiguring would cut the reveal short.

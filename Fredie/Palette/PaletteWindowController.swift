@@ -79,7 +79,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             // Re-resolve the anchor now, then hold it so resizes never move the window.
             anchor = nil
             // Size and place before ordering front, so a compact summon never flashes.
-            positionPanel(panel, collapsed: core.paletteCoordinator.paletteIsCollapsed)
+            positionPanel(panel)
             // Flush first-mount layout off-screen, so the safe-area settle isn't visible.
             panel.contentView?.layoutSubtreeIfNeeded()
             core.inputSourceSwitcher.beginSession(
@@ -256,13 +256,14 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     /// A drag re-anchors the session, so the next resize grows from where the user left it.
     func windowDidMove(_ notification: Notification) {
         guard let panel else { return }
-        let moved = CGPoint(x: panel.frame.minX, y: panel.frame.maxY)
+        let surface = self.surface
+        let moved = surface.anchor(of: panel.frame)
         guard moved != anchor else { return }
         guard drag != nil else { anchor = moved; return }
         let snapped = trackDrag(to: moved)
         anchor = snapped
         if snapped != moved {
-            panel.setFrameOrigin(CGPoint(x: snapped.x, y: snapped.y - panel.frame.height))
+            panel.setFrameOrigin(surface.frame(at: snapped).origin)
         }
     }
 
@@ -272,10 +273,10 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     func beginDrag() {
         guard let panel, let screen = panel.screen ?? targetScreen() else { return }
         let home = defaultAnchor(on: screen)
-        let current = CGPoint(x: panel.frame.minX, y: panel.frame.maxY)
+        let current = surface.anchor(of: panel.frame)
         let candidate = PalettePlacement.snapped(
             current, home: home, visibleFrame: screen.visibleFrame,
-            expandedHeight: metrics.size.panelHeight,
+            expandedHeight: surface.expandedHeight,
             within: Theme.Size.paletteSnapDistance, previous: nil, speed: 0)
         // Mere proximity must not latch a fast drag before its first move.
         let pixel = 1 / screen.backingScaleFactor
@@ -324,7 +325,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         }
         let snap = PalettePlacement.snapped(
             moved, home: session.home, visibleFrame: session.visibleFrame,
-            expandedHeight: metrics.size.panelHeight, within: Theme.Size.paletteSnapDistance,
+            expandedHeight: surface.expandedHeight, within: Theme.Size.paletteSnapDistance,
             previous: session.snap, speed: speed)
         let enteredVertical = snap.centeredX && !session.snap.centeredX
         let enteredHome = snap.height == .home && session.snap.height != .home
@@ -428,28 +429,27 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         return panel
     }
 
-    /// Resize to the given state, top edge anchored; applied even while hidden.
-    func applyCollapsed(_ collapsed: Bool) {
+    func applySurface() {
         guard let panel else { return }
-        positionPanel(panel, collapsed: collapsed)
+        positionPanel(panel)
     }
 
     /// A new width invalidates the placement the cached anchor encoded, so re-resolve it.
     func applyInterfaceSize() {
         guard let panel else { return }
         anchor = nil
-        positionPanel(panel, collapsed: core.paletteCoordinator.paletteIsCollapsed)
+        positionPanel(panel)
     }
 
-    /// Size to height and place against the session anchor, so the list grows downward.
-    private func positionPanel(_ panel: NSPanel, collapsed: Bool) {
+    private func positionPanel(_ panel: NSPanel) {
         guard let anchor = resolveAnchor() else { return }
-        let size = metrics.size
-        let height = collapsed ? size.compactHeight : size.panelHeight
-        let frame = NSRect(
-            x: anchor.x, y: anchor.y - height, width: size.panelWidth, height: height)
+        let frame = surface.frame(at: anchor)
+        guard frame != panel.frame else { return }
         panel.setFrame(frame, display: true)
+        Task { @MainActor [weak panel] in panel?.invalidateShadow() }
     }
+
+    private var surface: PaletteSurface { core.paletteCoordinator.paletteSurface }
 
     /// The display to anchor to; never `NSScreen.main`, which follows the focused window.
     private func targetScreen() -> NSScreen? {
@@ -473,13 +473,15 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             ? CGPoint(
                 x: defaultAnchor(on: screen).x,
                 y: PalettePlacement.expandedCenterY(
-                    in: screen.visibleFrame, expandedHeight: metrics.size.panelHeight))
+                    in: screen.visibleFrame, expandedHeight: surface.expandedHeight))
             : stored
-        return PalettePlacement.restored(
-            position,
-            graspable: CGSize(width: metrics.size.panelWidth, height: metrics.size.compactHeight),
+        let frame = surface.frame(at: position)
+        let visible = PalettePlacement.restored(
+            CGPoint(x: frame.minX, y: frame.maxY),
+            graspable: CGSize(width: surface.width, height: surface.headerExtent),
             visibleFrame: screen.visibleFrame,
-            minimumVisible: Theme.Size.paletteMinimumVisible)
+            minimumVisible: min(Theme.Size.paletteMinimumVisible, surface.headerExtent))
+        return visible == nil ? nil : position
     }
 
     /// The untouched placement on one display; the summon path and the drop guides share it.

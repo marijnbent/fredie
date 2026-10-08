@@ -137,7 +137,7 @@ enum AppActionsMenu {
         ]
         if app.canRevealInFinder {
             items.append(
-                PopoverMenuItem(title: "Show in Finder", systemImage: "folder", shortcut: "⌘↵") {
+                PopoverMenuItem(title: "Show in Finder", systemImage: "folder", shortcut: "⌃⌘↵") {
                     core.launcherCoordinator.showInFinder(app)
                 })
         }

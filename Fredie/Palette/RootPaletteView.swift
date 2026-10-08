@@ -48,10 +48,9 @@ struct RootPaletteView: View {
         switch vm.mode {
         case .launcher:
             return LauncherScreen(
-                appIndex: appIndex, favorites: favorites, visibility: visibility,
-                currencyRates: currencyRates, core: core, vm: vm, running: selectionIsRunning,
-                meeting: core.calendarCoordinator.cardedMeeting, now: meetingClock.now,
-                openActions: openActions, openArgumentOptions: openArgumentOptions,
+                appIndex: appIndex, favorites: favorites, visibility: visibility, core: core,
+                vm: vm, running: selectionIsRunning,
+                openActions: openActions,
                 scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
         case .uninstall:
             return UninstallScreen(
@@ -258,9 +257,10 @@ struct RootPaletteView: View {
                         Color.clear
                     } else {
                         screen.body(selection: sel, scroll: scroll)
+                            .modifier(PaletteCardMask(top: surface.cardTop))
                     }
                 }
-                .safeAreaInset(edge: .top, spacing: 0) { header }
+                .safeAreaInset(edge: .top, spacing: surface.cardGap) { header }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if !isCollapsed {
                         bottomBar(
@@ -302,9 +302,11 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
-                .clipShape(RoundedRectangle(cornerRadius: metrics.radius.panel, style: .continuous))),
+                .clipShape(surface.shape)),
             selection: sel)
     }
+
+    private var surface: PaletteSurface { core.paletteCoordinator.paletteSurface }
 
     /// The emoji grid's observers, split out so `stateObservers` stays within type-checker reach.
     @ViewBuilder
@@ -430,8 +432,7 @@ struct RootPaletteView: View {
                 land()
             }
             .modifier(SearchFieldHiding(hidden: hidesSearchField, apply: applySearchFieldHiding))
-            // Several paths flip `paletteIsCollapsed`, so resize the window to match.
-            .onChange(of: core.paletteCoordinator.paletteIsCollapsed) {
+            .onChange(of: surface) {
                 core.paletteCoordinator.syncPaletteSize()
             }
     }
@@ -596,7 +597,7 @@ struct RootPaletteView: View {
     /// A thin strip along the top edge for grabbing the window; the Appearance setting gates it.
     private var topDragStrip: some View {
         Color.clear
-            .frame(height: metrics.size.headerPadding)
+            .frame(height: surface.fieldTop)
             .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
     }
 
@@ -640,9 +641,9 @@ struct RootPaletteView: View {
                 // Given room last: at the default priority it would split it with the field.
                 Spacer(minLength: 0).layoutPriority(-1)
             }
-            if tabOpensChat {
+            if vm.mode == .launcher, headerAccessory == nil {
                 headerGutter(width: metrics.spacing.md)
-                quickAITabHint
+                launcherAIButton
             }
             if !isCollapsed, vm.mode == .fileSearch {
                 headerGutter(width: metrics.spacing.md)
@@ -702,7 +703,7 @@ struct RootPaletteView: View {
         }
         // Identical metrics in both states, so typing can't move the search bar.
         .frame(height: metrics.size.headerHeight)
-        .padding(.top, metrics.size.headerPadding)
+        .padding(.top, surface.fieldTop)
         .frame(maxWidth: .infinity)
         // Set after the show, so the field it names is focused rather than the search field.
         .onChange(of: vm.pendingArgumentEntryID) { focusPendingArgument() }
@@ -723,24 +724,17 @@ struct RootPaletteView: View {
         return screen.headerAccessory(at: selection(in: screen), focus: $argumentFocused)
     }
 
-    /// Nothing else advertises Tab, so the launcher says where it goes.
-    private var quickAITabHint: some View {
-        BarButton(chrome: .rounded, action: cycleMode) {
+    private var launcherAIButton: some View {
+        BarButton(chrome: .rounded, action: { core.quickAICoordinator.askFromLauncher(vm.query) }) {
             HStack(spacing: metrics.spacing.sm) {
-                Text("Quick AI")
+                Image(systemName: "sparkles")
+                Text("Ask AI")
                     .font(metrics.typography.bar)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                KeyCapChip(text: "⇥", style: .outline)
+                KeyCapChip(text: "⌘↵", style: .outline)
             }
+            .foregroundStyle(Theme.Colors.textSecondary)
         }
-        .help("Ask Quick AI what you typed  ⇥")
-    }
-
-    /// Resolved through `PaletteTabAction`, so the hint cannot promise the wrong destination.
-    private var tabOpensChat: Bool {
-        guard !isCollapsed, headerAccessory?.fieldNames.isEmpty ?? true else { return false }
-        return PaletteTabAction.resolve(
-            mode: vm.mode, aiEnabled: settings.aiEnabled) == .ask
+        .tooltip(settings.aiEnabled ? "Ask AI" : "Set up AI", edge: .bottom)
     }
 
     /// True when the screen took the keyboard over, which leaves the header empty beside the chevron.
@@ -777,7 +771,7 @@ struct RootPaletteView: View {
         let text = vm.query.isEmpty ? searchPrompt : vm.query
         let typed = (text as NSString).size(withAttributes: [.font: font]).width
         let chrome = metrics.size.headerIconSlot + metrics.spacing.md * 3 + metrics.spacing.xl
-        let room = metrics.size.panelWidth - accessory.width - chrome
+        let room = surface.width - accessory.width - chrome
         // +3pt so the caret sits after the last glyph rather than on top of it.
         return min(
             max(typed + metrics.scaled(3), metrics.scaled(18)),

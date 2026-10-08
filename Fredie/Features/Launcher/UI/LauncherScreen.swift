@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The root search: favorites, meetings, suggestions, then one section per kind, led by any card.
 struct LauncherScreen: PaletteScreen {
     let appIndex: AppIndex
     let favorites: FavoritesStore
@@ -9,40 +8,19 @@ struct LauncherScreen: PaletteScreen {
     let vm: PaletteState
     /// Sampled by `openActions`, so Restart and Quit can't move while the menu is up.
     let running: Bool
-    /// The join card's meeting, resolved by the coordinator; nil unless one is due.
-    let meeting: MeetingEvent?
-    let now: Date
     let openActions: () -> Void
-    /// Opens the palette's own menu for an `options=` field, keyed by argument name.
-    let openArgumentOptions: (String) -> Void
     /// Called when an action reorders the list, so the highlight scrolls back into view.
     let scrollToFollow: () -> Void
 
-    /// The one ordered result list; an empty query pins favorites above the ranked matches.
-    private let results: [AppEntry]
-    private let calc: CalcResult?
-    /// The colour the query itself spells, if it spells one; nil for every other query.
-    private let color: ColorValue?
-    /// Sections stand in for the ranked Results list, which a typed query collapses to.
-    private let showSections: Bool
-    /// Only the empty query pins favorites — a category shows its sections without one of its own.
-    private let pinsFavorites: Bool
-    /// How many of `results` are pinned favorites; zero unless the section shows.
-    private let favoriteCount: Int
-    /// How many follow the favorites as Meetings; zero unless the field is empty.
-    private let meetingCount: Int
-    /// How many follow the meetings as Suggestions; zero unless the field is empty.
-    private let suggestionCount: Int
-    /// The `Use "…" with` section, below every result; empty unless something is typed.
-    private let fallbacks: [(fallback: Fallback, entry: AppEntry)]
     /// Resolved in `init`: the palette indexes this several times per event, so it can't recompute.
-    let rows: [Row]
+    let rows: [AppEntry]
+    private let pinnedCount: Int
+    private let showsGrid: Bool
+    private let columns: Int
 
     init(
-        appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore,
-        currencyRates: CurrencyRateStore, core: AppCore, vm: PaletteState, running: Bool,
-        meeting: MeetingEvent?, now: Date,
-        openActions: @escaping () -> Void, openArgumentOptions: @escaping (String) -> Void,
+        appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore, core: AppCore,
+        vm: PaletteState, running: Bool, openActions: @escaping () -> Void,
         scrollToFollow: @escaping () -> Void
     ) {
         self.appIndex = appIndex
@@ -51,97 +29,47 @@ struct LauncherScreen: PaletteScreen {
         self.core = core
         self.vm = vm
         self.running = running
-        self.now = now
         self.openActions = openActions
-        self.openArgumentOptions = openArgumentOptions
         self.scrollToFollow = scrollToFollow
 
+        let columns = Self.columns(for: core.settings.interfaceSize.metrics)
+        self.columns = columns
         // Listed even when hidden from search: the shortcut that opened it still has to be answered.
         let pinned = vm.argumentEntryID.flatMap(core.customCommands.command(entryID:))
             .map(AppEntry.init).flatMap { $0.name == vm.query ? $0 : nil }
-        let ordered =
+        let results =
             pinned.map { AppIndex.Results(entries: [$0]) }
-            ?? appIndex.orderedResults(
-                query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
-        var results = ordered.entries
-        // A typed web address leads: nothing the index holds answers it better.
-        if pinned == nil, let browser = CommandCatalog.openInBrowser(for: vm.query),
-            visibility.isVisible(browser)
-        {
-            results.insert(browser, at: 0)
-        }
-        // No card over a pinned row: its fields hang off the selection, which must start on it.
-        let calc =
-            pinned == nil
-            ? CalcMemo.evaluate(vm.query, rates: currencyRates.rates, format: core.calcNumberFormat) : nil
-        // After the calculator: `#FF5733` is never arithmetic, so the two can't both answer.
-        let color = calc == nil && pinned == nil ? ColorValue.parse(vm.query) : nil
-        let fallbacks = core.fallbackCoordinator.entries(for: vm.query)
-        let entries = results.map(Row.entry) + fallbacks.map { Row.fallback($0.fallback, $0.entry) }
-        let pinsFavorites = vm.query.trimmingCharacters(in: .whitespaces).isEmpty
-        // At most one of them leads, so the flat index keeps a single-row offset.
-        let meeting = pinsFavorites ? meeting : nil
-        self.meeting = meeting
-        self.results = results
-        self.calc = calc
-        self.fallbacks = fallbacks
-        self.color = color
-        self.showSections = pinsFavorites || AppEntry.Kind.named(by: vm.query) != nil
-        self.pinsFavorites = pinsFavorites
-        self.favoriteCount = pinsFavorites ? ordered.favoriteCount : 0
-        self.meetingCount = pinsFavorites ? ordered.meetingCount : 0
-        self.suggestionCount = pinsFavorites ? ordered.suggestionCount : 0
-        if let calc {
-            self.rows = [.calc(calc)] + entries
-        } else if let color {
-            self.rows = [.color(color)] + entries
-        } else if let meeting {
-            self.rows = [.meeting(meeting)] + entries
-        } else {
-            self.rows = entries
-        }
+            ?? appIndex.appResults(
+                query: vm.query, visibility: visibility, favorites: favorites,
+                fallbackLimit: columns * 2)
+        rows = results.entries
+        pinnedCount = results.favoriteCount
+        showsGrid = pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    /// The card is a row like any other, so the flat selection indexes `rows` with no offset.
-    enum Row: Equatable, Identifiable {
-        case calc(CalcResult)
-        case meeting(MeetingEvent)
-        case color(ColorValue)
-        case entry(AppEntry)
-        /// Prefixed, because the same command can also be a ranked hit above its own fallback row.
-        case fallback(Fallback, AppEntry)
-
-        var id: String {
-            switch self {
-            case .calc: return "calc-card"
-            case .meeting: return "meeting-card"
-            case .color: return "color-card"
-            case .entry(let app): return app.id
-            case .fallback(let fallback, _): return "fallback-" + fallback.id
-            }
-        }
+    private static func columns(for metrics: InterfaceMetrics) -> Int {
+        max(Int((metrics.size.launcherWidth - metrics.spacing.md * 2) / metrics.size.appTile), 1)
     }
 
-    /// The pill carries no selection, so the screen applies the clamp the palette applies.
     private var clampedSelection: Int {
-        let count = rows.count
-        return count == 0 ? 0 : min(max(vm.selection, 0), count - 1)
+        rows.isEmpty ? 0 : min(max(vm.selection, 0), rows.count - 1)
     }
 
     var primaryActionTitle: String {
-        switch row(at: clampedSelection) {
-        case .calc: return "Copy Answer"
-        case .color: return "Copy Color"
-        case .meeting(let meeting):
-            return meeting.link == nil ? "Open in Calendar" : "Join Meeting"
-        case .entry(let app): return app.kind.descriptor.openVerb
-        case .fallback(let fallback, _): return fallback.openVerb
-        case nil: return "Open Application"
-        }
+        entry(at: clampedSelection)?.kind.descriptor.openVerb ?? "Open Application"
     }
 
-    private func row(at selection: Int) -> Row? {
+    private func entry(at selection: Int) -> AppEntry? {
         rows.indices.contains(selection) ? rows[selection] : nil
+    }
+
+    func move(_ delta: Int, axis: PaletteAxis, from selection: Int) -> Int? {
+        guard showsGrid else { return nil }
+        let grid = LauncherAppGrid(count: rows.count, columns: columns)
+        switch axis {
+        case .vertical: return grid.vertical(from: selection, by: delta)
+        case .horizontal: return grid.horizontal(from: selection, by: delta)
+        }
     }
 
     /// What the controls are is the owning feature's business; this only forwards.
@@ -150,146 +78,53 @@ struct LauncherScreen: PaletteScreen {
     )
         -> PaletteHeaderAccessory?
     {
-        guard let entry = entry(at: selection) else { return nil }
-        // A quicklink asks for its values in root search too, so the fallback never leaves it.
-        if entry.kind == .quicklink {
-            return QuicklinkArgumentsAccessory.make(
-                quicklink: quicklink(for: entry), core: core, vm: vm, focus: focus,
-                placement: .afterQuery, onOpenOptions: openArgumentOptions,
-                onSubmit: { activate(at: selection) })
-        }
-        if entry.kind == .customCommand {
-            return CustomCommandArgumentsAccessory.make(
-                command: core.customCommands.command(entryID: entry.id), vm: vm,
-                metrics: core.settings.interfaceSize.metrics, focus: focus,
-                onSubmit: { activate(at: selection) })
-        }
-        return ExtensionArgumentsAccessory.make(
-            entry: entry, coordinator: core.extensionCoordinator,
-            values: { name in headerFieldBinding(entry: entry, name: name) },
-            focus: focus, metrics: core.settings.interfaceSize.metrics,
+        guard let entry = entry(at: selection), entry.kind == .customCommand else { return nil }
+        return CustomCommandArgumentsAccessory.make(
+            command: core.customCommands.command(entryID: entry.id), vm: vm,
+            metrics: core.settings.interfaceSize.metrics, focus: focus,
             onSubmit: { activate(at: selection) })
     }
 
-    private func headerFieldBinding(entry: AppEntry, name: String) -> Binding<String> {
-        let key = PaletteState.argumentKey(entry.id, name)
-        return Binding(get: { vm.commandArguments[key] ?? "" }, set: { vm.commandArguments[key] = $0 })
-    }
-
-    /// The typed values for one row, stripped of blanks — what gets handed to the command.
     private func argumentValues(for entry: AppEntry) -> [String: String] {
-        if entry.kind == .quicklink {
-            guard let quicklink = quicklink(for: entry) else { return [:] }
-            return QuicklinkArgumentsAccessory.values(for: quicklink, core: core, vm: vm)
-        }
-        if entry.kind == .customCommand {
-            guard let command = core.customCommands.command(entryID: entry.id) else { return [:] }
-            return CustomCommandArgumentsAccessory.values(for: command, vm: vm)
-        }
-        var values: [String: String] = [:]
-        for argument in core.extensionCoordinator.commandArguments(for: entry) ?? [] {
-            let typed = vm.commandArguments[PaletteState.argumentKey(entry.id, argument.name)] ?? ""
-            if !typed.isEmpty { values[argument.name] = typed }
-        }
-        return values
-    }
-
-    private func quicklink(for entry: AppEntry) -> Quicklink? {
-        Quicklink.id(fromEntryID: entry.id).flatMap(core.quicklinks.quicklink)
-    }
-
-    private func entry(at selection: Int) -> AppEntry? {
-        guard case .entry(let app) = row(at: selection) else { return nil }
-        return app
-    }
-
-    private func isCardSelected(_ selection: Int) -> Bool {
-        switch row(at: selection) {
-        case .calc, .meeting, .color: return true
-        case .entry, .fallback, nil: return false
-        }
-    }
-
-    /// Whichever card leads, in the terms the list draws it in.
-    private var leadCard: LauncherList.LeadCard? {
-        if let calc { return .calc(calc) }
-        if let color { return .color(color) }
-        return meeting.map { .meeting($0, now: now) }
-    }
-
-    /// An error card is selectable but has no action: it must drive neither the pill nor ⌘K.
-    func hasPrimaryAction(at selection: Int) -> Bool {
-        guard case .calc(let result) = row(at: selection) else { return true }
-        return result.isActionable
+        guard entry.kind == .customCommand,
+            let command = core.customCommands.command(entryID: entry.id)
+        else { return [:] }
+        return CustomCommandArgumentsAccessory.values(for: command, vm: vm)
     }
 
     func actions(at selection: Int) -> PopoverMenuContent? {
-        switch row(at: selection) {
-        case .calc(let result):
-            return result.isActionable ? CalcActionsMenu.content(result: result, core: core) : nil
-        case .color(let color):
-            return ColorActionsMenu.content(color: color, core: core)
-        case .meeting(let meeting):
-            return MeetingActionsMenu.content(meeting: meeting, core: core)
-        case .entry(let app):
-            return AppActionsMenu.content(
-                app: app, searchQuery: vm.query, core: core, running: running,
-                favorites: favoriteActions(for: app, at: selection),
-                onResetRanking: {
-                    core.launcherCoordinator.resetRanking(for: app)
-                    // Reset can move the item; keep the highlight on the item whose action ran.
-                    if let index = rows.firstIndex(of: .entry(app)) { vm.selection = index }
-                },
-                onHideFromSearch: { _ = hideFromSearch(at: selection) })
-        case .fallback(let fallback, let app):
-            return FallbackActionsMenu.content(
-                fallback: fallback, entry: app, query: vm.query, core: core)
-        case nil:
-            return nil
-        }
+        guard let app = entry(at: selection) else { return nil }
+        return AppActionsMenu.content(
+            app: app, searchQuery: vm.query, core: core, running: running,
+            favorites: favoriteActions(for: app, at: selection),
+            onResetRanking: {
+                core.launcherCoordinator.resetRanking(for: app)
+                if let index = rows.firstIndex(of: app) { vm.selection = index }
+            },
+            onHideFromSearch: { _ = hideFromSearch(at: selection) })
     }
 
     func activate(at selection: Int) {
-        switch row(at: selection) {
-        // Error cards no-op — copyCalculatorResult only acts on value payloads.
-        case .calc(let result): core.calculatorCoordinator.copyCalculatorResult(result)
-        case .color(let color):
-            core.paletteCoordinator.hidePalette(restoreFocus: false)
-            Paster.copyPlainText(ColorFormat.primary(for: color).string(for: color))
-        case .meeting(let meeting): core.calendarCoordinator.activateMeeting(id: meeting.id)
-        case .entry(let app):
-            core.launcherCoordinator.launch(
-                app, searchQuery: vm.query, arguments: argumentValues(for: app))
-        case .fallback(let fallback, _):
-            core.fallbackCoordinator.run(fallback, query: vm.query)
-        case nil: break
-        }
+        guard let app = entry(at: selection) else { return }
+        launch(app)
     }
 
-    /// The card's meeting or a meeting row's; both answer the meeting menu's chords.
-    private func meeting(at selection: Int) -> MeetingEvent? {
-        switch row(at: selection) {
-        case .meeting(let meeting): return meeting
-        case .entry(let app) where app.kind == .meeting:
-            return core.calendarCoordinator.meeting(entryID: app.id)
-        default: return nil
-        }
+    private func launch(_ app: AppEntry) {
+        core.launcherCoordinator.launch(app, searchQuery: vm.query, arguments: argumentValues(for: app))
     }
 
-    /// ⌘↵ — a meeting copies its link, an answer becomes the query, an entry on disk is revealed.
     func secondary(at selection: Int) -> Bool {
-        if let meeting = meeting(at: selection) {
-            return MeetingActionsMenu.secondary(meeting: meeting, core: core)
-        }
-        if case .calc(let result) = row(at: selection) {
-            return core.calculatorCoordinator.putAnswerInSearchBar(result)
-        }
+        guard !vm.isComposing else { return false }
+        core.quickAICoordinator.askFromLauncher(vm.query)
+        return true
+    }
+
+    func tertiary(at selection: Int) -> Bool {
         guard let app = entry(at: selection), app.canRevealInFinder else { return false }
         core.launcherCoordinator.showInFinder(app)
         return true
     }
 
-    /// Offered only for an `.application` entry `RunningAppsMonitor` reports running.
     private func runningApplication(at selection: Int) -> AppEntry? {
         guard let app = entry(at: selection), app.kind == .application,
             core.runningApps.isRunning(app)
@@ -303,19 +138,9 @@ struct LauncherScreen: PaletteScreen {
         case .hideFromSearch: return hideFromSearch(at: selection)
         case .quit, .forceQuit: return quit(at: selection, force: shortcut == .forceQuit)
         case .restart: return restart(at: selection)
-        case .favoriteSlot(let index): return launchFavorite(at: index)
-        case .copyCalculation: return copyCalculation(at: selection)
-        case .openInApp, .showDetails:
-            guard let meeting = meeting(at: selection) else { return false }
-            return MeetingActionsMenu.perform(shortcut, meeting: meeting, core: core)
+        case .favoriteSlot(let index): return launchSlot(at: index)
         default: return false
         }
-    }
-
-    private func copyCalculation(at selection: Int) -> Bool {
-        guard case .calc(let result) = row(at: selection), result.isActionable else { return false }
-        core.calculatorCoordinator.copyCalculationWithExpression(result)
-        return true
     }
 
     /// ⌃⇧Q or ⌃⌥⇧Q — the screen owns the chord, but only a running app has anything to quit.
@@ -332,38 +157,32 @@ struct LauncherScreen: PaletteScreen {
         return true
     }
 
-    /// The highlight stays in Favorites: the top on add, the neighbour above on remove.
     private func toggleFavorite(at selection: Int) -> Bool {
         guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app) else { return false }
         let removed = favoriteIndex(of: app)
         favorites.toggle(app)
-        // A typed query pins no favorites, so nothing moved and the highlight stays.
-        guard pinsFavorites else { return true }
+        guard showsGrid else { return true }
         selectFavorite(at: removed.map { $0 - 1 } ?? 0)
         return true
     }
 
-    /// ⌘1–⌘9/⌘0 — launch a favorite by position, in either palette size.
-    private func launchFavorite(at index: Int) -> Bool {
-        guard let app = pinnedFavorites.dropFirst(index).first else { return false }
-        core.launcherCoordinator.launch(app)
+    private func launchSlot(at index: Int) -> Bool {
+        guard let app = rows.dropFirst(index).first else { return false }
+        launch(app)
         return true
     }
 
-    /// Empty while a query is typed, the only state in which the section is off screen.
-    private var pinnedFavorites: ArraySlice<AppEntry> { results.prefix(favoriteCount) }
+    private var pinnedFavorites: ArraySlice<AppEntry> { showsGrid ? rows.prefix(pinnedCount) : [] }
 
-    /// ⌥⌘↑/↓ — swap with the neighbouring favorite; the ends of the section have nowhere to go.
     func moveFavorite(_ delta: Int, at selection: Int) -> Bool {
         guard let app = entry(at: selection), let index = favoriteIndex(of: app) else { return false }
         let target = index + delta
-        guard target >= 0, target < favoriteCount else { return false }
-        favorites.exchange(favorites.key(for: app), with: favorites.key(for: results[target]))
+        guard target >= 0, target < pinnedFavorites.count else { return false }
+        favorites.exchange(favorites.key(for: app), with: favorites.key(for: rows[target]))
         follow(app)
         return true
     }
 
-    /// The ends drop the move they can't run; both rows call back here, never drifting.
     private func favoriteActions(
         for app: AppEntry, at selection: Int
     )
@@ -373,47 +192,44 @@ struct LauncherScreen: PaletteScreen {
         return AppActionsMenu.FavoriteActions(
             isFavorite: favorites.isFavorite(app),
             canMoveUp: index.map { $0 > 0 } ?? false,
-            canMoveDown: index.map { $0 < favoriteCount - 1 } ?? false,
+            canMoveDown: index.map { $0 < pinnedFavorites.count - 1 } ?? false,
             toggle: { _ = toggleFavorite(at: selection) },
             move: { _ = moveFavorite($0, at: selection) })
     }
 
-    /// Position inside the Favorites section, or nil when the entry isn't reorderable there.
     private func favoriteIndex(of app: AppEntry) -> Int? {
-        guard let index = results.firstIndex(of: app), index < favoriteCount else { return nil }
+        guard let index = rows.firstIndex(of: app), index < pinnedFavorites.count else { return nil }
         return index
     }
 
     /// ⇧⌘H — the row leaves the list for good, so the highlight takes the place it vacated.
     private func hideFromSearch(at selection: Int) -> Bool {
         guard let app = entry(at: selection), app.canHideFromSearch,
-            !CommandCatalog.isQueryDriven(app), let index = results.firstIndex(of: app)
+            !CommandCatalog.isQueryDriven(app), let index = rows.firstIndex(of: app)
         else { return false }
         visibility.setItemVisible(false, for: app)
         select(row: min(index, max(reorderedResults().entries.count - 1, 0)))
         return true
     }
 
-    /// The list reorders under an action; keep the highlight and the scroll on the row that moved.
     private func follow(_ app: AppEntry) {
         guard let index = reorderedResults().entries.firstIndex(of: app) else { return }
         select(row: index)
     }
 
-    /// Highlight a row of the Favorites section, clamped into what the section now holds.
     private func selectFavorite(at index: Int) {
-        let count = reorderedResults().favoriteCount
+        let count = reorderedResults().entries.count
         select(row: min(max(index, 0), max(count - 1, 0)))
     }
 
     /// Re-read the order the change just invalidated; this warms the key the next render reads.
     private func reorderedResults() -> AppIndex.Results {
-        appIndex.orderedResults(
-            query: vm.query, visibility: visibility, favorites: favorites, hotKeys: core.hotKeys)
+        appIndex.appResults(
+            query: vm.query, visibility: visibility, favorites: favorites, fallbackLimit: columns * 2)
     }
 
     private func select(row index: Int) {
-        vm.selection = index + (leadCard == nil ? 0 : 1)
+        vm.selection = index
         scrollToFollow()
     }
 
@@ -427,60 +243,20 @@ struct LauncherScreen: PaletteScreen {
     var compactFavorites: [AppEntry] { Array(pinnedFavorites.prefix(5)) }
 
     /// Whether the compact bar's "…" has anything to reveal.
-    var hasUnshownFavorites: Bool { favoriteCount > compactFavorites.count }
+    var hasUnshownFavorites: Bool { pinnedFavorites.count > compactFavorites.count }
 
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
-        AnyView(content(selection: selection, scroll: scroll))
+        AnyView(
+            LauncherList(
+                results: rows,
+                selectedRowID: entry(at: selection)?.id,
+                layout: showsGrid ? .grid(columns: columns) : .list,
+                scroll: scroll,
+                onActivate: launch,
+                onActions: { app in
+                    if let index = rows.firstIndex(of: app) { vm.selection = index }
+                    openActions()
+                },
+                onDropped: { core.paletteCoordinator.dragLanded() }))
     }
-
-    @ViewBuilder
-    private func content(selection: Int, scroll: ScrollIntent) -> some View {
-        LauncherList(
-            results: results,
-            selectedRowID: row(at: selection)?.id,
-            favoriteCount: favoriteCount,
-            meetingCount: meetingCount,
-            suggestionCount: suggestionCount,
-            showSections: showSections,
-            scroll: scroll,
-            card: leadCard,
-            cardSelected: isCardSelected(selection),
-            onActivateCard: {
-                vm.selection = 0
-                activate(at: 0)
-            },
-            onCardActions: {
-                guard hasPrimaryAction(at: 0) else { return }
-                vm.selection = 0
-                openActions()
-            },
-            onActivate: {
-                core.launcherCoordinator.launch(
-                    $0, searchQuery: vm.query, arguments: argumentValues(for: $0))
-            },
-            onActions: { app in
-                if let index = rows.firstIndex(of: .entry(app)) { vm.selection = index }
-                openActions()
-            },
-            onDropped: { core.paletteCoordinator.dragLanded() },
-            fallbacks: fallbackSection
-        )
-    }
-
-    /// Nil when nothing is typed, which is the one state the section has no input for.
-    private var fallbackSection: LauncherList.FallbackSection? {
-        guard !fallbacks.isEmpty else { return nil }
-        return LauncherList.FallbackSection(
-            title: Fallback.sectionTitle(query: vm.query),
-            entries: fallbacks.map(\.entry),
-            onActivate: { activate(at: fallbackRow(at: $0)) },
-            onActions: {
-                vm.selection = fallbackRow(at: $0)
-                openActions()
-            },
-            onConfigure: core.fallbackCoordinator.showSettings)
-    }
-
-    /// Fallbacks are the tail of `rows`, so a click maps to its flat index without a search.
-    private func fallbackRow(at index: Int) -> Int { rows.count - fallbacks.count + index }
 }

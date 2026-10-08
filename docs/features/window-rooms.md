@@ -152,7 +152,7 @@ to come back before returning parked windows.
 ## Wiring
 
 - **`AppEntry.Kind.windowRoom`**, entries `window-room:<uuid>`, published by `AppIndex.setWindowRooms`
-  between the window-layout and window-command slices; `LauncherList.rows` mirrors that order.
+  between the window-layout and window-command slices.
 - **`HotKeyAction.windowRoom(id:)`**, persisted under `hotkey.windowRoom.<uuid>` with a
   `boundWindowRoomIDs` index, dispatched to `enterRoom(id:)`.
 - **Commands**: Switch Room and Create Room, owned by

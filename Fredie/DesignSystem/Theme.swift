@@ -34,6 +34,7 @@ enum Theme {
         static let row: CGFloat = 10
         /// Emoji tiles are roomier than list rows, so their corners take one larger step.
         static let emojiCell: CGFloat = 12
+        static let appTile: CGFloat = 14
         static let menu: CGFloat = 6
         /// Hover highlight behind a popover menu row.
         static let menuRow: CGFloat = 10
@@ -67,6 +68,8 @@ enum Theme {
         static let detailListWidth: CGFloat = 290
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
+        static let launcherWidth: CGFloat = 560
+        static let launcherHeight: CGFloat = 380
         /// Opening size on a first run and the floor: below it the title bar's own parts collide.
         static let noteWindow = CGSize(width: 440, height: 180)
         /// The tallest a note window grows to fit its text; past it the editor scrolls.
@@ -115,6 +118,8 @@ enum Theme {
         static let barButtonHeight: CGFloat = 28
         static let rowIcon: CGFloat = 24
         static let resultRowIcon: CGFloat = 26
+        static let appTile: CGFloat = 112
+        static let appTileIcon: CGFloat = 40
         /// Colour-codes a secondary label, as Calendar.app marks an event's calendar.
         static let colorDot: CGFloat = 8
         /// The calendar-colour bar between a meeting row's icon and its title.

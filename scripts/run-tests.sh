@@ -130,6 +130,9 @@ run index file-search-performance Fredie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Features/FileSearch/Model/*.swift \
                            Fredie/Features/FileSearch/Service/FileSearchService.swift
+run launcher-apps-test     $L/SearchRelevance.swift $L/ScriptRomanization.swift \
+                           $L/LauncherMatch.swift $L/EntryNaming.swift $L/LauncherOrder.swift \
+                           $L/LauncherRankingStore.swift $L/LauncherAppResults.swift
 run ranking-test           $L/SearchRelevance.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/LauncherRankingStore.swift
 run scopes-test            $L/SearchScopes.swift
@@ -199,6 +202,15 @@ run palette-placement-test Fredie/Platform/Appearance.swift \
                            Fredie/DesignSystem/InterfaceMetrics.swift \
                            Fredie/Features/Settings/InterfaceSize.swift \
                            Fredie/Palette/PalettePlacement.swift
+run palette-surface-test   Fredie/Platform/Appearance.swift \
+                           Fredie/DesignSystem/Theme.swift \
+                           Fredie/DesignSystem/InterfaceMetrics.swift \
+                           Fredie/Features/Settings/InterfaceSize.swift \
+                           Fredie/Palette/PaletteSurface.swift \
+                           Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
+                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
 run scroll-reveal-test     Fredie/DesignSystem/Scrolling/SelectionReveal.swift
 run redaction-test         Fredie/DesignSystem/RedactedPlaceholder.swift
 run keyboard-focus-test    Fredie/DesignSystem/Interaction/KeyboardFocus.swift

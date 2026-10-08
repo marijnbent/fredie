@@ -196,8 +196,6 @@ also removes a whole failure class and any run-time dependency on `QuicklinkStor
 
 - **`AppEntry.Kind.windowLayout`** — entries are `window-layout:<uuid>`, published by
   `AppIndex.setWindowLayouts(_:)` immediately **before** the window-command slice.
-  `LauncherList.rows` mirrors that position; the slice order is the flat-selection invariant, and its
-  `assert` proves membership but **not** order, so the two arrays must move together.
 - **`HotKeyAction.windowLayout(id:)`** — persisted under `hotkey.windowLayout.<uuid>` with a
   `boundWindowLayoutIDs` index, the shape quicklinks and custom commands use. `WindowLayoutStore`
   decodes in `init`, so its live IDs are known by the time `hotKeys.start` prunes.

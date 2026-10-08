@@ -8,12 +8,20 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 ---
 
-## The look, in one paragraph
+## The palette
 
-Fredie is a **command palette**: a borderless floating panel whose surface is just the
+The launcher uses a 560 × 380-point surface, with four columns of app tiles when empty and a
+combined app list when searching. Other modes retain the 750 × 475-point panel. Both sizes scale
+with Interface Size. `PaletteSurface` owns the window and clipping geometry, preserving the
+center and top edge when switching modes. The launcher field is 44 points tall with an 8-point
+gap above the results card. Ask AI and ⌘Return use the same field; Ctrl-⌘Return reveals an app.
+
+Fredie is an **app launcher**: a borderless floating panel whose surface is just the
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
-white at a fixed alpha ramp. The header and bottom bar **float over the list as fully transparent
-overlays**; there are no hard-edged bars, strips, or dividers. Rows don't clip under the bars, they
+white at a fixed alpha ramp. The surface comes in two separate pieces: the search field is its own
+**capsule**, and the results sit on a **card** below it, `Spacing.md` apart; collapsed, only the
+capsule shows. The bottom bar **floats over the list as a fully transparent overlay**; there are no
+hard-edged bars, strips, or dividers inside the card. Rows don't clip under the bar, they
 **dissolve**: a scroll-driven gradient mask ghosts them as they pass beneath. Floating controls (the
 action pill, the menu circle, popover menus) are **Liquid Glass**.
 
@@ -25,7 +33,7 @@ Five load-bearing ideas, in priority order:
 
 1. **Surface = scrim over behind-window blur.** No solid backgrounds. Depth comes from the desktop showing through.
 2. **One alpha ramp, never grays.** Ink at fixed stops — white over the dark surface, black over the light one.
-3. **Floating bars, not chrome.** Header/footer are transparent overlays; the list fills the whole panel.
+3. **Floating pieces, not chrome.** The field is its own capsule; the footer is a transparent overlay on the card the list fills.
 4. **Edges dissolve, they don't clip.** Scroll-driven mask, no separators between list and bars.
 5. **Glass only on floating controls.** The main surface is never glass; pills/menus/circles are.
 
@@ -40,8 +48,8 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **No grays, no opaque fills on the surface.** Reach for `Theme.Colors.*` instead of `.gray`, `NSColor.windowBackground`, etc.
 - **Three things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. `ExtensionTintColors` and a tinted `IconCache` tile keep white ink, because a saturated tile carries its own contrast. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
 - **An icon is drawn for a surface *and* a system icon style, and both move under you.** macOS restyles the icons `NSWorkspace` hands out when System Settings → Appearance → **Icon & widget style** changes, so `IconStyleMonitor` and Fredie's own appearance both call `IconCache.invalidateStyled()`. **The monitor may not invalidate on the notification itself.** AppKit posts `NSWorkspaceIconAppearanceConfigurationDidChange` before IconServices has swapped what `NSWorkspace` vends — measured at 25–120ms behind, jittering run to run — and the images it hands back are live objects macOS restyles in place, so flattening one on the signal freezes the *outgoing* style into a bitmap nothing ever invalidates again. `IconStyleMonitor` therefore polls `IconCache.styleFingerprint()` until the pixels actually move, and only then invalidates. Waiting also sidesteps the cost: re-flattening every icon the instant a restyle begins forces a cold IconServices regeneration, measured at 160× the settled draw cost. That drops the cached bitmaps, bumps every cache key so an in-flight decode cannot repopulate a stale one, and moves `IconCache.style.generation`. **Any view that draws an icon must key its fetch on that generation** — wrap the view's own key in `IconRequest`, or call `IconCache.observeStyle()` where the icon is resolved synchronously in a `body`. It is reached through `IconCache` rather than injected precisely because icons are drawn in menus, popovers and every list, where a missed injection would be a silent staleness bug.
-- **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background; separation comes from `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the file search screen draw.)
-- **The panel corner is clipped once, at the root.** `RootPaletteView.body` ends with `.background(panelScrim) → .background(GlassEffectView()) → .clipShape(RoundedRectangle(26, .continuous))`. Keep that order; the scrim goes _over_ the glass, and the clip is last.
+- **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background of their own; the header's capsule is the root clip's, and the list's top inset adds the `Spacing.md` gap so rows rest inside the card. Separation comes from that gap and `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the file search screen draw.)
+- **The surface is clipped once, at the root.** `RootPaletteView.body` ends with `.background(panelScrim) → .background(GlassEffectView()) → .clipShape(PaletteSurfaceShape)`. For the launcher, the shape is a `headerHeight` capsule at the top plus, unless collapsed, the card from `Spacing.md` below it to the window's bottom with `panel 26` corners. Other modes retain their rounded panel. Keep that order; the scrim goes _over_ the glass, and the clip is last. The window's shadow follows the clipped alpha, so the gap and the top margin have none.
 - **Don't use the native scroll edge effect.** Inside a transparent panel it renders a hard-bounded rectangle. Use `edgeDissolve()`, or a gradient `mask` where a surface owns its own fade — `scrollEdgeEffectStyle` draws a *material* where a scroll view meets a safe area, so over a panel that already has `panelScrim` + `GlassEffectView` it composites to nothing. Tried and rejected on `QuickActionResultView`, with and without `safeAreaBar`. This is a rule about the borderless panels; the Settings window is a titled `NSWindow` whose system titlebar draws the band itself (see "Settings").
 - **Test over a light desktop.** Transparency and corner masking bugs only show over bright wallpaper. Dark wallpaper hides them.
 - **No `NSAlert` or system popovers.** Every confirmation, failure report, value prompt and transient readout is Fredie's own SwiftUI surface (see "Dialogs & HUD"). An Aqua alert on an alpha-over-vibrancy app reads as a different product, and its `runModal` run loop keeps Carbon hotkeys firing underneath.
@@ -98,7 +106,7 @@ groups. See "Section headers" below.
 
 ### Radius (`Theme.Radius`)
 
-`panel 26` · `row 10` · `card 10` · `dialog 20` · `dialogSymbol 16` · `menuPanel 16` · `menu 6` · `menuRow 10` · `barControl 8` · `thumbnail 6` · `keyCap 6` · `recorderKeyCap 4`
+`panel 26` · `row 10` · `appTile 14` · `card 10` · `dialog 20` · `dialogSymbol 16` · `menuPanel 16` · `menu 6` · `menuRow 10` · `barControl 8` · `thumbnail 6` · `keyCap 6` · `recorderKeyCap 4`
 
 `barControl` dresses the header pop-ups (type filter, AI model), which state a value and drop a menu
 the way a native pop-up button does — a rectangle, not a pill.
@@ -149,7 +157,7 @@ panel, the shortcut-recorder callout and the Notes switcher, and `menuRow` is de
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
-`rowIcon 24` · `resultRowIcon 26` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
+`rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
 `detailListWidth 290` ·
 `menuWidth 276` · `fileSearchFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
@@ -238,8 +246,8 @@ An extension's own surfaces live in `ExtensionColors` (`Features/Extensions/UI/`
 Source: `Palette/PalettePanel.swift`, `Palette/RootPaletteView.swift`.
 
 - **`PalettePanel`** is a borderless `NSPanel`: `isOpaque = false`, `backgroundColor = .clear`, `.palette` level (one above `.modalPanel`, so other apps' open panels never cover it), `hasShadow`, `animationBehavior = .none`. It hosts SwiftUI via `NSHostingView`. `PaletteWindowController` centers it slightly above screen center (`+8%`) and dismisses it on `windowDidResignKey`.
-- **The results layer fills the whole panel.** The header and bottom bar attach via `.safeAreaInset(edge: .top/.bottom)` as transparent overlays that float _over_ the list. The list underlaps them and dissolves at the edges.
-- **Header** (`headerHeight 44`): a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background). Sub-screens (Quicklinks, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
+- **The results layer fills the card.** The header and bottom bar attach via `.safeAreaInset(edge: .top/.bottom)`; the top inset's spacing is the `Spacing.md` field-to-card gap, collapsed to zero in compact. The list underlaps the bottom bar and dissolves at the edges; scrolled rows end at the card's top edge.
+- **Header** (`headerHeight 44`): the field capsule — a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background of its own). Sub-screens (Quicklinks, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
 - **Compact keyboard entry:** pressing `↓` in the collapsed launcher expands the results and selects the first row without replacing or defocusing the shared search field.
 - **Bottom bar** (`bottomBarHeight 52`): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
 - **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. Set `isSelected` and it fills with `selection` instead, which beats hover; the Notes formatting bar lights its buttons this way. Set `isCompact` for `sm` padding instead of `md`: around a 16-point glyph frame that makes a 28-point square. It carries the footer's two buttons and the file search header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.
@@ -359,7 +367,7 @@ The signature effect. A scroll-driven `LinearGradient` mask on each list so rows
 a floating bar, ghost beneath it, and vanish only at the window edge. Attach with `.edgeDissolve()` on
 the `ScrollView`, **before `.thinScrollbar()`** (so the scrollbar overlay stays unmasked).
 
-- Fade bands: top = `headerHeight + headerPadding + 32`, bottom = `bottomBarHeight + 28` — each overshoots its bar into the visible list, so the ramp finishes ~32/28px _past_ the bar rather than cliffing at its edge.
+- Fade bands: top = `headerHeight + headerPadding + 32`, bottom = `bottomBarHeight + 28` — each overshoots its bar into the visible list, so the ramp finishes ~32/28px _past_ the bar rather than cliffing at its edge. The top band still ends 24pt inside the card, which starts `Spacing.md` below the field.
 - Alpha floors mid-scroll (not to 0): **top 0.15, bottom 0.25**, eased by how much content is hidden past the edge (`1 − (1 − floor)·clamp(dist/band, 0, 1)`).
 - Only masks when the list is scrollable; the edge stop stays transparent so rubber-band bounces still dissolve. A list that fits gets no mask.
 - The mask spans the scroll view's **full** frame (`.ignoresSafeArea()`) — otherwise the bars' safe-area insets shift the gradient onto at-rest rows.
@@ -396,7 +404,8 @@ Source: `Launcher/UI/LauncherList.swift`, `FileSearch/UI/FileSearchList.swift`,
 
 All lists share one row grammar so launcher and file search look identical:
 
-- `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`.
+- `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`. A launcher row ends in its dimmed `⌘n` slot instead of a kind label, and ↩ in the accent colour when selected.
+- **The empty launcher is a grid of `AppTile`s**: a 40pt `appTileIcon` over a one-line `rowTrailing` name, `appTile 14` corners, the same `fill` precedence as a row. `Size.appTile` is the column width the panel is divided by.
 - **The palette result slot is always `Theme.Size.resultRowIcon`, whatever fills it.** A glyph smaller than an app icon — the uninstall list's 16pt checkbox — is centred _inside_ that 26pt slot rather than sizing the slot to itself. Every list then starts its title at the same x, so switching palette modes doesn't jog the column sideways. The slot doubles as the hit target. Settings and compact favorites keep the existing 24pt `rowIcon`.
 - Background is a `RoundedRectangle(row, .continuous)` filled by `fill`: **selection → hover → clear**, in that precedence. This `fill` computed property is copy-identical across `AppRow` and `UninstallRow` — keep them in sync. The launcher's lead cards don't restate it: `.leadCard(selected:)` (`Features/Launcher/UI/LeadCard.swift`) owns their fill and hover, so a card can't answer a selection differently from its siblings.
 - **Hover state lives on the row**, not the list, so a mouse sweep repaints only the rows entering/leaving (a list-level hover rebuilds every row per move — don't do that).
@@ -409,8 +418,7 @@ All lists share one row grammar so launcher and file search look identical:
 
 Palette lists (App Launcher, Emoji, File Search, Calculator History, Uninstall) render category labels
 through one shared **`SectionHeader`** (`.subheadline.medium`, secondary — `Features/Launcher/UI/SectionHeader.swift`).
-The launcher shows a single "Results" header over search matches, and per-kind sections
-(Favorites / Applications / System Settings / Commands) for the empty query; history screens use
+The launcher draws none — a grid while empty, one flat list once typed; history screens use
 date buckets (Today / Yesterday / …). Quicklinks adds a "Pinned" section above its results holding
 every pinned entry (filtered searches included).
 
@@ -856,7 +864,7 @@ shortcut"), live held keys with their reported side, a pending second modifier t
 - `allowsHitTesting(false)`: clicks reach the capture session's mouse monitor; a click on the active
   recorder toggles it off, and a click elsewhere closes it.
 
-The calculator's inline `CalculatorCard` reuses this card language (`cardFill` + `cardStroke`) rather than the row language, since it's a highlighted answer, not a list item. A value answer is a **two-column** layout: a source column (input echo) and a target column (result), separated by a centered `arrow.right` glyph (no divider line). `LeadCardColumn` is that column, pill included, so the colour card is built from the same part rather than a copy of it. Each column optionally carries a word-name **badge pill** beneath its value (`keyCap` font, `controlSurface` fill, `keyCap` radius) — `Expression`→`Result` for scalar arithmetic, unit or currency names for typed results (`Expression`→`Kilograms`), and moment labels for a date/time calc (`12:18 AM`→`9:00 AM`, `Friday, 24 July`→`Friday, 9 April, 2027`). A trailing operator keeps the last complete result and its badge visible while the next operand is being typed.
+The calculator's inline `CalculatorCard` reuses this card language (`cardFill` + `cardStroke`) rather than the row language, since it's a highlighted answer, not a list item. A value answer is a **two-column** layout: a source column (input echo) and a target column (result), separated by a centered `arrow.right` glyph (no divider line). `LeadCardColumn` is that column, pill included, for its value columns. Each column optionally carries a word-name **badge pill** beneath its value (`keyCap` font, `controlSurface` fill, `keyCap` radius) — `Expression`→`Result` for scalar arithmetic, unit or currency names for typed results (`Expression`→`Kilograms`), and moment labels for a date/time calc (`12:18 AM`→`9:00 AM`, `Friday, 24 July`→`Friday, 9 April, 2027`). A trailing operator keeps the last complete result and its badge visible while the next operand is being typed.
 
 ---
 

@@ -7,10 +7,13 @@ earliest scope wins; within one folder, the newest `CFBundleShortVersionString` 
 
 - **`AppEntry.Kind` is the only thing that says what an entry is.** One case per launcher section, per
   `VisibilityStore` category and per Settings pane — never re-derive a category by sniffing an entry ID.
-  A new category means a new case, a slice in `AppIndex.publishEntries()`, and the matching filter in
-  `LauncherList.rows`, in that order.
+  A new category means a new case and a slice in `AppIndex.publishEntries()`, in that order.
+- **Root search lists applications only, filtered before the limit.** `AppIndex.appResults` hands
+  `LauncherAppResults` only visible, deduplicated `.application` entries, and ranking applies its
+  limit after that, so no other kind can push a matching app off the list. `launcher-apps-test`
+  covers it, along with the pinned order, the most-used fallback and the grid's arrow keys.
 - **A category's switch is a master switch, not a list filter.** `VisibilityStore.isKindEnabled` gates
-  `orderedResults` *and* `HotKeyManager.perform`, so `Enable Applications` off stops the per-app chords
+  `appResults` *and* `HotKeyManager.perform`, so `Enable Applications` off stops the per-app chords
   as well as the rows. Its Settings switch stays available while the application
   list disables beneath it — the guard sits in the one dispatch funnel, the way each feature switch
   already guards its own. The per-item checkbox beside it is the narrow tool: it hides one row and
@@ -23,8 +26,9 @@ earliest scope wins; within one folder, the newest `CFBundleShortVersionString` 
   over one row is how somebody ends up with Notes on and its shortcut dead. Everything the table does
   not name belongs to Settings › Commands and answers to that switch.
 - **The ranking lives in pure files.** `Model/LauncherMatch.swift` (the scorer),
-  `Model/LauncherOrder.swift` (the comparator) and `Model/LauncherSuggestions.swift` are
-  Foundation-only and pure, so `fuzz-test` compiles the shipped code. Changing a rule means changing
+  `Model/LauncherOrder.swift` (the comparator), `Model/LauncherSuggestions.swift` and
+  `Model/LauncherAppResults.swift` are Foundation-only and pure, so `fuzz-test` and
+  `launcher-apps-test` compile the shipped code. Changing a rule means changing
   [Ranking](#ranking), never adding a tuning constant.
 - **`Model/EntryNaming.swift` is the only place a name is decided, for every kind alike.** A producer
   fills `EntryNaming.Sources` — title, alternate titles, subtitle, keywords — and `profile(for:)`
@@ -248,6 +252,9 @@ by the title's own score, then by name. The subtitle does not name the entry, so
 
 ### Category search
 
+**Root search does not offer this today**: it lists applications only (see
+[The empty list](#the-empty-list)). `categoryListing` remains available to Settings search; the mixed launcher result path is removed.
+
 A query that *equals* a category's own name lists that whole category under its section header, in the
 order the section shows when the field is empty. Both words a kind already carries work — the section
 title and the singular label, `Window Management`/`Window Command` — read straight
@@ -262,19 +269,16 @@ listing, so the app appears under Applications above the panes. Since slice orde
 does, and the sectioned view stays 1:1 with the flat selection. Visibility still applies downstream,
 and no `limit` does, matching the empty query.
 
-`LauncherScreen` therefore separates the two jobs the empty query used to do at once: `showSections`
-draws the headers, `pinsFavorites` pins the Favorites prefix and hands out the ⌘-digit slots. A category
-listing takes the first only. Opening a row from one records the visit but not the word — a category
-word is not a search for the row that ran, and learning it would rank that row under `s`.
+The root app-only list does not use category listings or section headers.
 
 ### Contextual commands
 
+**Root search does not offer this today**; `CommandCatalog.contextual` is unchanged.
+
 A **contextual** command is one the query itself supplies the target for, so it exists only while a
-query resolves and never sits in the index. `CommandCatalog.contextual` names them, `all` filters
-them out, and `LauncherScreen` offers the row per keystroke — ahead of the ranked matches, because
-nothing the index holds answers a typed address better. There is one today: typing a web address or
-a bare host puts **Open in Browser** on top, and activating it hands the URL to the system's default
-handler through `AppLauncher.open`.
+query resolves and never sits in the index. `CommandCatalog.contextual` retains the Open in Browser command for its direct callers;
+`LauncherScreen` does not add it to app results. `AppLauncher.open` hands its URL to the system’s
+default handler.
 
 The shape a query has to have is `QuicklinkDestination.detect` returning `.web`, reused rather than
 re-written so `github.com` and `https://…` mean the same thing here as they do in a quicklink. The
@@ -289,6 +293,9 @@ The row prints `AppEntry.subtitle` beside its name — the one field for an entr
 can't say what it acts on.
 
 ### Fallbacks
+
+**Root search does not draw fallback rows today**; `FallbackCoordinator` and Settings › Fallbacks
+are unchanged.
 
 A **fallback** is the other half of the query-driven idea: a command the query is the input for,
 offered under a `Use “…” with…` header **below every result**, whatever the query says. A contextual
@@ -334,12 +341,9 @@ lists exactly `FallbackCoordinator.available`, so a fallback whose feature is of
 pane as well as from the launcher, and reorders through ↑/↓ buttons like a favorite rather than
 introducing this codebase's first drag-reorder.
 
-**A fallback row is not a result, and `LauncherScreen.Row` says so.** `.fallback` is its own case
-with a `fallback-` prefixed id, because Quick AI can be a ranked hit *and* a fallback in the same
-list, and two rows sharing one id would collapse in `ForEach`. That is also why `LauncherList` takes
-a `selectedRowID` rather than an entry id. Nothing about a fallback row is learned, pinned or
-revealed: `activate` routes to `FallbackCoordinator.run` instead of `LauncherCoordinator.launch`, and
-`FallbackActionsMenu` offers only running it and opening the pane.
+Nothing about a fallback is learned, pinned or revealed: it routes to `FallbackCoordinator.run`
+instead of `LauncherCoordinator.launch`, and `FallbackActionsMenu` offers only running it and opening
+the pane.
 
 ### User aliases
 
@@ -431,33 +435,18 @@ per-item reset in its Actions menu, and users can clear all learned ranking in G
 
 ## The empty list
 
-Favorites, then Meetings, then Suggestions, then one section per kind. Meetings sit above
-Suggestions because a meeting is worth opening only until it ends. They keep the agenda's start
-order, including in the `Meetings` category listing, regardless of title or past usage. Each remaining
-kind section is sorted by the tiebreak, so what the user opens comes first and never-used entries still
-read alphabetically below it. The sort runs within each contiguous kind run of the publication order,
-so the sectioned view stays 1:1 with the flat selection.
+A grid of the pinned apps, in `FavoritesStore.keys` order. With no visible app pinned, the grid shows
+the most-used apps instead — `LauncherOrder.byUsage`, capped at three rows — and those tiles are not
+favorites, so `Results.favoriteCount` is zero and nothing about them reorders. A typed query swaps the
+grid for one ranked list of apps; there are no section headers, cards or fallback rows in either.
 
-### Suggestions
+The column count is `(panelWidth − 2 × spacing.md) / Size.appTile`, computed by `LauncherScreen`
+from `InterfaceMetrics`, so the drawn grid and `LauncherAppGrid`'s arrow moves read the same number.
+←/→ step one tile and stop at the ends; ↑/↓ step one row, and ↓ into a short last row lands on its
+last tile. A typed list returns nil from `move`, so ←/→ stay with the caret.
 
-`LauncherSuggestions.select` chooses at most five from every visible entry that is not a favorite, a
-meeting, an AI command or Fredie itself. AI is the lowest priority, so Quick AI and AI Chat are
-never suggested, however often they are opened:
-
-1. up to two apps or extensions installed in the last five minutes and never opened —
-   `AppEntry.installedAt` is the bundle's added-to-directory date;
-2. entries with a score above 1 and no bound shortcut, in empty-list order — a shortcut is already the
-   faster way in;
-3. while fewer than five, built-in commands with no alias or shortcut, by
-   `CommandID.suggestionPriority`: Clipboard History, Search Files, My Schedule, Search Emoji &
-   Symbols, then Create Quicklink. A command whose feature is off is absent from the
-   index, so it is never offered.
-
-A suggested entry leaves its kind section below, so no row appears twice. `AppIndex.Results` carries
-`favoriteCount`, `meetingCount` and `suggestionCount`, which `LauncherScreen` hands to `LauncherList`
-for its three leading headers. **Show suggestions** in Settings › General › Search turns the section
-off (`launcherShowsSuggestions`, carried by a settings backup). `HotKeyManager.revision` is part of
-`AppIndex`'s results key, because binding a shortcut takes an entry out of the section.
+The launcher no longer has a separate Suggestions section or its setting. When nothing is pinned,
+the app grid uses launch frequency and recency to select apps.
 
 ## System actions
 
@@ -554,7 +543,7 @@ and launcher checkbox live in Settings › Window Management beside the commands
 ## Rooms
 
 `RoomStore` supplies the `.windowRoom` slice the same way, sorted by name and published between the
-window layouts and the window commands; `LauncherList.rows` mirrors that position. ↵ on a room
+window layouts and the window commands. ↵ on a room
 enters it through `RoomCoordinator.enterRoom(id:)`, which hides the palette itself. The section and
 the two room commands leave together with `windowRoomsShowInLauncher`. See
 [window-rooms.md](window-rooms.md).
@@ -672,10 +661,11 @@ whose icon moved.
 ## Favorites
 
 `FavoritesStore.keys` is the order — the array *is* the ranking, and it only shows while the query is
-empty, where `AppIndex.orderedResults` pins it as a prefix of the results and counts it in
-`Results.favoriteCount`. `LauncherScreen` reads that count once in `init`, and the list, the reorder
-rows and the chord guards all read that one number, so the visible section and what a move acts on
-can't disagree.
+empty, where `AppIndex.appResults` lays it out as the grid and counts it in
+`Results.favoriteCount`. Only applications are pinned there; a favorite of another kind stays in
+`keys` and simply isn't drawn. `LauncherScreen` reads that count once in `init`, and the grid, the
+reorder rows and the compact strip all read that one number, so the visible pins and what a move
+acts on can't disagree.
 
 The ⌘K menu carries **Add / Remove from Favorites** (⇧⌘F) plus **Move Favorite Up / Down** (⌥⌘↑ /
 ⌥⌘↓). A move row is only built in a direction that exists, so the first favorite has no Up row and
@@ -691,7 +681,7 @@ retains entries that `VisibilityStore` hides or that aren't currently indexed �
 them with `compactMap` and never prunes them, which is how a favorite survives an unmounted volume —
 so exchanging the two *visible* keys leaves every such key on its own slot.
 
-Both actions re-ask `orderedResults` afterwards and restate `vm.selection` against it; the mutation
+Both actions re-ask `appResults` afterwards and restate `vm.selection` against it; the mutation
 already invalidated the memo, so that call warms the exact key the next render reads. Where the
 highlight lands differs on purpose: a **move** follows the entry, since the point of the action is
 where that entry now sits, while a **toggle** stays with the section rather than chasing an entry
@@ -704,23 +694,24 @@ across the list — the top of Favorites on add, the neighbour above the one tha
 so the same positions work on QWERTY and AZERTY. The same slots address pinned Clipboard entries in
 that screen; the eleventh favorite is still listed and reorderable, and simply has no slot.
 
-Both palette sizes serve the chords from the same prefix, because `paletteIsCollapsed` already
-requires an empty query: **compact implies empty implies `favoriteCount` is the pinned prefix**. That
-is why `LauncherScreen.pinnedFavorites` feeds the strip, the chords and the numbered rows alike,
-rather than the compact bar re-deriving an empty-query order of its own. In compact the strip draws
-the first five; ⌘6–⌘0 still launch favorites it has no room for, and the "…" is a button after them
-rather than a slot, so no favorite loses its digit to the overflow.
+**A slot is a position in what root search shows**: the grid's tiles while the field is empty (pins,
+or the most-used apps when nothing is pinned), the ranked rows once a query is typed. `launchSlot`
+reads `LauncherScreen.rows`, the same array the view draws, so a digit can't name a tile it isn't on.
+Both palette sizes agree because `paletteIsCollapsed` already requires an empty query: **compact
+implies empty implies the grid**. The compact strip draws the first five pins
+(`LauncherScreen.pinnedFavorites`); ⌘6–⌘0 still launch tiles it has no room for, and the "…" is a
+button after them rather than a slot.
 
-Holding ⌘ swaps each numbered row's kind label for its chord. `PalettePanel` publishes the modifier
+A typed row shows its chord on the trailing edge, dimmed, and the selected row shows ↩ in its place.
+A tile shows its chord only while ⌘ is held. `PalettePanel` publishes the modifier
 into `PaletteState.commandHeld` from `.flagsChanged` and clears it in `resignKey` — not in `prepare`,
 which a re-show that preserves state skips entirely. The flag flips **400 ms after** the press, not
 on it: every ⌘ chord in the palette starts as a ⌘ press, so revealing on the down edge flashed the
 numbering under ⌘↵ and ⌘K. `noteCommandHeld` schedules the reveal and any release cancels it, so a
-chord's own tap never outlives its keystroke while a deliberate hold still lights every row. **`AppRow` observes that flag itself**: reading
+chord's own tap never outlives its keystroke while a deliberate hold still lights every tile. **`AppTile` observes that flag itself**: reading
 it any higher would attach it to `RootPaletteView`'s body and rebuild the whole palette on every ⌘
-press, where a row-level read re-runs only the handful of rows the `LazyVStack` has realized. The
-digit each row shows is carried on its `Row` case from the section build, so no row searches for its
-own position.
+press, where a tile-level read re-runs only the tiles the `LazyVGrid` has realized. Each tile's and
+row's digit comes from its enumerated position, so none searches for its own place.
 
 ## Hiding one result
 
@@ -749,8 +740,8 @@ no such menu item.
 
 ## Reveal in Finder
 
-Application and System Settings results expose **Show in Finder** in their ⌘K Actions menu and on
-**⌘↵**. Synthetic command results have no filesystem location, so neither the menu row nor the
+Application results expose **Show in Finder** in their ⌘K Actions menu and on
+**⌃⌘↵**. **⌘↵** asks Quick AI using the search field, even without an app match. Synthetic command results have no filesystem location, so neither the menu row nor the
 shortcut is available for them. `AppEntry.canRevealInFinder` is the one rule both the menu row and
 the key handler read, so the advertised chord can't drift from the behavior.
 
