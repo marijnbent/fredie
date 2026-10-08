@@ -1,11 +1,11 @@
 # Third-party notices
 
-Tinycast is licensed under the GNU Affero General Public License v3 — see [LICENSE](LICENSE). It
+Fredie is licensed under the GNU Affero General Public License v3 — see [LICENSE](LICENSE). It
 also redistributes the third-party material recorded below, under the terms stated for each.
 
 ## Dictation model resources
 
-Tinycast's dictation code uses Apple's frameworks only. No speech model is bundled with the app.
+Fredie's dictation code uses Apple's frameworks only. No speech model is bundled with the app.
 Optional downloads use Moondream's Parakeet Ultra and Redux, derived from NVIDIA Parakeet
 (CC BY 4.0), and Qwen3-ASR (Apache 2.0).
 Parakeet Core ML conversions are provided by FluidInference; Qwen conversions by UniMocha.
@@ -223,15 +223,15 @@ Qwen's tokenizer resources come from Qwen/Qwen3-ASR-0.6B. The Apache 2.0 licence
    limitations under the License.
 ```
 
-## Brand marks — `Tinycast/Assets.xcassets/AIBrand*.imageset`
+## Brand marks — `Fredie/Assets.xcassets/AIBrand*.imageset`
 
 Sixteen monochrome template SVGs, ~300 B–2 KB each, drawn beside a model's name in the model
 picker and the chat header, and beside a provider in Settings, so a route is recognisable at a
 glance.
 
-Every mark is the trademark of the company it identifies. Tinycast uses them only to name that
+Every mark is the trademark of the company it identifies. Fredie uses them only to name that
 company's own models inside its own UI. No affiliation, sponsorship or endorsement is implied, and
-none of these companies has reviewed or approved Tinycast.
+none of these companies has reviewed or approved Fredie.
 
 ### Simple Icons — thirteen marks
 
@@ -241,7 +241,7 @@ none of these companies has reviewed or approved Tinycast.
 The Simple Icons **project** is released under CC0 1.0 Universal. Its own disclaimer is explicit
 that this does not extend to every mark the project carries: the icons depict third-party brands
 whose trademarks stay with their owners, and the absence of licence data for a given icon does not
-imply the icon is unlicensed. Anyone redistributing Tinycast, or reusing these files from it,
+imply the icon is unlicensed. Anyone redistributing Fredie, or reusing these files from it,
 should read the disclaimer and satisfy themselves about the brands involved:
 <https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md>.
 
@@ -312,13 +312,13 @@ licence. The room model, the layout and grid engines, arrangement reading, windo
 parking and its ledger, the pass that walks into a room, and the animated layout preview all
 follow that project. Every adapted file says so on its first line, with a link to the licence:
 
-- `Tinycast/Features/WindowManagement/Model/`: `Room.swift`, `RoomWindow.swift`,
+- `Fredie/Features/WindowManagement/Model/`: `Room.swift`, `RoomWindow.swift`,
   `RoomLayoutKind.swift`, `RoomLayoutEngine.swift`, `RoomGrid.swift`, `RoomArrangement.swift`,
   `RoomWindowMatcher.swift`, `RoomParking.swift`, `RoomParkingLedger.swift`, `RoomPlan.swift` and
   `RoomMinimumSizeStore.swift`
-- `Tinycast/Features/WindowManagement/Service/`: `RoomRunner.swift`, `RoomWindowSweep.swift`, and
+- `Fredie/Features/WindowManagement/Service/`: `RoomRunner.swift`, `RoomWindowSweep.swift`, and
   the window-number lookup in `AXWindowAccess.swift`
-- `Tinycast/Features/WindowManagement/UI/`: `RoomCoordinator.swift`, `RoomsScreen.swift`,
+- `Fredie/Features/WindowManagement/UI/`: `RoomCoordinator.swift`, `RoomsScreen.swift`,
   `RoomPickerScreen.swift`, `RoomPreviewController.swift` and `RoomPreviewView.swift`
 - `Tests/window-room-test.swift`, whose cases follow Rooms' own tests
 

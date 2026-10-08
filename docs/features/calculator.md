@@ -29,12 +29,12 @@ in (see Currency below).
   never `TimeZone.current`, which is what keeps the path pure and the harness deterministic.
   `localizedName` needs a `Locale`, so a badge is the identifier's own city component instead.
   Countries are the one exception: Foundation carries no country for a zone, so
-  `CountryZoneData.generated.swift` comes from `node Scripts/gen-countries.js` and is never hand-edited.
+  `CountryZoneData.generated.swift` comes from `node scripts/gen-countries.js` and is never hand-edited.
 - **A workday is 8 hours, and nothing consults a calendar.** Weekends and public holidays would make
   the same query answer differently on two Macs, and the only supported source for them is EventKit,
   whose Full Calendar Access grant a calculator must never provoke mid-keystroke. `workdays` is
   therefore an ordinary time unit, and `calendarEnabled` stays the Calendar feature's own consent.
-- **`CurrencyData.generated.swift` is emitted by `node Scripts/gen-currencies.js`** and never hand-edited.
+- **`CurrencyData.generated.swift` is emitted by `node scripts/gen-currencies.js`** and never hand-edited.
   Four currency tables are hand-maintained, all in `CalcCurrency`: `contested`, the nouns several
   currencies share (`dollars`, `pounds`); `isoNames`, the standard's own names where CLDR substitutes
   a different one (ISO 4217 calls CNY "Yuan Renminbi"); `signCodes`, the codes daily use spells from
@@ -477,7 +477,7 @@ echoes the typed text (`10km to mi ×`) rather than the conversion's own shorten
 `expr from (to|in|->) to` token shape, so `eur to usd` implies an amount of 1 exactly like `m to ft`.
 A leading sign is swapped back into amount-first order, so `€20 to GBP` and `20€ to GBP` parse alike.
 
-The table is **generated except for the judgement calls**. `node Scripts/gen-currencies.js` joins three
+The table is **generated except for the judgement calls**. `node scripts/gen-currencies.js` joins three
 sources on the ISO code and emits `CurrencyData.generated.swift`:
 
 - **The fiat rate feed** decides which currencies exist — the same feed the rates come from, so the
@@ -590,7 +590,7 @@ that test, and it is sound only because a partial snapshot is never persisted.
 The table is cached at `~/Library/Caches/<bundle-id>/currency-rates.json` and refreshed every 24h.
 The feed republishes about once a day, so a tighter interval would cost requests without returning
 newer numbers. Age is measured from the persisted `fetchedAt`, not from launch, so relaunching
-Tinycast never re-fetches a snapshot that is still fresh — a cold start with a same-day cache makes
+Fredie never re-fetches a snapshot that is still fresh — a cold start with a same-day cache makes
 zero requests. Offline, the last snapshot keeps answering; with no snapshot at all the card says so
 rather than guessing, and a currency the feed doesn't quote reports `No exchange rate for <CODE>.`
 The store hands `CalcEngine.evaluate` a finished `CurrencyRates` value — the engine never fetches,

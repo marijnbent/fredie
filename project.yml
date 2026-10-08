@@ -1,6 +1,6 @@
-name: Tinycast
+name: Fredie
 options:
-  bundleIdPrefix: com.tinycast
+  bundleIdPrefix: nl.bentjes
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
@@ -11,19 +11,17 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "6.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "X44F5HTS6P"
     CODE_SIGN_STYLE: Manual
-    # Stable self-signed identity so macOS keeps the Accessibility grant across rebuilds.
-    # Create it once — see docs/signing.md.
-    CODE_SIGN_IDENTITY: "Tinycast Self-Signed"
+    CODE_SIGN_IDENTITY: "Apple Development"
     SWIFT_STRICT_CONCURRENCY: complete
-    TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app
+    FREDIE_BUNDLE_IDENTIFIER: nl.bentjes.fredie
   configs:
     Debug:
-      TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app.dev
-      DICTATION_EXECUTABLE_NAME: Tinycast Dev Dictation
+      FREDIE_BUNDLE_IDENTIFIER: nl.bentjes.fredie.dev
+      DICTATION_EXECUTABLE_NAME: Fredie Dev Dictation
     Release:
-      DICTATION_EXECUTABLE_NAME: Tinycast Dictation
+      DICTATION_EXECUTABLE_NAME: Fredie Dictation
       # Release-only: library validation refuses Debug's `.debug.dylib`, whose team never matches.
       ENABLE_HARDENED_RUNTIME: YES
       # Strip the shipped binary (dSYM is still generated first) and drop unused code.
@@ -33,11 +31,11 @@ settings:
       DEAD_CODE_STRIPPING: YES
 
 targets:
-  Tinycast:
+  Fredie:
     type: application
     platform: macOS
     sources:
-      - path: Tinycast
+      - path: Fredie
         # The helper's own sources: compiling them in would link Vision and PDFKit into the app,
         # which is the whole thing running recognition out of process avoids.
         excludes:
@@ -46,7 +44,7 @@ targets:
           - Features/Dictation/Helper
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
-      - path: Tinycast/Resources/EmojiKeywords
+      - path: Fredie/Resources/EmojiKeywords
         type: folder
       # The MIT mark's licence asks the notice to travel with the binary, not just the repo.
       - path: NOTICE.md
@@ -72,32 +70,26 @@ targets:
           subpath: Contents/Helpers
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER)"
-        INFOPLIST_FILE: Tinycast/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Tinycast/Tinycast.entitlements
-        ASSETCATALOG_COMPILER_APPICON_NAME: tinycast
+        PRODUCT_BUNDLE_IDENTIFIER: "$(FREDIE_BUNDLE_IDENTIFIER)"
+        INFOPLIST_FILE: Fredie/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Fredie/Fredie.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: fredie
         COMBINE_HIDPI_IMAGES: YES
         LD_RUNPATH_SEARCH_PATHS:
           - "$(inherited)"
           - "@executable_path/../Frameworks"
       configs:
-        # Debug is its own channel, like beta/stable in release.yml: a distinct bundle id means a
-        # locally-run build gets its own prefs, caches, TCC grants and login item instead of
-        # inheriting — and corrupting — the installed app's state.
         Debug:
-          PRODUCT_NAME: Tinycast Dev
+          PRODUCT_NAME: Fredie Dev
 
   ClipboardTextHelper:
     type: tool
     platform: macOS
     sources:
-      - Tinycast/Features/Clipboard/Service/ClipboardTextExtractor.swift
-      - Tinycast/Features/Clipboard/Service/ClipboardTextHelper.swift
+      - Fredie/Features/Clipboard/Service/ClipboardTextExtractor.swift
+      - Fredie/Features/Clipboard/Service/ClipboardTextHelper.swift
     settings:
       base:
-        # release.yml passes PRODUCT_NAME on the xcodebuild line, which hits every target: without
-        # these two pinned, a channel build renames the executable `ClipboardTextWorker` looks for
-        # and gives the module a name with a space in it.
         EXECUTABLE_NAME: ClipboardTextHelper
         PRODUCT_MODULE_NAME: ClipboardTextHelper
         SKIP_INSTALL: YES
@@ -106,23 +98,23 @@ targets:
     type: application
     platform: macOS
     info:
-      path: Tinycast/Features/Dictation/Helper/Info.plist
+      path: Fredie/Features/Dictation/Helper/Info.plist
       properties:
         CFBundleName: "$(DICTATION_EXECUTABLE_NAME)"
         CFBundleDisplayName: "$(DICTATION_EXECUTABLE_NAME)"
         LSUIElement: true
     sources:
-      - Tinycast/Features/Dictation/Helper
-      - Tinycast/Features/Dictation/Model/DictationModel.swift
-      - Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
-      - Tinycast/Features/Dictation/Model/DictationLanguage.swift
-      - Tinycast/Features/Dictation/Service/DictationWire.swift
+      - Fredie/Features/Dictation/Helper
+      - Fredie/Features/Dictation/Model/DictationModel.swift
+      - Fredie/Features/Dictation/Model/DictationAudioChunks.swift
+      - Fredie/Features/Dictation/Model/DictationLanguage.swift
+      - Fredie/Features/Dictation/Service/DictationWire.swift
     settings:
       base:
         EXECUTABLE_NAME: "$(DICTATION_EXECUTABLE_NAME)"
         PRODUCT_NAME: "$(DICTATION_EXECUTABLE_NAME)"
         WRAPPER_NAME: "$(DICTATION_EXECUTABLE_NAME).app"
         PRODUCT_MODULE_NAME: DictationHelper
-        PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER).dictation"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(FREDIE_BUNDLE_IDENTIFIER).dictation"
         SKIP_INSTALL: YES
         SWIFT_OPTIMIZATION_LEVEL: -O

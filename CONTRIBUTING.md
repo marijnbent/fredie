@@ -1,7 +1,7 @@
-# Contributing to Tinycast
+# Contributing to Fredie
 
-Check existing [issues](https://github.com/abue-ammar/tinycast/issues) and
-[pull requests](https://github.com/abue-ammar/tinycast/pulls) first.
+Check existing [issues](https://github.com/marijnbent/fredie/issues) and
+[pull requests](https://github.com/marijnbent/fredie/pulls) first.
 
 > **Don't hurry your code. Make sure it works well and is well designed. Don't worry about timing.**
 
@@ -12,29 +12,24 @@ Check existing [issues](https://github.com/abue-ammar/tinycast/issues) and
   after the palette closes.
 - **Design.** New UI must look like it shipped with the app — spacing, type, radii and motion from the
   existing tokens ([`docs/ui.md`](docs/ui.md)). If you genuinely need a new one, justify it in the PR.
-- **No bloat.** Tinycast stays small on purpose — quality over quantity. A clean patch still gets
+- **No bloat.** Fredie stays small on purpose — quality over quantity. A clean patch still gets
   declined if the feature isn't worth its weight, so open an issue and settle that before you build.
 - **Never break the Non-negotiables** in [`AGENTS.md`](AGENTS.md).
 
 ## Setup
 
 - macOS 26+, Xcode 26. Do the one-time signing setup
-  ([`docs/signing.md`](docs/signing.md) §1).
-- `open Tinycast.xcodeproj` → ⌘R. Debug builds are their own channel (`Tinycast Dev.app`).
+  ([`docs/signing.md`](docs/signing.md)).
+- `open Fredie.xcodeproj` → ⌘R. Debug builds are their own channel (`Fredie Dev.app`).
 - After editing `project.yml`: `xcodegen generate`, commit the result. No SwiftPM.
 - Details: [`docs/development.md`](docs/development.md). Architecture:
   [`docs/architecture.md`](docs/architecture.md). Start at [`docs/`](docs/README.md).
 
 ## Before submitting
 
-- **A linked issue marked `approved`.** Put `Closes #<number>` in the PR description. A PR that
-  doesn't close an `approved` issue is closed automatically the moment it opens. It reopens on its
-  own when the linked issue is approved; if the link was missing, fix it and reopen the PR.
-  Anyone may open the PR, not only the issue's author. Docs-only changes (`*.md`, `docs/`,
-  `website/`) skip the check.
 - The whole bar in [`docs/testing.md`](docs/testing.md#definition-of-done) passes — harnesses, lint,
   purity, a clean build. Engine changes come with new cases. There is no CI, so **run
-  `./Scripts/run-tests.sh`, `./Scripts/lint.sh` and a build locally**. CodeRabbit reviews every PR
+  `./scripts/run-tests.sh`, `./scripts/lint.sh` and a build locally**. CodeRabbit reviews every PR
   and flags lint violations on the diff, but it does not run the harnesses or build the app.
 - Leak-tested and memory-measured. Numbers in the PR.
 - You actually used the app, on your path and the ones next to it.
@@ -71,7 +66,7 @@ Two things that are only about contributing, and so are not in those docs:
 
 ## Bugs
 
-macOS version, Tinycast version + channel, steps, expected vs actual. A recording beats a paragraph.
+macOS version, Fredie version + channel, steps, expected vs actual. A recording beats a paragraph.
 
 ## Security
 

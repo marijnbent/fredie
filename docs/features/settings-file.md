@@ -1,7 +1,7 @@
 # Settings file
 
-An opt-in mirror of Tinycast's preferences, the launcher's items and all of window management in
-`~/.config/tinycast/settings.json`, switched on in **Settings → Backup → Settings File**. `UserDefaults`
+An opt-in mirror of Fredie's preferences, the launcher's items and all of window management in
+`~/.config/fredie/settings.json`, switched on in **Settings → Backup → Settings File**. `UserDefaults`
 stays the store; the file follows it, and an edit made to the file applies at once. The machinery lives
 in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the launcher's part in
 `Features/Launcher/`, and window management's in `Features/WindowManagement/`.
@@ -18,7 +18,7 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   asks first. `settings-file-test` checks those paths stay absent.
 - **`SettingsFileSchema`'s switch is exhaustive.** A new `SettingsFileKey` case fails to build until it
   is bound to a property.
-- **A bad edit never costs a setting.** A key the file leaves out keeps its value; a value Tinycast
+- **A bad edit never costs a setting.** A key the file leaves out keeps its value; a value Fredie
   can't use keeps the current one and is reported; an unknown key is reported and ignored; invalid JSON
   applies nothing. An invalid record in a list is skipped and reported, and the rest still apply. A
   record's field left out or of the wrong type keeps its value, and `null` clears it.
@@ -53,8 +53,8 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
 
 ## Location
 
-`~/.config/tinycast/settings.json` on stable; another channel suffixes the folder, so Dev uses
-`tinycast-dev` and a fork its bundle ID. `$XDG_CONFIG_HOME` is not read, because an app opened from
+`~/.config/fredie/settings.json` on stable; another channel suffixes the folder, so Dev uses
+`fredie-dev` and a fork its bundle ID. `$XDG_CONFIG_HOME` is not read, because an app opened from
 Finder never sees the shell's environment. A symlink is followed and kept: the write lands in its
 target, so a file linked from a dotfiles repository stays linked.
 

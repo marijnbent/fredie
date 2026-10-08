@@ -1,6 +1,6 @@
 # Architecture
 
-How Tinycast is wired together. Per-feature internals live in [features/](README.md#features);
+How Fredie is wired together. Per-feature internals live in [features/](README.md#features);
 conventions for writing new code live in [standards.md](standards.md).
 
 ## The layering
@@ -118,13 +118,13 @@ to a process that exits, and the helper — which has no database, clipboard or 
 handed an input path and answers with bounded text down a pipe.
 
 Dictation similarly runs its model adapters in a bundled helper, with bounded in-memory audio and
-text over pipes. The coordinator keeps microphone capture, UI and insertion in Tinycast; the model
+text over pipes. The coordinator keeps microphone capture, UI and insertion in Fredie; the model
 store starts the helper on demand and reaps it after the selected idle delay or a model switch.
 `AppCore` owns the audio ducker and starts volume recovery on every launch, even when Dictation is off.
 
 ## Entry points and windows
 
-`TinycastApp` (`@main`) declares only two `MenuBarExtra` scenes — Tinycast's own item and the
+`FredieApp` (`@main`) declares only two `MenuBarExtra` scenes — Fredie's own item and the
 calendar's, each inserted by one preference and independent of the other; everything else visible is
 driven imperatively from AppKit. Extension menu extras are dynamic `NSStatusItem`s owned entirely by
 `Features/Extensions/`, through `ExtensionManager`, with no scene or lifecycle wiring in the core.
@@ -150,7 +150,7 @@ driven imperatively from AppKit. Extension menu extras are dynamic `NSStatusItem
   `NSSplitViewController` with a collapsible sidebar of saved chats beside the open conversation, as
   Settings is built. The conversation lives on `AppCore.aiChats`, not the window, so closing it cancels
   nothing. Quick AI is the same feature's palette screen. See [features/ai.md](features/ai.md).
-- **The main menu** — shaped by `TinycastApp`'s `.commands`, which rebinds ⌘Q to Close Window: the AI
+- **The main menu** — shaped by `FredieApp`'s `.commands`, which rebinds ⌘Q to Close Window: the AI
   Chat window when it is key, otherwise Settings. It is only ever on screen while a titled window is
   open, so it is those windows' menu bar. It must stay declarative.
 - **Dialogs** — borderless `DialogPanel`s driven by `DialogController`, the app's only presenter for
@@ -218,7 +218,7 @@ The folder layout is the layering above, made navigable — one folder per featu
 everything that feature owns.
 
 ```
-Tinycast/
+Fredie/
   App/              @main, AppDelegate, AppCore — the composition root
   DesignSystem/     Theme (the token source), KeyCapChip, Tooltip, SymbolImage,
                     GlassEffectView, PopoverMenu, SettingsComponents, Scrolling/, Interaction/
@@ -246,7 +246,7 @@ Tinycast/
                     (Model/, Service/, SettingsFileSchema), and Panes/ for the two panes no feature
                     owns
 Tests/              the standalone harnesses, one Swift file each
-Scripts/            run-tests.sh, the two data generators, packaging, formatting, editor setup
+scripts/            run-tests.sh, the two data generators, packaging, formatting, editor setup
 ```
 
 A larger feature splits into all four sub-folders; a small one stays flat, as `Onboarding/` does. `HotKeys/` has no `Settings/` because its Shortcuts pane is part of the Settings

@@ -17,7 +17,7 @@ compilation of its 2-bit weights; Ultra's encoder and both variants' decoder/joi
 ## Invariants
 
 - `AppCore` owns the model store and coordinator. The microphone session, panel and focused target
-  belong only to `DictationCoordinator`; no recording starts merely by launching Tinycast or opening
+  belong only to `DictationCoordinator`; no recording starts merely by launching Fredie or opening
   Settings.
 - The enable switch is consent. It explains microphone and Accessibility access before enabling,
   and is excluded from backups so importing settings cannot arm a global recording shortcut.
@@ -55,8 +55,8 @@ compilation of its 2-bit weights; Ultra's encoder and both variants' decoder/joi
   Relaunch restores the original device only if its volume still matches that record, including
   when Dictation is disabled. An unavailable device keeps its record for a later attempt; new ducking
   waits for that recovery. File writes run off-main and finish before the hardware changes.
-- The microphone, waveform, permissions and insertion stay in Tinycast. Model loading, audio
-  features and decoding run in `Tinycast Dictation` (`Tinycast Dev Dictation` in Debug), started
+- The microphone, waveform, permissions and insertion stay in Fredie. Model loading, audio
+  features and decoding run in `Fredie Dictation` (`Fredie Dev Dictation` in Debug), started
   only for transcription. Main-app state never retains Core ML models or imports the adapters.
   The helper is an embedded accessory app with no bundled icon, Dock item or windows.
 - Core ML models live under this build's bundle-ID cache. After one minute idle by default, the
@@ -109,7 +109,7 @@ source licences must be reviewed before distribution; swapping one requires real
 For reproducible real-model measurements, build Debug, install the models through Settings, then run:
 
 ```sh
-./Scripts/benchmark-dictation.sh /path/to/sample.wav
+./scripts/benchmark-dictation.sh /path/to/sample.wav
 ```
 
 The optional tool converts the supplied audio to mono 16 kHz and launches the built helper directly,

@@ -1,4 +1,4 @@
-# Tinycast
+# Fredie
 
 A native macOS menu-bar launcher: fuzzy app launcher, global and per-app hotkeys, a text/image
 clipboard history, an inline calculator, a floating note, snippets, quicklinks, window management
@@ -8,7 +8,7 @@ dependencies.
 
 ## Posture: latest-only, always
 
-**Tinycast targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
+**Fredie targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
 toolchain, Swift 6 language mode. There is no compatibility floor to defend, no shim layer and no
 deprecation debt, and that is the single largest reason the codebase stays as small as it does.
 
@@ -35,14 +35,14 @@ system-wide chord, and HIToolbox's TIS APIs remain the public input-source mecha
 
 | Folder | Holds |
 | --- | --- |
-| `Tinycast/App/` | `@main`, `AppDelegate`, `AppCore` — the composition root |
-| `Tinycast/DesignSystem/` | shared visual primitives; `Theme.swift` is the only design-token source |
-| `Tinycast/Platform/` | system shims: `Permissions`, `AppPaths`, `Signposts`, `NotificationToken`, … |
-| `Tinycast/Palette/` | the palette shell: panel, window controller, `RootPaletteView`, `PaletteScreen` |
-| `Tinycast/Windows/` | the non-palette AppKit surfaces: `Dialog/`, `HUD/`, `About/`, `AppWindowController` |
-| `Tinycast/Features/` | one folder per feature; larger ones split `Model/` `Service/` `UI/` `Settings/` |
+| `Fredie/App/` | `@main`, `AppDelegate`, `AppCore` — the composition root |
+| `Fredie/DesignSystem/` | shared visual primitives; `Theme.swift` is the only design-token source |
+| `Fredie/Platform/` | system shims: `Permissions`, `AppPaths`, `Signposts`, `NotificationToken`, … |
+| `Fredie/Palette/` | the palette shell: panel, window controller, `RootPaletteView`, `PaletteScreen` |
+| `Fredie/Windows/` | the non-palette AppKit surfaces: `Dialog/`, `HUD/`, `About/`, `AppWindowController` |
+| `Fredie/Features/` | one folder per feature; larger ones split `Model/` `Service/` `UI/` `Settings/` |
 | `Tests/` | the standalone harnesses — one Swift file each, no XCTest target |
-| `Scripts/` | every executable script: test runner, data generators, packaging, linting, editor setup |
+| `scripts/` | every executable script: test runner, data generators, packaging, linting, editor setup |
 
 | Read it before you | Doc |
 | --- | --- |
@@ -72,7 +72,7 @@ feature's doc, under its own `## Invariants`.
   the forced-dark build shipped, restated rather than re-derived. Retune a light branch freely — change
   a dark one only when the task is to change Dark. `AppAppearance` drives `NSApp.appearance`, and
   `.system` maps to `nil` so AppKit follows macOS on its own.
-- **Tinycast presents its own dialogs — never `NSAlert` or a system popover.** A question
+- **Fredie presents its own dialogs — never `NSAlert` or a system popover.** A question
   goes through `DialogController`, a report through a HUD via `HUDPresenter`.
 - **A networked feature fetches on a private `.ephemeral`, `urlCache = nil` session**, never
   `URLSession.shared`, so its own cache file stays the only copy on disk. `CurrencyRateStore` is the
@@ -95,9 +95,9 @@ feature's doc, under its own `## Invariants`.
   per `VisibilityStore` category — never re-derive a category by sniffing an entry ID. Which *pane*
   lists a command is a separate fact, and `SettingsTab.ownedCommands` is the only place that states it.
 - **Generated files are never hand-edited.** `EmojiData.generated.swift` and
-  `Resources/EmojiKeywords/` come from `node Scripts/gen-emoji.js`, `CurrencyData.generated.swift` from `node Scripts/gen-currencies.js`,
-  `CountryZoneData.generated.swift` from `node Scripts/gen-countries.js`, and
-  `Resources/RaycastRuntime.generated.js` from `Scripts/raycast-runtime/build.mjs` — the runtime is
+  `Resources/EmojiKeywords/` come from `node scripts/gen-emoji.js`, `CurrencyData.generated.swift` from `node scripts/gen-currencies.js`,
+  `CountryZoneData.generated.swift` from `node scripts/gen-countries.js`, and
+  `Resources/RaycastRuntime.generated.js` from `scripts/raycast-runtime/build.mjs` — the runtime is
   committed so building the app never needs Node.
 - **`DesignSystem/Scrolling/EdgeDissolve.swift` and `ThinScrollbar.swift` are off-limits.** Both are
   tuned by eye against the palette's floating bars, so any edit is a visual regression. Needing to touch
@@ -118,18 +118,24 @@ feature's doc, under its own `## Invariants`.
   constant or type instead. Cap 100 characters, delete rather than update, and never comment a change
   you just made. Nothing lints this; get it right the first time.
   Full rules: [standards.md#comments](docs/standards.md#comments).
-- **Debug builds are their own channel** — `Tinycast Dev.app` / `com.tinycast.app.dev` — so a local run
+- **Debug builds are their own channel** — `Fredie Dev.app` / `nl.bentjes.fredie.dev` — so a local run
   never shares prefs, caches, TCC grants or the login item with an installed copy. Anything newly
   persisted must stay keyed by `Bundle.main.bundleIdentifier`.
-- **XcodeGen owns the project.** `Tinycast.xcodeproj` is committed but generated from `project.yml`;
+- **XcodeGen owns the project.** `Fredie.xcodeproj` is committed but generated from `project.yml`;
   after editing it, run `xcodegen generate` and commit both. No SwiftPM, and never `Bundle.module`.
 
 ## Before you finish
 
 Each item is explained in [testing.md](docs/testing.md#definition-of-done).
 
-- `./Scripts/run-tests.sh` passes.
+- `./scripts/run-tests.sh` passes.
 - The Debug build compiles with **no new warnings**.
-- `./Scripts/lint.sh` is clean.
-- `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Tinycast/Features/*/Model/` returns nothing.
+- `./scripts/lint.sh` is clean.
+- `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Fredie/Features/*/Model/` returns nothing.
 - Any doc your change made wrong is fixed in the same commit.
+
+## Local release
+
+Use `./scripts/release-local.sh` to build, sign, install, and launch Fredie. Follow the workspace
+release rules: stay on `main`, then commit and push this repository after a requested release.
+Signing configuration is in `release/Release.plist`; never fall back to unsigned or ad-hoc builds.

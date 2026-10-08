@@ -69,7 +69,7 @@ lives — `/Applications/Safari.app` is a symlink flagged hidden, so `.skipsHidd
 Finder ships as an individual bundle scope rather than by adding `/System/Library/CoreServices`, which
 holds ~120 background-agent bundles. There is no reliable way to filter those: `LSUIElement`,
 `LSBackgroundOnly` and "declares no icon" each also exclude legitimately launchable apps — Raycast,
-Stats, Tinycast itself, Mission Control, Siri, Time Machine, Screenshot, System Information, Font
+Stats, Fredie itself, Mission Control, Siri, Time Machine, Screenshot, System Information, Font
 Book. Don't reintroduce such a heuristic.
 
 `AppIndex.start(settings:)` observes `$searchScopes`, so an edit re-indexes immediately; overlapping
@@ -156,14 +156,14 @@ the Zed app: rule 3 only protects an exact title past three characters.
 
 - **Apps win the ties.** `KindDescriptor.rankPriority` puts applications (4) above command-like kinds
   (3), quicklinks (2), and System Settings panes and meetings (1), so a first-party app is never
-  shadowed by the Tinycast command named after it: Calculator over Calculator History.
+  shadowed by the Fredie command named after it: Calculator over Calculator History.
 - **One boosted command.** Only AI Chat carries boosted terms (`CommandID.boostedTerms`); boosting Show
   Notes would shadow Apple's Notes.
 - **Two entries with the same alias** fall through to the next rule.
 
 `settings` is the case these were measured against. Apple declares `Settings` in System Settings'
 `CFBundleAlternateNames`, so it is an exact alternate title and wins rule 3; the command is named
-`Tinycast Settings`, like About, Quit and Support Tinycast, so nothing ties it there.
+`Fredie Settings`, like About, Quit and Support Fredie, so nothing ties it there.
 
 ## One fold, everywhere
 
@@ -279,7 +279,7 @@ handler through `AppLauncher.open`.
 The shape a query has to have is `QuicklinkDestination.detect` returning `.web`, reused rather than
 re-written so `github.com` and `https://…` mean the same thing here as they do in a quicklink. The
 entry is an ordinary `.command`, so `VisibilityStore` still gates it — Commands off hides the row —
-and its `url` carries the destination instead of the catalog's `tinycast://` placeholder. Nothing
+and its `url` carries the destination instead of the catalog's `fredie://` placeholder. Nothing
 learns from it and nothing pins it: `LauncherCoordinator.launch` records no visit for a contextual
 row, since a pasted URL is not a term any row should rank under; and ⇧⌘F and ⇧⌘H are both refused,
 because a favorite — or a hidden-item key — the empty query can never resolve is dead state a backup
@@ -441,7 +441,7 @@ so the sectioned view stays 1:1 with the flat selection.
 ### Suggestions
 
 `LauncherSuggestions.select` chooses at most five from every visible entry that is not a favorite, a
-meeting, an AI command or Tinycast itself. AI is the lowest priority, so Quick AI and AI Chat are
+meeting, an AI command or Fredie itself. AI is the lowest priority, so Quick AI and AI Chat are
 never suggested, however often they are opened:
 
 1. up to two apps or extensions installed in the last five minutes and never opened —
@@ -461,7 +461,7 @@ off (`launcherShowsSuggestions`, carried by a settings backup). `HotKeyManager.r
 
 ## System actions
 
-`SystemActionCatalog` is a Foundation-only inventory of the macOS actions Tinycast exposes. Its
+`SystemActionCatalog` is a Foundation-only inventory of the macOS actions Fredie exposes. Its
 stable entry IDs, labels, symbols and confirmation policy are covered by
 `Tests/system-action-test.swift`; platform side effects live separately in `SystemActionRunner`.
 `SystemActionCoordinator.runSystemAction(id:)` remains the one execution funnel — shared by palette activation and a
@@ -483,18 +483,18 @@ screen-lock APIs. Those routes run only on explicit activation. **Lock Screen ne
 ⌃⌘Q**: a global hotkey fires on key-down, so its still-held modifiers would merge into the chord.
 Automation, Accessibility or Bluetooth permission is requested at first use, and denial produces an
 alert linking to the relevant System Settings pane.
-Toggle System Appearance changes macOS; Tinycast follows it only while its own Appearance is System.
+Toggle System Appearance changes macOS; Fredie follows it only while its own Appearance is System.
 
 Restart, Shut Down, Log Out, Empty Trash and Quit All Applications confirm before execution: ↵ runs
 the action, Escape cancels. **Empty Trash follows Finder's own "Show warning before emptying the
 Trash"** (Finder ▸ Settings ▸ Advanced) rather than overriding it: with the box off it runs without a
 dialog. `SystemActionRunner.finderWarnsBeforeEmptyingTrash` reads `com.apple.finder`'s
 `WarnOnEmptyTrash` at call time, and an absent key counts as on, because Finder writes it only once
-the box is changed. Every dialog is Tinycast's own: confirmations, failure reports and the Set
+the box is changed. Every dialog is Fredie's own: confirmations, failure reports and the Set
 Volume slider all render through `DialogController` rather than an `NSAlert`
 (see [ui.md](../ui.md#dialogs--hud)). Each confirmation carries the action's own icon — Restart shows
 `arrow.clockwise`, Empty Trash `trash.slash` — so the dialog is recognizably about the row that
-opened it. Output volume and mute actions also show Tinycast's transient volume HUD, since macOS only draws
+opened it. Output volume and mute actions also show Fredie's transient volume HUD, since macOS only draws
 its own for real media keys. Volume Up/Down walk a 5% grid (`VolumeLevel.stepped`, covered by
 `Tests/volume-test.swift`): an off-grid level snaps to the next line rather than past it, so from 37%
 up lands on 40% and down on 35%, and repeated presses stay on round numbers.
@@ -605,7 +605,7 @@ them. **There is deliberately no `Enable Quick Actions` category toggle** either
 
 Activation hands the action to `QuickActionCoordinator.run(_:)` **without** hiding the palette first:
 the coordinator reads the displaced app and then hides, because after the hide the frontmost app is
-Tinycast. See [quick-actions.md](quick-actions.md).
+Fredie. See [quick-actions.md](quick-actions.md).
 
 ## Notes commands
 
@@ -631,7 +631,7 @@ id is what keeps "which pane owns this" out of the entry-ID namespace.
 Eleven panes own commands today — AI, Quick Actions, File Search, Notes, Snippets, Navigation,
 Window Management, Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is
 the set no feature switch governs: Calculator History, Open Camera, the three backup commands, Check
-for Updates, Tinycast Settings, About, Support and Quit.
+for Updates, Fredie Settings, About, Support and Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
@@ -756,7 +756,7 @@ shortcut is available for them. `AppEntry.canRevealInFinder` is the one rule bot
 the key handler read, so the advertised chord can't drift from the behavior.
 
 `AppLauncher.showInFinder` is every feature's reveal. `activateFileViewerSelecting` leaves the file
-viewer to bring itself forward, and macOS refuses that request while Tinycast is `.regular` (an open
+viewer to bring itself forward, and macOS refuses that request while Fredie is `.regular` (an open
 Settings or About window) yet inactive, which the non-activating palette makes common. Only in that
 state does the reveal also open the viewer named by the global `NSFileViewer` default, Finder when it
 is unset, so every other reveal is exactly the one system call.
@@ -804,7 +804,7 @@ running dot and the availability of the running-only actions:
   moment the quit is asked for and never restores focus — either the relaunch takes it, or the app
   that refused the quit is the one asking for it.
 - **Quit All Applications** a system action. `AppLauncher.quitAllTargets()` is the
-  policy (every `.regular` app except Finder — `terminate()` only relaunches it — and Tinycast,
+  policy (every `.regular` app except Finder — `terminate()` only relaunches it — and Fredie,
   excluded by PID because About/Settings temporarily flips it to `.regular`). `SystemActionCoordinator.quitAllApps()`
   resolves that list **once**, confirms it with an `NSAlert`, then terminates exactly what was
   confirmed. The palette hides before the alert — it is a floating panel and would sit above it.

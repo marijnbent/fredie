@@ -8,8 +8,8 @@ struct UninstallTests {
     static var passes = 0
 
     static let home = "/Users/tester"
-    static let ownBundleID = "com.tinycast.app"
-    static let ownBundleURL = URL(fileURLWithPath: "/Applications/Tinycast.app")
+    static let ownBundleID = "nl.bentjes.fredie"
+    static let ownBundleURL = URL(fileURLWithPath: "/Applications/Fredie.app")
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
         if condition() {
@@ -300,20 +300,20 @@ struct UninstallTests {
     static func testIdentityRefusal() {
         let byID = UninstallTarget(
             bundleURL: URL(fileURLWithPath: "/Applications/Somewhere Else.app"),
-            bundleID: "com.tinycast.app", displayName: "Tinycast", bundleName: nil)
+            bundleID: "nl.bentjes.fredie", displayName: "Fredie", bundleName: nil)
         expect(
             UninstallIdentity.make(
                 target: byID, otherAppNames: [], ownBundleID: ownBundleID,
                 ownBundleURL: ownBundleURL) == nil,
-            "Tinycast refuses to plan its own uninstall by bundle ID")
+            "Fredie refuses to plan its own uninstall by bundle ID")
 
         let dev = UninstallTarget(
-            bundleURL: URL(fileURLWithPath: "/Applications/Tinycast Dev.app"),
-            bundleID: "com.tinycast.app.dev", displayName: "Tinycast Dev", bundleName: nil)
+            bundleURL: URL(fileURLWithPath: "/Applications/Fredie Dev.app"),
+            bundleID: "nl.bentjes.fredie.dev", displayName: "Fredie Dev", bundleName: nil)
         expect(
             UninstallIdentity.make(
-                target: dev, otherAppNames: [], ownBundleID: "com.tinycast.app.dev",
-                ownBundleURL: URL(fileURLWithPath: "/Applications/Tinycast Dev.app")) == nil,
+                target: dev, otherAppNames: [], ownBundleID: "nl.bentjes.fredie.dev",
+                ownBundleURL: URL(fileURLWithPath: "/Applications/Fredie Dev.app")) == nil,
             "the Dev channel refuses itself too — the check is against the running identity")
         expect(
             UninstallIdentity.make(
@@ -463,10 +463,10 @@ struct UninstallTests {
             "preferences are not TCC-gated")
         expect(
             !UninstallProtectionRules.isTCCProtected(
-                path: home + "/Library/Application Scripts/com.foo.Bar", home: home),
+                path: home + "/Library/Application scripts/com.foo.Bar", home: home),
             "Application Scripts is NOT TCC-gated — measured, and it is why Books' scripts are removable")
         expect(
-            classify(PathFacts(path: home + "/Library/Application Scripts/com.foo.Bar")) == .removable,
+            classify(PathFacts(path: home + "/Library/Application scripts/com.foo.Bar")) == .removable,
             "so those rows are checkable while the containers beside them stay locked")
     }
 

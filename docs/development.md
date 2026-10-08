@@ -14,30 +14,27 @@ verifying a change is [testing.md](testing.md).
 
 ## First-time setup
 
-Create the `Tinycast Self-Signed` code-signing identity once — builds sign with it, which is what keeps
-macOS from forgetting the Accessibility grant on every rebuild. Follow **[signing.md](signing.md) §1**,
-a few `openssl`/`security` commands.
-
-That is the whole required setup. Editor configuration is personal and the repo does not prescribe it;
-the section below is a note for anyone who wants it, not a step.
+Use the existing Apple Development identity configured in `release/Release.plist`; see
+[signing.md](signing.md). For the usual build, install, and launch flow, run
+`./scripts/release-local.sh`.
 
 ## Build & run
 
 ```sh
-open Tinycast.xcodeproj    # then ⌘R
+open Fredie.xcodeproj    # then ⌘R
 ```
 
 Or from the command line:
 
 ```sh
-xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug build
+xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug build
 ```
 
 `xcodebuild` uses whatever `xcode-select` points at; if that's the Command Line Tools rather than
 Xcode, prefix with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (the SwiftUI
 `@State`/`@FocusState` macros need Xcode's macOS platform).
 
-`Tinycast.xcodeproj` is committed and generated from `project.yml` via XcodeGen — after changing
+`Fredie.xcodeproj` is committed and generated from `project.yml` via XcodeGen — after changing
 project settings in `project.yml`, run `xcodegen generate` and commit the result. There is no
 `Package.swift`, and `Bundle.module` must never be used.
 
@@ -45,19 +42,19 @@ The app target builds and embeds `ClipboardTextHelper` under `Contents/Helpers`,
 Build the app scheme to include it; copying only the main executable omits OCR support. The helper's
 executable name stays fixed even when release builds override the app's product name for a channel.
 
-Dictation similarly embeds its Swift/Core ML helper, named `Tinycast Dev Dictation` in Debug and
-`Tinycast Dictation` in Release, in an accessory `.app` bundle without a bundled icon. Model weights
+Dictation similarly embeds its Swift/Core ML helper, named `Fredie Dev Dictation` in Debug and
+`Fredie Dictation` in Release, in an accessory `.app` bundle without a bundled icon. Model weights
 download on demand; none are app resources.
 
 ### The dev channel
 
-Debug builds are a separate channel: **`Tinycast Dev.app`**, bundle id `com.tinycast.app.dev`. Every
+Debug builds are a separate channel: **`Fredie Dev.app`**, bundle id `nl.bentjes.fredie.dev`. Every
 persisted thing is keyed by bundle id — `~/Library/Preferences/<id>.plist` (settings and hotkey
 bindings), `~/Library/Application Support/<id>/` (the onboarding marker, Notes, snippets, quicklinks,
 clipboard history, calculator history, launch ranking and frequent emoji; Notes and snippets unless
 a folder is chosen),
 `~/Library/Caches/<id>/` (exchange rates, the update check, staged downloads), the opt-in
-`~/.config/tinycast-dev/settings.json` (`tinycast` on stable), the `SMAppService`
+`~/.config/fredie-dev/settings.json` (`fredie` on stable), the `SMAppService`
 login item, and the Accessibility / Input Monitoring (TCC) grants — so a local build can neither read
 nor clobber an installed app's state, and both run side by side.
 
@@ -69,7 +66,7 @@ Consequences worth knowing:
 
 - The dev build asks for Accessibility on its own the first time, and starts with **no** hotkeys bound
   and onboarding unseen. Grant and bind once; it persists across rebuilds, because the fixed build path
-  and the `Tinycast Self-Signed` identity keep the TCC grant alive.
+  and the Apple Development identity keep the TCC grant alive.
 - Don't bind the same global hotkey in both — whichever registered first wins.
 - The Hyper Key's Caps Lock remap is `hidutil` state, which is **system-wide, not per-bundle**: quitting
   one build clears the remap for the other, which then needs a rebind or a relaunch to restore it.
@@ -85,14 +82,14 @@ and the flag database:
 
 ```sh
 brew install xcode-build-server
-xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-    -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/tinycast-build.log
-./Scripts/sync-lsp.sh /tmp/tinycast-build.log
+xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug \
+    -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/fredie-build.log
+./scripts/sync-lsp.sh /tmp/fredie-build.log
 ```
 
 Both files are git-ignored because they embed absolute paths, and `sourcekit-lsp` looks for
 `buildServer.json` at the workspace root by name, so it cannot live in a subfolder. After this the
-**Build Tinycast.app (debug)** task (⌘⇧B) and **F5** re-run the script on every build, so new and
+**Build Fredie.app (debug)** task (⌘⇧B) and **F5** re-run the script on every build, so new and
 renamed files keep resolving.
 
 **Do not run `xcode-build-server config`.** It writes `kind: xcode`, and in that mode the server ignores
@@ -100,7 +97,7 @@ renamed files keep resolving.
 cache is only refreshed when `LogStoreManifest.plist` advances, and when the manifest stops updating
 (it does) the editor silently pins itself to the source list from some older build: every reference to a
 file added since reads *cannot find type X in scope*, in every file, until you restart the server. It
-also mixes Release entries in with Debug and lets them win. `Scripts/sync-lsp.sh` keeps the mode
+also mixes Release entries in with Debug and lets them win. `scripts/sync-lsp.sh` keeps the mode
 `manual`, where `.compile` is the single source of truth.
 
 ### Symbols in `Tests/`
@@ -110,11 +107,11 @@ compile command for them, and without one an open harness reports every shipped 
 find in scope*. Measured on `fuzz-test.swift`: 60 errors with no entry, 0 with one.
 
 ```sh
-./Scripts/run-tests.sh --index    # merge the harness compile commands into .compile
+./scripts/run-tests.sh --index    # merge the harness compile commands into .compile
 ```
 
 It reads the source lists from `run-tests.sh` itself, so they cannot drift from what the suite actually
-compiles. `Scripts/sync-lsp.sh` runs it too. Three things it has to get right, all of which fail
+compiles. `scripts/sync-lsp.sh` runs it too. Three things it has to get right, all of which fail
 silently otherwise: every path is absolute, because `sourcekit-lsp` resolves the command itself and does
 not apply `directory` to relative arguments; the command carries an explicit `-sdk`; and each entry
 claims **only files under `Tests/`** — its harness plus any helper compiled beside it. The command
@@ -131,8 +128,8 @@ already-running server does not re-read `.compile`.
 ## Linting
 
 ```sh
-./Scripts/lint.sh          # lint the whole project
-./Scripts/lint.sh --fix    # auto-correct the mechanical subset first
+./scripts/lint.sh          # lint the whole project
+./scripts/lint.sh --fix    # auto-correct the mechanical subset first
 ```
 
 [SwiftLint](https://github.com/realm/SwiftLint) is the only code-quality tool here. `.swiftlint.yml` at
@@ -142,8 +139,8 @@ The comment policy in [standards.md](standards.md#comments) is deliberately not 
 ## Formatting
 
 ```sh
-./Scripts/format.sh            # format Tinycast/ and Tests/ in place
-./Scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
+./scripts/format.sh            # format Fredie/ and Tests/ in place
+./scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
 ```
 
 `swift-format` from the Xcode toolchain — the same binary sourcekit-lsp formats with, so ⌘S in VS Code
@@ -151,7 +148,7 @@ and this script cannot disagree. `.swift-format` at the repo root tunes it to th
 stock config defaults to 2-space indent and rewrites all 200 files.
 
 Every `*.generated.swift` file is excluded: formatting one is hand-editing it, and the next
-`node Scripts/gen-emoji.js` would revert it. swift-format also refuses any file that does not parse, so
+`node scripts/gen-emoji.js` would revert it. swift-format also refuses any file that does not parse, so
 a failure from either command is a syntax error rather than a tooling problem — and it is why ⌘S looks
 like it does nothing while a file is mid-edit with unbalanced braces.
 The two protected scrolling primitives, `EdgeDissolve.swift` and `ThinScrollbar.swift`, are also excluded.
@@ -178,15 +175,15 @@ Three Swift files are emitted by scripts and must never be hand-edited. Each dow
 run them online, then commit the result:
 
 ```sh
-node Scripts/gen-emoji.js            # -> Tinycast/Features/Emoji/Model/EmojiData.generated.swift
-                                     #    + Tinycast/Resources/EmojiKeywords/<language>.txt
-node Scripts/gen-currencies.js       # -> Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
-node Scripts/gen-countries.js        # -> Tinycast/Features/Calculator/Model/CountryZoneData.generated.swift
+node scripts/gen-emoji.js            # -> Fredie/Features/Emoji/Model/EmojiData.generated.swift
+                                     #    + Fredie/Resources/EmojiKeywords/<language>.txt
+node scripts/gen-currencies.js       # -> Fredie/Features/Calculator/Model/CurrencyData.generated.swift
+node scripts/gen-countries.js        # -> Fredie/Features/Calculator/Model/CountryZoneData.generated.swift
 ```
 
 `gen-emoji.js` also writes one CLDR keyword pack per language in its `KEYWORD_LOCALES`; adding a
 language is one line there. Pass a directory to keep the downloads between runs:
-`node Scripts/gen-emoji.js /tmp/emoji-sources`.
+`node scripts/gen-emoji.js /tmp/emoji-sources`.
 
 `gen-countries.js` joins IANA's `zone.tab` with CLDR's `en` territory names on the ISO 3166 code. Re-run
 it when IANA adds or moves a country's zone; see [calculator.md](features/calculator.md#time-zones).

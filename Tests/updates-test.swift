@@ -100,9 +100,13 @@ struct UpdatesTests {
     // MARK: - ReleaseChannel
 
     static func derivesChannels() {
-        let stable = ReleaseChannel(bundleID: "com.tinycast.app")
-        let beta = ReleaseChannel(bundleID: "com.tinycast.app.beta")
-        let dev = ReleaseChannel(bundleID: "com.tinycast.app.dev")
+        expect(ReleaseFeed.repository == "marijnbent/fredie", "updates come from Fredie's fork")
+        expect(
+            !ReleaseChannel(bundleID: "com.tinycast.app").updatesItself,
+            "the upstream bundle is not a Fredie release channel")
+        let stable = ReleaseChannel(bundleID: "nl.bentjes.fredie")
+        let beta = ReleaseChannel(bundleID: "nl.bentjes.fredie.beta")
+        let dev = ReleaseChannel(bundleID: "nl.bentjes.fredie.dev")
 
         expect(stable == .stable, "the stable bundle id is the stable channel")
         expect(beta == .beta, "the beta bundle id is the beta channel")
@@ -129,7 +133,7 @@ struct UpdatesTests {
     }
 
     static func entry(
-        tag: String, prerelease: Bool, draft: Bool = false, assets: [String] = ["Tinycast-x.zip"],
+        tag: String, prerelease: Bool, draft: Bool = false, assets: [String] = ["Fredie-x.zip"],
         body: String = "Notes."
     ) -> String {
         let list = assets.map {
@@ -194,7 +198,7 @@ struct UpdatesTests {
             "a release with no assets is skipped")
         expect(
             ReleaseFeed.newest(
-                from: feed(entry(tag: "v0.3.0", prerelease: false, assets: ["Tinycast-x.dmg"])),
+                from: feed(entry(tag: "v0.3.0", prerelease: false, assets: ["Fredie-x.dmg"])),
                 channel: .stable, architecture: .appleSilicon) == nil,
             "a DMG-only release is not installable, so it is not offered")
         expect(
@@ -221,7 +225,7 @@ struct UpdatesTests {
         let both = feed(
             entry(
                 tag: "v0.3.0", prerelease: false,
-                assets: ["Tinycast-0.3.0.zip", "Tinycast-Universal-0.3.0.zip"]))
+                assets: ["Fredie-0.3.0.zip", "Fredie-Universal-0.3.0.zip"]))
         expect(
             ReleaseFeed.newest(from: both, channel: .stable, architecture: .intel)?
                 .assetURL.absoluteString.contains("-Universal-") == true,
@@ -231,13 +235,13 @@ struct UpdatesTests {
                 .assetURL.absoluteString.contains("-Universal-") == false,
             "Apple silicon prefers the thin zip, and never pays for the Intel slice")
 
-        let thinOnly = feed(entry(tag: "v0.3.0", prerelease: false, assets: ["Tinycast-0.3.0.zip"]))
+        let thinOnly = feed(entry(tag: "v0.3.0", prerelease: false, assets: ["Fredie-0.3.0.zip"]))
         expect(
             ReleaseFeed.newest(from: thinOnly, channel: .stable, architecture: .intel) == nil,
             "Intel is offered nothing rather than an arm64 build it cannot launch")
 
         let universalOnly = feed(
-            entry(tag: "v0.3.0", prerelease: false, assets: ["Tinycast-Universal-0.3.0.zip"]))
+            entry(tag: "v0.3.0", prerelease: false, assets: ["Fredie-Universal-0.3.0.zip"]))
         expect(
             ReleaseFeed.newest(from: universalOnly, channel: .stable, architecture: .appleSilicon)?
                 .version == AppVersion("0.3.0"),
@@ -277,7 +281,6 @@ struct UpdatesTests {
 
     // MARK: - ReleaseNotes
 
-    /// A body as `Scripts/release-notes.sh` composes it.
     static let composedBody = """
         ## What's Changed
         * Adjust top padding in **UpdateWindowView** by @abue-ammar in #304
@@ -328,7 +331,7 @@ struct UpdatesTests {
         let feedNotes = ReleaseFeed.newest(
             from: feed(
                 entry(
-                    tag: "v0.3.0", prerelease: false, body: "Changes.\\n\\n<!-- tinycast:install -->\\nBrew.")
+                    tag: "v0.3.0", prerelease: false, body: "Changes.\\n\\n<!-- fredie:install -->\\nBrew.")
             ),
             channel: .stable, architecture: .appleSilicon)?.notes
         expect(feedNotes == "Changes.", "the feed stores the cut summary, so the cache holds it too")

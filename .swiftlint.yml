@@ -3,14 +3,14 @@
 # about style a formatter would otherwise own. See docs/standards.md.
 
 included:
-  - Tinycast
+  - Fredie
   - Tests
 
 excluded:
-  - Tinycast/DesignSystem/Scrolling/EdgeDissolve.swift
-  - Tinycast/DesignSystem/Scrolling/ThinScrollbar.swift
-  - Tinycast/Features/Emoji/Model/EmojiData.generated.swift
-  - Tinycast/Features/Calculator/Model/CurrencyData.generated.swift
+  - Fredie/DesignSystem/Scrolling/EdgeDissolve.swift
+  - Fredie/DesignSystem/Scrolling/ThinScrollbar.swift
+  - Fredie/Features/Emoji/Model/EmojiData.generated.swift
+  - Fredie/Features/Calculator/Model/CurrencyData.generated.swift
 
 # Noisy here, or actively wrong for this codebase.
 disabled_rules:

@@ -6,7 +6,7 @@ A palette sub-screen (reached like Clipboard / Calculator History) presenting a 
 
 - **`Model/` stays Foundation-only** — `EmojiCatalog`, `EmojiGridGeometry` and the generated dataset are
   compiled by `emoji-test`, so an `import AppKit` there breaks the test suite.
-- **`EmojiData.generated.swift` and `Resources/EmojiKeywords/` are emitted by `node Scripts/gen-emoji.js`**
+- **`EmojiData.generated.swift` and `Resources/EmojiKeywords/` are emitted by `node scripts/gen-emoji.js`**
   (Node 18+ for global `fetch`) and are never edited by hand. Regenerate and commit instead.
 - **Keyword packs are plain files, never `.lproj` folders.** One localization folder in the bundle
   would switch AppKit's own menus and text out of English; the app stays English.

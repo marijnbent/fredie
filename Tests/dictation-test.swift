@@ -27,8 +27,8 @@ struct DictationTest {
             "application")
         check(
             DictationTextFormatter.format(
-                "Tinycast", context: Context(before: "Use", after: "again"),
-                adaptCapitalization: false), " Tinycast ")
+                "Fredie", context: Context(before: "Use", after: "again"),
+                adaptCapitalization: false), " Fredie ")
         check(
             DictationTextFormatter.format(
                 "world", context: Context(before: "Hello.", after: ""),
