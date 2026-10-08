@@ -5,7 +5,6 @@ enum EntryNaming {
     /// Everything a producer knows about what its entry is called.
     struct Sources: Sendable, Hashable {
         var name: String
-        /// Ranked like the title: a translation, a renamed file, a snippet keyword.
         var alternateTitles: [String] = []
         /// What the entry comes from, shown beside it: an extension's title.
         var subtitle: String?

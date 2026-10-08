@@ -61,9 +61,9 @@ final class ExtensionManager: ExtensionRuntimeDelegate, ExtensionHostContext {
     @ObservationIgnored private var nextToastID = 1
     @ObservationIgnored private var lastOAuthExtensionName: String?
 
-    init(clipboardStore: ClipboardStore) {
+    init() {
         storage = ExtensionStorage(directory: ExtensionCatalog.storageDirectory())
-        bridge = ExtensionHostBridge(clipboardStore: clipboardStore)
+        bridge = ExtensionHostBridge()
         runtime = ExtensionRuntime(hostAPI: bridge)
         bridge.context = self
     }

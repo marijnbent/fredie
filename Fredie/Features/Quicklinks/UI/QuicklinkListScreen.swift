@@ -104,7 +104,7 @@ struct QuicklinkListScreen: PaletteScreen {
                         openActions()
                     }
                 )
-                .frame(width: metrics.size.clipboardListWidth)
+                .frame(width: metrics.size.detailListWidth)
                 Rectangle().fill(Theme.Colors.separator).frame(width: Theme.Size.hairline)
                 QuicklinkPreview(quicklink: selected)
             }

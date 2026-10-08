@@ -38,11 +38,9 @@ commands and global shortcuts can show, search, or extend the collection.
   scrolls. The top edge holds until the bottom would leave the visible frame, then the window moves
   up. A manually dragged height lasts until the next edit. The height comes from TextKit's last layout
   fragment, because the text view's frame never gets shorter than its clip view.
-- **The editor is a surface snippets expand into.** `NoteTextView` adopts `InjectableTextView`,
-  so a typed keyword — and the Snippets browser's ↵ — is written straight into the text storage
-  rather than posted as events at whichever app happens to be frontmost. Quick Actions also read and
-  replace its selected text in process. Only AI Chat's composer adopts it too: see
-  [snippets.md](snippets.md#text-delivery-and-pasteboard-safety).
+- **Quick Actions read and replace selected note text in process.** `NoteTextView` adopts
+  `InjectableTextView`, as does AI Chat's composer. Quicklinks can read their selections directly.
+
 
 ## Storage and identity
 
@@ -249,7 +247,7 @@ memory; editing after undo discards redo. The coordinator observes undo and redo
 main-actor notifications, so both reach autosave, rendering, formatting and the character count.
 Copy yields raw Markdown and VoiceOver reads the source. Changing the note
 identity or editor epoch reinstalls and restyles the string and clears the previous document's undo
-history. Snippets expand through `insertText` and are styled like typed text. The empty-note placeholder
+history. The empty-note placeholder
 is drawn in the text view, so opening the find bar moves it with the editor content.
 
 ### The formatting bar

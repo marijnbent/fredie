@@ -20,7 +20,7 @@ selectable Markdown renderer with AI Chat.
   through `AppIndex.setCommandsVisible`, and the custom ones leave it through
   `AppIndex.setCustomQuickActions`, the way Notes and AI Chat drop theirs. Carbon bindings stay
   registered, so re-enabling restores every shortcut without touching the hotkey layer. The flag
-  grants keystroke delivery into other apps, so like `snippetsEnabled` it is excluded from settings
+  grants keystroke delivery into other apps, so it is excluded from settings
   backups — an import must never arm it.
 - **One funnel, whichever way an action started.** A shortcut and a launcher row both land on
   `QuickActionCoordinator.run(_:)`, which captures the target **before** hiding the palette. An
@@ -28,7 +28,7 @@ selectable Markdown renderer with AI Chat.
   from its text view. Hiding there rather than at each caller keeps the two paths identical.
 - **Enabling is consent, and it is the only place Accessibility is requested.** The toggle confirms
   through `DialogController` first and then calls `Permissions.ensureAccessibility()`, the pattern
-  `SnippetCoordinator.setSnippetsEnabled` established. Everything else — a shortcut press, a
+  used for other capability grants. Everything else — a shortcut press, a
   delivery — uses `isAccessibilityTrusted()` and degrades to a HUD.
 - **Fredie is never an event target.** `QuickActionRunner.selection(in:using:)` refuses our own
   bundle identifier, and `TextInjector.targetAcceptsInjection` refuses it again before every event post,
@@ -223,8 +223,7 @@ apps and VS Code otherwise answer every attribute with nothing.
 
 When Accessibility yields nothing, `TextInjector.copySelection` borrows a ⌘C: snapshot the
 pasteboard, synthesise the chord, wait for `changeCount` to **move**, read, restore. It lives on
-`TextInjector` because the pasteboard has one owner — the same lease, queue and `ClipboardManager`
-coordination a paste needs, and a second owner would race it.
+`TextInjector` because the pasteboard has one owner — the same lease and queue a paste needs, and a second owner would race it.
 
 **The `changeCount` guard is load-bearing.** With nothing selected, ⌘C is a no-op; returning the
 pasteboard's existing contents there would transform whatever the reader last copied and paste it
@@ -241,23 +240,16 @@ Notes replaces the captured range through its own TextKit edit path, with undo a
 note, source or selection changed while the result was generated, delivery declines and copies the
 result instead of replacing another passage.
 
-For external apps, `TextInjector` — shared with Snippets and Quicklinks, and owned by `AppCore` — does
-the replacement.
-`replaceSelection(with:in:)` takes the interactive path: no keyword to match, no generation to
-cancel, because a shortcut is an explicit gesture rather than an expansion the app decided to
-attempt. Its serial delivery queue is what stops two features fighting over the pasteboard lease.
-
-The Accessibility tier replaces the live selection atomically, under the five-rule delivery contract
-in [snippets.md](snippets.md#text-delivery-and-pasteboard-safety) — Quick Actions simply enter it with
-no keyword, so rule 2 never applies. The event tiers behind it type or paste over the selection, which
-every app treats as replacing it — but that is the target app's behaviour rather than something
-Fredie asserts, so it is the part worth checking by hand.
+For external apps, the AppCore-owned `TextInjector` replaces the selection. Deliveries run serially.
+The Accessibility tier reads back the replacement to confirm it landed; a changed document is rejected.
+When that tier is unavailable, short single-line text uses Unicode events and longer text borrows the
+pasteboard. Each event rechecks the target and Accessibility permission. Pasteboard restoration only
+happens while the delivery still owns its change count, preserving a newer user copy.
 
 **A replacement that never lands says so, and keeps the reply.** Every tier can decline, and a shortcut
 that quietly did nothing is indistinguishable from a shortcut that is not bound. `DeliveryCompletion`
 now settles either way, so a delivery that returned early reports failure exactly once; Quick Actions
-put the generated text on the clipboard and raise a HUD rather than dropping it. Snippets pass no
-failure handler, so automatic expansion stays silent as before.
+put the generated text on the clipboard and raise a HUD rather than dropping it.
 
 ### Manual sweep
 

@@ -17,8 +17,8 @@ enum AIPreamble {
         user. Link any page your answer relies on inline as a Markdown link with its URL; \
         Fredie lists those as sources. Never write a link without a URL.
 
-        Fredie also provides a fuzzy app launcher, global and per-app hotkeys, clipboard history \
-        for text and images, an inline calculator, a floating note, snippets, quicklinks, window \
+        Fredie also provides a fuzzy app launcher, global and per-app hotkeys, an inline calculator, \
+        a floating note, quicklinks, window \
         management, file search and an emoji picker.
 
         It is written in SwiftUI and AppKit against the current macOS only, with no third-party \

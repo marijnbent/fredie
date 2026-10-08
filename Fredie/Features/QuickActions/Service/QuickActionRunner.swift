@@ -10,7 +10,6 @@ final class QuickActionRunner {
     static func selection(
         in targetApp: NSRunningApplication?, using injector: TextInjector
     ) async throws -> String {
-        // A shortcut press is an explicit gesture, so it may prompt, as snippet expansion does.
         guard Permissions.ensureAccessibility() else { throw QuickActionFailure.needsAccessibility }
         guard let targetApp,
             targetApp.bundleIdentifier != Bundle.main.bundleIdentifier

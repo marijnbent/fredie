@@ -165,7 +165,7 @@ struct QuicklinkCoordinatorTests {
                 hotKeys: HotKeyManager(), favorites: FavoritesStore(), visibility: VisibilityStore(),
                 ranking: LauncherRankingStore(), aliases: AliasStore(), windowController: window,
                 paletteCoordinator: palette, settingsCoordinator: SettingsCoordinator(),
-                clipboardHistory: { ["clipboard text"] }, core: core)
+                core: core)
             core.quicklinkCoordinator = coordinator
         }
 
@@ -208,11 +208,11 @@ final class TextInjector {
     var selection = ""
     var target: InjectionTarget?
     func captureExpansionContext(
-        target: InjectionTarget?, clipboardHistory: [String]
-    ) -> SnippetTemplateEngine.ExpansionContext {
+        target: InjectionTarget?, clipboard: String
+    ) -> QuicklinkTemplateEngine.ExpansionContext {
         self.target = target
         return .init(
-            clipboardHistory: clipboardHistory, selection: selection, now: .distantPast,
+            clipboard: "clipboard text", selection: selection, now: .distantPast,
             calendar: Calendar(identifier: .gregorian), locale: Locale(identifier: "en_US_POSIX"),
             timeZone: TimeZone(secondsFromGMT: 0)!)
     }

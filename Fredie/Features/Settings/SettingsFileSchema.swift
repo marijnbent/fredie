@@ -86,22 +86,6 @@ enum SettingsFileSchema {
         case .notesShowsFormattingBar: return bind(settings, \.notesShowsFormattingBar)
         case .notesFolder: return bind(settings, \.notesFolder, accept: folder)
         case .notesCommands: return launcher.commandsBinding(for: key, owner: .notes)
-        case .dictationMode: return bind(settings, \.dictationMode)
-        case .dictationShortcut:
-            return shortcuts.binding(for: key, action: .dictation, name: "Dictation")
-        case .dictationModel: return bind(settings, \.dictationModel)
-        case .dictationMicrophone: return bind(settings, \.dictationMicrophone)
-        case .dictationDestination: return bind(settings, \.dictationDestination)
-        case .dictationAdaptsCapitalization: return bind(settings, \.dictationAdaptsCapitalization)
-        case .dictationIdleRelease: return bind(settings, \.dictationIdleRelease)
-        case .dictationLanguage:
-            return bind(settings, \.dictationLanguage) { language in
-                guard let language else { return .some(nil) }
-                return DictationLanguage(rawValue: language) == nil ? nil : .some(language)
-            }
-        case .snippetsShowInLauncher: return bind(settings, \.snippetsShowInLauncher)
-        case .snippetsFolder: return bind(settings, \.snippetsFolder, accept: folder)
-        case .snippetsCommands: return launcher.commandsBinding(for: key, owner: .snippets)
         case .navigationEnabled: return bind(settings, \.navigationEnabled)
         case .menuSearchShowsAppleMenu: return bind(settings, \.menuSearchShowsAppleMenu)
         case .menuSearchDisabledApps: return bind(settings, \.menuSearchDisabledApps)
@@ -123,11 +107,6 @@ enum SettingsFileSchema {
         case .windowRooms: return windowManagement.roomsBinding(for: key)
         case .windowManagementCommands:
             return launcher.commandsBinding(for: key, owner: .windowManagement)
-        case .clipboardEnabled: return bind(settings, \.clipboardEnabled)
-        case .clipboardRetention: return bind(settings, \.clipboardRetention)
-        case .clipboardDefaultAction: return bind(settings, \.clipboardDefaultAction)
-        case .clipboardDisabledApps: return bind(settings, \.clipboardDisabledApps)
-        case .clipboardCommands: return launcher.commandsBinding(for: key, owner: .clipboard)
         case .emojiSkinTone: return bind(settings, \.emojiSkinTone)
         case .emojiGridColumns: return bind(settings, \.emojiGridColumns)
         case .emojiCommands: return launcher.commandsBinding(for: key, owner: .emoji)
@@ -165,28 +144,9 @@ extension CalcNumberStyle: SettingsFileRawValue {}
 extension SearchSensitivity: SettingsFileRawValue {}
 extension QuicklinkSelectionFallback: SettingsFileRawValue {}
 extension WindowCycle: SettingsFileRawValue {}
-extension ClipboardDefaultAction: SettingsFileRawValue {}
 extension EmojiSkinTone: SettingsFileRawValue {}
 extension EmojiGridColumns: SettingsFileRawValue {}
-extension DictationModel: SettingsFileRawValue {}
-extension DictationMode: SettingsFileRawValue {}
-extension DictationDestination: SettingsFileRawValue {}
-extension DictationIdleRelease: SettingsFileRawValue {}
 extension JoinWindow: SettingsFileRawValue {}
-
-extension ClipboardRetention: SettingsFileToken {
-    var settingsToken: SettingsFileJSON {
-        switch self {
-        case .day: 1
-        case .week: 7
-        case .month: 30
-        case .threeMonths: 90
-        case .sixMonths: 180
-        case .year: 365
-        case .forever: "forever"
-        }
-    }
-}
 
 extension AIRetention: SettingsFileToken {
     var settingsToken: SettingsFileJSON {

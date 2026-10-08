@@ -24,7 +24,6 @@ enum AppPaths {
             .appending(path: "settings.json", directoryHint: .notDirectory)
     }
 
-    /// Snippets or Notes: the folder the user chose, else its home in Application Support.
     static func contentFolder(
         _ chosen: String?, named name: String,
         bundleID: String = Bundle.main.bundleIdentifier ?? "nl.bentjes.fredie"

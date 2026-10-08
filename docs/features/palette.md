@@ -79,13 +79,11 @@ Where a reset leaves the highlight is the screen's to say too. Every reset — a
 new filter — goes through `RootPaletteView.land()`, which reads `landingSelection`, so handlers that
 fire in one update agree whatever order they run in. `onAppear` lands as well: the first show builds
 the view after `prepare` has run, so no change handler ever sees that reset. The landing is row 0 on
-every screen but the clipboard, which lands past its pins
-([clipboard.md](clipboard.md#pinned-entries)).
+each screen, which may choose its first unpinned result.
 
 | Mode | Screen | Inner list |
 | --- | --- | --- |
 | `.launcher` | `LauncherScreen` | `LauncherList` |
-| `.clipboard` | `ClipboardScreen` | `ClipboardList` + preview |
 | `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList` |
 | `.emoji` | `EmojiScreen` | `EmojiGridView` |
 | `.fileSearch` | `FileSearchScreen` | `FileSearchList` (see [file-search.md](file-search.md)) |
@@ -93,16 +91,11 @@ every screen but the clipboard, which lands past its pins
 | `.meetingDetails` | `MeetingDetailsScreen` | `MeetingDetailsView` (see [calendar.md](calendar.md#the-details-page)) |
 | `.uninstall` | `UninstallScreen` | `UninstallList` (see [uninstall.md](uninstall.md)) |
 | `.quicklinks` | `QuicklinkListScreen` | `QuicklinkList` + preview (see [quicklinks.md](quicklinks.md#search-quicklinks)) |
-| `.snippets` | `SnippetsScreen` | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets)) |
 | `.dictionary` | `DictionaryScreen` | `DictionaryEntryView` (see [dictionary.md](dictionary.md)) |
 | `.extensionCommand` | `ExtensionCommandScreen` | `ExtensionCommandView` (see [extensions.md](extensions.md)) |
 
-**Tab rings the three surfaces a reader opens directly — launcher → AI chat → clipboard → launcher**
-— unless the screen claims it through `tabTarget(from:backwards:)` (an extension's `Form` walks its
-own fields), or the selected row declares arguments, in which case it walks those fields first (see
-below); every other mode stays off the ring, and is reached by a command or a global hotkey, with
-Uninstall only from a launcher app's Actions menu, scoped to that app. Chat is skipped whole when
-`aiEnabled` is off, which leaves the launcher ↔ clipboard flip the ring replaced.
+**Tab opens Quick AI from the launcher when AI is enabled, and returns other modes to the launcher.**
+A screen's own field navigation and inline arguments take precedence.
 
 ### Navigation
 
@@ -110,9 +103,9 @@ Uninstall only from a launcher app's Actions menu, scoped to that app. Chat is s
 one rule: a palette already on screen is being *navigated*, so the current screen is pushed and
 becomes the step back; a hidden one is being *summoned*, so the new screen is a root with nothing
 behind it. Every mode command and every global hotkey funnels through `showPalette`, which calls it —
-so typing "Clipboard History" at the root and pressing ↵ leaves a step back to the search that found
-it, while the Clipboard History hotkey does not. **The launcher is the exception, because it is the
-root** — ⌘Space over an open clipboard opens the root search with nothing behind it, rather than
+so typing "Search Quicklinks" at the root and pressing ↵ leaves a step back to the search that found
+it, while the Search Quicklinks hotkey does not. **The launcher is the exception, because it is the
+root** — ⌘Space over an open Quicklinks screen opens the root search with nothing behind it, rather than
 stacking the launcher over the screen it replaced. Nothing per-feature encodes this.
 
 `PaletteState` holds the screens below `mode` as `[PaletteFrame]` — mode, query and selection, enough
@@ -154,18 +147,8 @@ pairing of a label with its key. It is drawn only when Tab really would open Qui
 back out of `PaletteTabAction` rather than restated, so a hint can never promise a destination the
 key does not go to: an argument field to walk takes Tab first, and the hint steps aside for it.
 
-`PaletteTabAction` decides where Tab goes *and* what happens to the typed text. The clipboard hands
-the query over, since one search narrows either list. **From the launcher, Tab `.ask`s** — Quick AI opens
-fresh with the typed text already sent, so one key turns a search into a question. Leaving chat is
-still a `.freshScreen`: that field holds a half-written message rather than a query, and a draft
-dropped into a filter matches nothing. `.ask` is its own case rather than a `carryQuery(.ai)` because
-the text is submitted, not seeded, and the hint reads the case back out (`== .ask`) instead of
-restating the rule.
-
-**A ring hop is a step, so Escape walks back out the way Tab came in** — launcher → chat → clipboard
-takes two presses to unwind, and the back chevron's tooltip stops promising a step it cannot take.
-The launcher is the ring's root, so the hop that closes the ring resets the stack instead of stacking
-a third screen; ringing round forever therefore never grows the stack past two.
+`PaletteTabAction` submits the launcher's typed text to Quick AI. Returning to the launcher resets
+the navigation stack and carries the current query.
 
 ### Inline row arguments
 
@@ -398,7 +381,7 @@ the arrow outside it, and AppKit's own alternation over the field came straight 
 `RootPaletteView` holds a single `OpenMenu?` rather than a flag per menu, so "at most one is open" is
 structural instead of a pair of `onChange` handlers pushing each other closed. The ⌘K Actions menu
 hangs `.bottomTrailing`, the app menu `.bottomLeading`, and everything drawn as a header control —
-the clipboard type filter, the AI model and effort menus, an `options=` argument field's choices and
+the AI model and effort menus, an `options=` argument field's choices and
 a running command's `searchBarAccessory` dropdown — hangs `.belowHeaderTrailing`, under its own
 button. `menuContent` resolves the open case to one `PaletteMenuContent` — a row count, a row action
 and a view built on demand — so ↑/↓, plain ↵, Esc and the click-away catcher serve every menu without
@@ -508,7 +491,7 @@ handled in `PalettePanel.sendEvent` before `super` hands the event to the respon
 - **A bare backspace** — the field editor consumes it as an edit (`onBareBackspace`).
 - **Chords with no main menu item** — ⌘, and ⌘w, which an app with a menu bar would never see here.
 - **The physical number-row slots.** `FavoriteSlots` matches ⌘1…⌘0 by key code before fixed command
-  chords, then publishes the resolved position to the active screen. Only the launcher and clipboard
+  chords, then publishes the resolved position to the active screen. Only the launcher
   screens intercept these slots; other screens keep their own ⌘-number shortcuts. The launcher's
   compact visibility setting is visual only and does not disable its favorite slots.
 - **Chords AppKit has already bound to a selector.** `⌘.` is the one that bites: AppKit binds it to
@@ -587,6 +570,6 @@ app:
 Both require the Accessibility permission (`Permissions.ensureAccessibility()`).
 
 The same show also mirrors that app into `PaletteState.pasteTarget` (a `PasteTarget`: localized
-name + bundle path), so Clipboard and Emoji can name it — the footer pill reads "Paste to Notes" and
+name + bundle path), so Emoji can name it — the footer pill reads "Paste to Notes" and
 the ⌘K paste rows carry the app's icon. Resolved once per summon, never per render, and deliberately
 not cleared by `prepare` (pop-to-root resets the screen, not the target).

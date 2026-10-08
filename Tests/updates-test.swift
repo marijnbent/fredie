@@ -440,22 +440,22 @@ struct UpdatesTests {
             "a running extension command holds the update")
 
         busy = UpdateActivity()
-        busy.isExpandingSnippet = true
+        busy.isDeliveringText = true
         expect(
-            UpdateReadiness.evaluate(busy) == .expandingSnippet,
-            "a snippet mid-expansion holds the update")
+            UpdateReadiness.evaluate(busy) == .deliveringText,
+            "text insertion in progress holds the update")
 
         // Everything at once: the report names the one that would lose work, not the topmost panel.
         busy = UpdateActivity()
         busy.isPaletteVisible = true
         busy.isShowingDialog = true
-        busy.isExpandingSnippet = true
+        busy.isDeliveringText = true
         expect(
-            UpdateReadiness.evaluate(busy) == .expandingSnippet,
+            UpdateReadiness.evaluate(busy) == .deliveringText,
             "the costliest interruption is the one reported")
 
         expect(
-            UpdateReadiness.Blocker.expandingSnippet.message.hasSuffix("."),
+            UpdateReadiness.Blocker.deliveringText.message.hasSuffix("."),
             "every blocker reads as a sentence the window can show")
     }
 }

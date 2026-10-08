@@ -44,7 +44,8 @@ enum ColorActionsMenu {
                     title: format.title, icon: .blank,
                     shortcut: format == primary ? "↵" : nil, detail: format.string(for: color)
                 ) {
-                    core.clipboardCoordinator.copyColor(color, as: format)
+                    core.paletteCoordinator.hidePalette(restoreFocus: false)
+                    Paster.copyPlainText(format.string(for: color))
                 }
             })
     }

@@ -1,7 +1,7 @@
 # Local release
 
 Run `./scripts/release-local.sh` from the repository root. It quits the installed or locally
-built Fredie, builds with XcodeGen and Xcode, verifies the app and its two embedded helpers,
+built Fredie, builds with XcodeGen and Xcode, verifies the app bundle,
 replaces `/Applications/Fredie.app`, and opens the installed app.
 
 - `./scripts/build-release.sh`: signed bundle at `build/Release/Fredie.app`.
@@ -10,7 +10,6 @@ replaces `/Applications/Fredie.app`, and opens the installed app.
 
 `project.yml` owns version, build number, bundle identifiers, and targets. `release/Release.plist`
 selects the installed Apple Development signing identity. No unsigned or ad-hoc fallback is allowed.
-Both helper programs must be included and signed: `ClipboardTextHelper` and `Fredie Dictation.app`.
 
 A requested local release also includes committing and pushing the current Fredie repository
 changes on `main`, after verification. The scripts do not perform Git operations.

@@ -38,9 +38,6 @@ final class ModifierTapMonitor: HealthCheckable {
 
     /// Fired on the tap's final release, so the key is up by the time the action runs.
     @ObservationIgnored var onTrigger: ((HotKeyBinding) -> Void)?
-    @ObservationIgnored var onHoldPressed: (() -> Void)?
-    @ObservationIgnored var onHoldReleased: (() -> Void)?
-    @ObservationIgnored var onHoldCancelled: (() -> Void)?
 
     /// Set while a recorder captures, so editing a binding can't trigger it.
     var isPaused = false {
@@ -55,11 +52,8 @@ final class ModifierTapMonitor: HealthCheckable {
     @ObservationIgnored private var doubleTapDetector = DoubleTapDetector()
     @ObservationIgnored private var modifierDetector = ModifierKeyDetector()
     @ObservationIgnored private var pendingSingle: Task<Void, Never>?
-    @ObservationIgnored private var pendingHold: Task<Void, Never>?
     @ObservationIgnored private var pendingBinding: HotKeyBinding?
     private var globeDown = false
-    private var holdKey: ModifierKey?
-    private var holding = false
     @ObservationIgnored private var tapPort: CFMachPort?
     @ObservationIgnored private var runLoopSource: CFRunLoopSource?
     @ObservationIgnored private var sessionTokens: [NotificationToken] = []
@@ -79,10 +73,9 @@ final class ModifierTapMonitor: HealthCheckable {
     }
 
     /// Modifier-only bindings currently assigned; an empty set tears the tap down entirely.
-    func update(bound: Set<HotKeyBinding>, holdKey: ModifierKey? = nil) {
-        guard bound != self.bound || holdKey != self.holdKey else { return }
+    func update(bound: Set<HotKeyBinding>) {
+        guard bound != self.bound else { return }
         self.bound = bound
-        self.holdKey = holdKey
         resetDetectors()
         syncTapPresence()
     }
@@ -104,16 +97,8 @@ final class ModifierTapMonitor: HealthCheckable {
             }
             input = .modifiers(modifiers, hasOtherModifiers: Self.hasOtherModifiers(in: flags))
         } else {
-            // Return and Escape belong to the dictation panel while a hold is active.
-            if holding,
-                keyCode == kVK_Return || keyCode == kVK_ANSI_KeypadEnter
-                    || keyCode == kVK_Escape
-            {
-                return
-            }
             modifierDetector.cancel()
             cancelPendingSingle()
-            cancelHold()
             input = .otherInput
         }
         guard let modifier = doubleTapDetector.handle(input, at: now),
@@ -126,27 +111,8 @@ final class ModifierTapMonitor: HealthCheckable {
     private func handleModifier(_ event: ModifierKeyDetector.Event) {
         switch event {
         case .pressed(let key):
-            if let holdKey, key == holdKey {
-                pendingHold = Task { [weak self] in
-                    try? await Task.sleep(for: .seconds(DoubleTapDetector.maxHold))
-                    guard !Task.isCancelled, let self else { return }
-                    pendingHold = nil
-                    holding = true
-                    onHoldPressed?()
-                }
-            } else if key.singleBinding != pendingBinding {
-                cancelPendingSingle()
-            }
+            if key.singleBinding != pendingBinding { cancelPendingSingle() }
         case .released(let key, let doubleTap, let held):
-            if key == holdKey {
-                pendingHold?.cancel()
-                pendingHold = nil
-                if holding {
-                    holding = false
-                    onHoldReleased?()
-                }
-                return
-            }
             guard !held else { cancelPendingSingle(); return }
             if doubleTap, bound.contains(key.doubleBinding) {
                 cancelPendingSingle()
@@ -172,7 +138,6 @@ final class ModifierTapMonitor: HealthCheckable {
             }
         case .cancelled:
             cancelPendingSingle()
-            cancelHold()
         }
     }
 
@@ -182,20 +147,11 @@ final class ModifierTapMonitor: HealthCheckable {
         pendingBinding = nil
     }
 
-    private func cancelHold() {
-        pendingHold?.cancel()
-        pendingHold = nil
-        guard holding else { return }
-        holding = false
-        onHoldCancelled?()
-    }
-
     private func resetDetectors() {
         doubleTapDetector.reset()
         modifierDetector.reset()
         globeDown = false
         cancelPendingSingle()
-        cancelHold()
     }
 
     private static func modifiers(in flags: CGEventFlags) -> Set<DoubleTapModifier> {

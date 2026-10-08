@@ -7,10 +7,8 @@ struct ChatComposerTextView: NSViewRepresentable {
     /// A new value pulls focus into the field: a switched chat is one you are about to type into.
     let focusKey: UUID
     let maximumTextHeight: CGFloat
-    let handle: ComposerTextViewHandle
     @Binding var isFileDragTargeted: Bool
     let onDropFiles: ([URL]) -> Void
-    let onInvalidate: (ComposerTextView) -> Void
     let onSubmit: () -> Void
 
     private static var font: NSFont { .preferredFont(forTextStyle: .body) }
@@ -34,7 +32,7 @@ struct ChatComposerTextView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, onInvalidate: onInvalidate, onSubmit: onSubmit)
+        Coordinator(text: $text, onSubmit: onSubmit)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -44,7 +42,6 @@ struct ChatComposerTextView: NSViewRepresentable {
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = true
         guard let textView = scroll.documentView as? ComposerTextView else { return scroll }
-        handle.textView = textView
         textView.delegate = context.coordinator
         textView.drawsBackground = false
         textView.isRichText = false
@@ -63,9 +60,7 @@ struct ChatComposerTextView: NSViewRepresentable {
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         guard let textView = scroll.documentView as? ComposerTextView else { return }
-        if context.coordinator.focusedKey != focusKey { onInvalidate(textView) }
         context.coordinator.text = $text
-        context.coordinator.onInvalidate = onInvalidate
         context.coordinator.onSubmit = onSubmit
         textView.onDropFiles = onDropFiles
         textView.onFileDragTargeted = { [$isFileDragTargeted] in $isFileDragTargeted.wrappedValue = $0 }
@@ -82,7 +77,6 @@ struct ChatComposerTextView: NSViewRepresentable {
 
     static func dismantleNSView(_ scroll: NSScrollView, coordinator: Coordinator) {
         guard let textView = scroll.documentView as? ComposerTextView else { return }
-        coordinator.onInvalidate(textView)
         textView.isEditable = false
         textView.delegate = nil
         textView.onDropFiles = nil
@@ -102,16 +96,14 @@ struct ChatComposerTextView: NSViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
-        var onInvalidate: (ComposerTextView) -> Void
         var onSubmit: () -> Void
         var focusedKey: UUID?
 
         init(
-            text: Binding<String>, onInvalidate: @escaping (ComposerTextView) -> Void,
+            text: Binding<String>,
             onSubmit: @escaping () -> Void
         ) {
             self.text = text
-            self.onInvalidate = onInvalidate
             self.onSubmit = onSubmit
         }
 
@@ -133,7 +125,6 @@ struct ChatComposerTextView: NSViewRepresentable {
     }
 }
 
-/// Fredie's own editor, so dictation, snippets and Quick Actions write into it in process.
 final class ComposerTextView: NSTextView, InjectableTextView {
     var onDropFiles: (([URL]) -> Void)?
     var onFileDragTargeted: ((Bool) -> Void)?
@@ -167,10 +158,4 @@ final class ComposerTextView: NSTextView, InjectableTextView {
             && sender.draggingPasteboard.canReadObject(
                 forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
     }
-}
-
-/// How a control beside the field reaches the text view the representable made.
-@MainActor
-final class ComposerTextViewHandle {
-    weak var textView: ComposerTextView?
 }

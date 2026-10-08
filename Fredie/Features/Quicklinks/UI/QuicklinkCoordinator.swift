@@ -15,8 +15,6 @@ final class QuicklinkCoordinator {
     private let windowController: PaletteWindowController
     private let paletteCoordinator: PaletteCoordinator
     private let settingsCoordinator: SettingsCoordinator
-    /// `{clipboard offset=N}` reads the history a snippet expansion does; one owner, one depth.
-    private let clipboardHistory: @MainActor () -> [String]
     /// Dialogs, the HUD, and the `pendingQuicklinkEdit` handoff to the Settings pane.
     private unowned let core: AppCore
 
@@ -36,7 +34,6 @@ final class QuicklinkCoordinator {
         windowController: PaletteWindowController,
         paletteCoordinator: PaletteCoordinator,
         settingsCoordinator: SettingsCoordinator,
-        clipboardHistory: @escaping @MainActor () -> [String],
         core: AppCore
     ) {
         self.store = store
@@ -51,7 +48,6 @@ final class QuicklinkCoordinator {
         self.windowController = windowController
         self.paletteCoordinator = paletteCoordinator
         self.settingsCoordinator = settingsCoordinator
-        self.clipboardHistory = clipboardHistory
         self.core = core
     }
 
@@ -82,14 +78,14 @@ final class QuicklinkCoordinator {
         let target =
             windowController.isVisible
             ? windowController.previousTarget : InjectionTarget.current()
-        let encoding: SnippetTemplateEngine.ValueEncoding =
+        let encoding: QuicklinkTemplateEngine.ValueEncoding =
             QuicklinkDestination.usesURLEncoding(quicklink.link) ? .percentEncoding : .none
         var context = injector.captureExpansionContext(
-            target: target, clipboardHistory: clipboardHistory())
+            target: target, clipboard: NSPasteboard.general.string(forType: .string) ?? "")
         var needsSelection = false
 
         // An unreadable selection is missing, not empty: substitute the clipboard, or take the field.
-        if context.selection.isEmpty, SnippetTemplateEngine.usesSelection(quicklink.link) {
+        if context.selection.isEmpty, QuicklinkTemplateEngine.usesSelection(quicklink.link) {
             switch settings.quicklinkSelectionFallback {
             case .clipboard:
                 context = context.replacingSelection(with: context.clipboard)
@@ -102,7 +98,7 @@ final class QuicklinkCoordinator {
 
         // The override outlives the trip through the fields, so it is honoured on the way back.
         let forcesDefault = forcingDefaultApp || pendingDefaultAppOverride == id
-        let expansion = SnippetTemplateEngine.expand(
+        let expansion = QuicklinkTemplateEngine.expand(
             text: quicklink.link, context: context, userArguments: values, encoding: encoding)
         guard expansion.missingArguments.isEmpty, !needsSelection else {
             pendingDefaultAppOverride = forcesDefault ? id : nil
@@ -116,7 +112,7 @@ final class QuicklinkCoordinator {
     /// The fallback row's query, which fills the first `{argument}` the link still owes.
     func openQuicklink(id: UUID, filling seed: String) {
         guard let quicklink = store.quicklink(id: id) else { return }
-        let arguments = SnippetTemplateEngine.declaredArguments(in: quicklink.link)
+        let arguments = QuicklinkTemplateEngine.declaredArguments(in: quicklink.link)
         guard let target = arguments.first(where: { !$0.isOptional }) ?? arguments.first else {
             return openQuicklink(id: id)
         }
@@ -124,15 +120,15 @@ final class QuicklinkCoordinator {
     }
 
     /// `{selection}` promoted to a field when unreadable; left empty, it still resolves at open.
-    static let selectionArgument = SnippetTemplateEngine.DeclaredArgument(
+    static let selectionArgument = QuicklinkTemplateEngine.DeclaredArgument(
         name: "Selected Text", options: [], isOptional: true)
 
     /// The header fields a row shows: the link's own arguments, plus the one the setting asks for.
-    func promptedArguments(for quicklink: Quicklink) -> [SnippetTemplateEngine.DeclaredArgument] {
-        var arguments = SnippetTemplateEngine.declaredArguments(in: quicklink.link)
+    func promptedArguments(for quicklink: Quicklink) -> [QuicklinkTemplateEngine.DeclaredArgument] {
+        var arguments = QuicklinkTemplateEngine.declaredArguments(in: quicklink.link)
         // Asked for up front rather than after a failed read: a chip cannot capture a selection.
         if settings.quicklinkSelectionFallback == .ask,
-            SnippetTemplateEngine.usesSelection(quicklink.link)
+            QuicklinkTemplateEngine.usesSelection(quicklink.link)
         {
             arguments.append(Self.selectionArgument)
         }

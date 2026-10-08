@@ -25,11 +25,6 @@ struct BackupBundle: Sendable {
         return root.appendingPathComponent(subpath, isDirectory: true)
     }
 
-    var clipboardItemsURL: URL { directory(for: .clipboard).appendingPathComponent("items.jsonl") }
-    var clipboardImagesDirectory: URL {
-        directory(for: .clipboard).appendingPathComponent("images", isDirectory: true)
-    }
-    var snippetsDirectory: URL { directory(for: .snippets) }
     var notesDirectory: URL { directory(for: .notes) }
 
     func learningURL(_ part: LearningPart) -> URL {
@@ -41,8 +36,6 @@ struct BackupBundle: Sendable {
     /// Called once before composing; the archive carries no directory a category didn't ask for.
     func prepare(_ categories: Set<BackupCategory>) throws {
         try create(root)
-        if categories.contains(.clipboard) { try create(clipboardImagesDirectory) }
-        if categories.contains(.snippets) { try create(snippetsDirectory) }
         if categories.contains(.notes) { try create(notesDirectory) }
         if categories.contains(.learning) { try create(directory(for: .learning)) }
     }
@@ -71,43 +64,6 @@ struct BackupBundle: Sendable {
         return name
     }
 
-    // MARK: - Clipboard, a line at a time
-
-    /// One clip per line; a newline inside a clip is escaped, so `\n` only ever separates.
-    struct ClipboardWriter: ~Copyable {
-        private let handle: FileHandle
-        /// Compact, not pretty-printed: a pretty object spans lines and breaks the separator.
-        private let encoder: JSONEncoder
-
-        init(url: URL) throws {
-            FileManager.default.createFile(atPath: url.path, contents: nil)
-            handle = try FileHandle(forWritingTo: url)
-            encoder = JSONEncoder()
-            encoder.outputFormatting = [.sortedKeys]
-            encoder.dateEncodingStrategy = .iso8601
-        }
-
-        func write(_ item: BackupClipboardItem) throws {
-            var line = try encoder.encode(item)
-            line.append(0x0A)
-            try handle.write(contentsOf: line)
-        }
-
-        deinit { try? handle.close() }
-    }
-
-    func clipboardWriter() throws -> ClipboardWriter {
-        try ClipboardWriter(url: clipboardItemsURL)
-    }
-
-    /// Mapped and decoded lazily, so a gigabyte of history costs one clip of resident memory.
-    func clipboardItems() -> some Sequence<BackupClipboardItem> {
-        let data = (try? Data(contentsOf: clipboardItemsURL, options: .mappedIfSafe)) ?? Data()
-        return data.split(separator: 0x0A, omittingEmptySubsequences: true)
-            .lazy
-            .compactMap { try? Self.decoder.decode(BackupClipboardItem.self, from: Data($0)) }
-    }
-
     // MARK: - Reading
 
     func readManifest() throws(BackupFormatError) -> BackupManifest {
@@ -118,13 +74,6 @@ struct BackupBundle: Sendable {
             throw .unsupportedFormat(found: manifest.format)
         }
         return manifest
-    }
-
-    /// nil rather than a throw: a clip whose image the archive lost is skipped and counted.
-    func clipboardImageURL(named name: String) -> URL? {
-        guard Self.isSafeName(name) else { return nil }
-        let url = clipboardImagesDirectory.appendingPathComponent(name)
-        return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
     func documents(in directory: URL, extension ext: String) -> [(name: String, contents: String)] {
@@ -161,7 +110,6 @@ struct BackupBundle: Sendable {
 
     // MARK: - Names
 
-    /// A note or snippet title becomes a filename here, so path separators cannot survive it.
     static func sanitized(_ title: String) -> String {
         let cleaned = title.components(separatedBy: Self.forbidden).joined(separator: "-")
             .trimmingCharacters(in: .whitespacesAndNewlines)

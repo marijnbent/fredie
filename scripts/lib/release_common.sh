@@ -28,18 +28,13 @@ release::quit_running_app() {
 }
 
 release::verify_bundle() {
-    local bundle="$1" item identifier
+    local bundle="$1" identifier
     [[ -d "$bundle" ]] || release::fail "Missing app: $bundle"
     plutil -lint "$bundle/Contents/Info.plist" >/dev/null
     identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")"
     [[ "$identifier" == "nl.bentjes.fredie" ]] || release::fail "Unexpected app identifier: $identifier"
-    identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Helpers/Fredie Dictation.app/Contents/Info.plist")"
-    [[ "$identifier" == "nl.bentjes.fredie.dictation" ]] || release::fail "Unexpected dictation identifier: $identifier"
-    for item in "$bundle/Contents/Helpers/ClipboardTextHelper" "$bundle/Contents/Helpers/Fredie Dictation.app" "$bundle"; do
-        [[ -e "$item" ]] || release::fail "Missing embedded product: $item"
-        codesign --verify --deep --strict "$item"
-        codesign -dvv "$item" 2>&1 | grep -Fx "Authority=$SIGNING_IDENTITY" >/dev/null || release::fail "Unexpected signing identity: $item"
-    done
+    codesign --verify --deep --strict "$bundle"
+    codesign -dvv "$bundle" 2>&1 | grep -Fx "Authority=$SIGNING_IDENTITY" >/dev/null || release::fail "Unexpected signing identity: $bundle"
 }
 
 release::build_release_app() {
@@ -47,6 +42,7 @@ release::build_release_app() {
     command -v xcodegen >/dev/null || release::fail "XcodeGen is required."
     cd "$ROOT_DIR"
     xcodegen generate
+    rm -rf "$APP_BUNDLE"
     xcodebuild -jobs 2 -project Fredie.xcodeproj -scheme Fredie -configuration Release -destination "platform=macOS,arch=$(uname -m)" \
         -derivedDataPath "$ROOT_DIR/build/DerivedData" \
         CONFIGURATION_BUILD_DIR="$ROOT_DIR/build/Release" \

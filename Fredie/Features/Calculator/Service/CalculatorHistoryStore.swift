@@ -10,7 +10,6 @@ struct CalcHistoryEntry: Identifiable, Codable, Hashable, Sendable {
     var copyText: String { result.replacingOccurrences(of: ",", with: "") }
 }
 
-/// A capped JSON file beside `ClipboardStore` so `brew uninstall --zap` gets it too.
 @MainActor
 @Observable
 final class CalculatorHistoryStore {

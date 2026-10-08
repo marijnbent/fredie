@@ -11,15 +11,9 @@ extension UTType {
 enum BackupActions {
     struct RaycastOutcome {
         var summary: SettingsBackup.ApplySummary
-        var clipboardImported: Int
-        var snippetsImported: Int
-        var snippetsNeedEnabling: Bool
-        /// Set when the snippet files couldn't be written; the rest of the import still applied.
-        var snippetsError: String?
         var quicklinksImported: Int
         /// Set when the library wouldn't open; the rest of the import still applied.
         var quicklinksError: String?
-        var missingImages: Int
     }
 
     // MARK: - Fredie native (own file panels; dialogs come from `AppCore`)
@@ -51,7 +45,6 @@ enum BackupActions {
 
     // MARK: - Fredie backups
 
-    /// Composes off-main, then seals — a clipboard history runs to gigabytes.
     static func exportBackup(
         core: AppCore, categories: Set<BackupCategory>
     ) async throws
@@ -145,20 +138,6 @@ enum BackupActions {
             }
         }.value
         // Reported, not thrown: it must not abort the rest of what was asked for.
-        var snippetsImported = 0
-        var snippetsError: String?
-        if !result.snippets.isEmpty {
-            do {
-                // Start the store first, so imported snippets reach the launcher at once.
-                if core.settings.snippetsEnabled {
-                    await core.snippetsStore.start()
-                }
-                snippetsImported =
-                    try await core.snippetsStore.importSnippets(result.snippets).count
-            } catch {
-                snippetsError = error.localizedDescription
-            }
-        }
         var quicklinksImported = 0
         var quicklinksError: String?
         if !result.quicklinks.isEmpty {
@@ -172,18 +151,10 @@ enum BackupActions {
             }
         }
         let summary = result.backup.apply(to: core)
-        let imported =
-            result.clipboard.isEmpty
-            ? 0 : core.clipboardStore.importEntries(result.clipboard)
         return RaycastOutcome(
             summary: summary,
-            clipboardImported: imported,
-            snippetsImported: snippetsImported,
-            snippetsNeedEnabling: snippetsImported > 0 && !core.settings.snippetsEnabled,
-            snippetsError: snippetsError,
             quicklinksImported: quicklinksImported,
-            quicklinksError: quicklinksError,
-            missingImages: result.missingImages)
+            quicklinksError: quicklinksError)
     }
 
     /// Every Raycast channel (stable, beta, alpha, internal) shares this bundle-id prefix.
@@ -225,37 +196,27 @@ enum BackupActions {
             parts.append(applied)
         }
         var imported: [String] = []
-        if summary.clipboard > 0 { imported.append("\(summary.clipboard) clips") }
-        if summary.snippets > 0 { imported.append("\(summary.snippets) snippets") }
         if summary.notes > 0 { imported.append("\(summary.notes) notes") }
         if summary.learning > 0 { imported.append("\(summary.learning) learning records") }
         if !imported.isEmpty {
             parts.append("Imported " + imported.joined(separator: ", ") + ".")
         }
-        if summary.snippetsNeedEnabling { parts.append(snippetsNeedEnablingText) }
         parts.append(contentsOf: summary.problems)
         return parts.isEmpty ? nothingImportedText : parts.joined(separator: " ")
     }
 
     static func exportText(_ result: BackupComposer.Result) -> String {
         let categories = BackupCategory.ordered(result.manifest.categories)
-        var text =
+        let text =
             categories.isEmpty
             ? "Nothing was selected."
             : "Saved "
                 + categories.map(\.descriptor.label)
                 .joined(separator: ", ") + "."
-        if result.missingImages > 0 {
-            text += " \(result.missingImages) images were unavailable and skipped."
-        }
         return text
     }
 
     static let nothingImportedText = "Nothing to import from this file."
-
-    /// No import may grant keystroke listening, so say the switch an imported keyword needs is off.
-    private static let snippetsNeedEnablingText =
-        "Turn on Snippets in Settings to use their keywords."
 
     /// Not everything an import applies settles in the running app, so say to relaunch.
     private static let restartAfterImportText = "Quit and reopen Fredie to finish."
@@ -264,17 +225,6 @@ enum BackupActions {
     static func raycastText(_ outcome: RaycastOutcome) -> String {
         var parts: [String] = []
         if let applied = appliedText(outcome.summary) { parts.append(applied) }
-        if outcome.clipboardImported > 0 {
-            parts.append("Imported \(outcome.clipboardImported) clipboard entries.")
-        }
-        if outcome.snippetsImported > 0 {
-            let noun = outcome.snippetsImported == 1 ? "snippet" : "snippets"
-            parts.append("Imported \(outcome.snippetsImported) \(noun).")
-        }
-        if outcome.snippetsNeedEnabling { parts.append(snippetsNeedEnablingText) }
-        if let snippetsError = outcome.snippetsError {
-            parts.append("Couldn’t import snippets: \(snippetsError)")
-        }
         if outcome.quicklinksImported > 0 {
             let noun = outcome.quicklinksImported == 1 ? "quicklink" : "quicklinks"
             parts.append("Imported \(outcome.quicklinksImported) \(noun).")
@@ -283,9 +233,6 @@ enum BackupActions {
             parts.append("Couldn’t import quicklinks: \(quicklinksError)")
         }
         var message = parts.isEmpty ? nothingImportedText : parts.joined(separator: " ")
-        if outcome.missingImages > 0 {
-            message += " \(outcome.missingImages) images were unavailable and skipped."
-        }
         if !parts.isEmpty { message += " \(restartAfterImportText)" }
         return message
     }

@@ -49,12 +49,6 @@ extension SettingsAnchor {
     static let quickActionsModel = Self(tab: .quickActions, title: "Model")
     static let quickActionsTranslate = Self(tab: .quickActions, title: "Translate")
 
-    static let dictationDictation = Self(tab: .dictation, title: "Dictation")
-    static let dictationCommands = Self(tab: .dictation, title: "Commands")
-    static let dictationModel = Self(tab: .dictation, title: "Model")
-    static let dictationMemory = Self(tab: .dictation, title: "Memory")
-    static let dictationOutput = Self(tab: .dictation, title: "Output")
-
     static let fileSearchFileSearch = Self(tab: .fileSearch, title: "File Search")
     static let fileSearchCommands = Self(tab: .fileSearch, title: "Commands")
     static let fileSearchSearchScopes = Self(tab: .fileSearch, title: "Search Scopes")
@@ -64,12 +58,7 @@ extension SettingsAnchor {
     static let notesOptions = Self(tab: .notes, title: "Options")
     static let notesCommands = Self(tab: .notes, title: "Commands")
 
-    static let snippetsSnippets = Self(tab: .snippets, title: "Snippets")
-    static let snippetsCommands = Self(tab: .snippets, title: "Commands")
-    static let snippetsLibrary = Self(tab: .snippets, title: "Library")
-
     static let navigationNavigation = Self(tab: .navigation, title: "Navigation")
-    static let navigationCommands = Self(tab: .navigation, title: "Commands")
     static let navigationMenuSearch = Self(tab: .navigation, title: "Search Menu Bar Items")
 
     static let windowManagementWindowManagement = Self(
@@ -80,12 +69,6 @@ extension SettingsAnchor {
         tab: .windowManagement, title: "Layout and Room Commands")
     static let windowManagementOptions = Self(tab: .windowManagement, title: "Options")
     static let windowManagementCustomSizes = Self(tab: .windowManagement, title: "Custom Sizes")
-
-    static let clipboardClipboard = Self(tab: .clipboard, title: "Clipboard")
-    static let clipboardCommands = Self(tab: .clipboard, title: "Commands")
-    static let clipboardHistory = Self(tab: .clipboard, title: "History")
-    static let clipboardDisabledApplications = Self(
-        tab: .clipboard, title: "Disabled Applications")
 
     static let emojiCommands = Self(tab: .emoji, title: "Commands")
     static let emojiAppearance = Self(tab: .emoji, title: "Appearance")
@@ -104,7 +87,6 @@ extension SettingsAnchor {
 
     static let permissionsAccessibility = Self(tab: .permissions, title: "Accessibility")
     static let permissionsCalendars = Self(tab: .permissions, title: "Calendars")
-    static let permissionsMicrophone = Self(tab: .permissions, title: "Microphone")
 
     static let backupExport = Self(tab: .backup, title: "Export")
     static let backupImport = Self(tab: .backup, title: "Import")

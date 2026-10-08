@@ -16,18 +16,10 @@ enum RaycastImportReader {
         backup.hotkeys = mapHotkeys(json)
         backup.favoriteApps = mapFavorites(json)
         backup.launcherAliases = mapAliases(json)
-        let (clipboard, missing) = RaycastClipboardImport.parse(
-            json["clipboardHistory"], now: Date.init,
-            fileExists: { FileManager.default.fileExists(atPath: $0) })
-        let snippets = RaycastSnippetImport.parse(
-            (json["snippets"] as? [String: Any])?["snippets"])
         let quicklinks = RaycastQuicklinkImport.parse(json["quicklinks"])
         return RaycastImport.Result(
             backup: backup,
-            clipboard: clipboard,
-            snippets: snippets,
-            quicklinks: quicklinks,
-            missingImages: missing)
+            quicklinks: quicklinks)
     }
 
     /// Raycast's hyper key code → ours; nothing maps to `.none`, so none is cleared.
@@ -101,9 +93,6 @@ enum RaycastImportReader {
         for command in settings?["commands"] as? [[String: Any]] ?? [] {
             guard let binding = binding(from: command["macosHotkey"]) else { continue }
             switch command["extensionId"] as? String {
-            case "e:r:clipboard-history":
-                commands[CommandID.clipboardHistory.rawValue] = binding
-                mapped = true
             case "e:r:emoji-picker":
                 commands[CommandID.searchEmoji.rawValue] = binding
                 mapped = true

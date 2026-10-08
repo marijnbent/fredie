@@ -53,22 +53,9 @@ the pure-layer boundary real: a harness that stops *compiling* means AppKit or S
 `Model/` folder, or an effect has leaked into a decision. That is a more common failure than a broken
 assertion, and it is the more important one.
 
-A harness also runs in your own login session against the real system, with no sandbox and no fixture
-world, so it must never mutate state the machine shares with the apps you use. `NSPasteboard.general`
-is the trap: a running Fredie records every write to it as a genuine copy, so a fixture left there
-lands in clipboard history looking like something the user copied. `notes-editor-test` seeded one on
-every run from #232 onward by calling the native `copy:`/`cut:`/`paste:` actions; it now drives the
-`writeSelection(to:types:)` and `readSelection(from:)` primitives those actions delegate to, against
-`NSPasteboard.withUniqueName()`. Same AppKit path, no shared side effect. `pasteboard-test` is the
-second case, and it is why `ClipboardManager.fileURLs(on:volatileRoots:)` and `Paster.write(_:store:to:)`
-each take the thing they act on as a parameter: a seam that exists so the harness never has to reach
-for the shared board. Its scratch tree lives under `temporaryDirectory`, which is itself a volatile
-root, so the cases about *reading* files inject an empty root list and the one case about durability
-is the one that runs against the shipped roots. Both file URL and legacy filename boards also cover
-the capture cap, exact ordering, rejected prefixes, duplicates and symlinks using private fixtures.
-The reader cases add the limit boundaries, the predicate call counts and modern/legacy precedence.
-Note that macOS synthesizes `public.file-url` items for any `NSFilenamesPboardType` write, so a
-legacy fixture still exercises the modern representation and the fallback branch stays unreached.
+Harnesses run against the real system. Use private pasteboards and temporary files so they never
+change the user's clipboard or app data. `notes-editor-test` drives the native selection read/write
+primitives through `NSPasteboard.withUniqueName()`.
 
 Never join a compile to its run with `&&` in a `set -e` script. `set -e` is specified to ignore a
 failing command in a non-final AND-OR list member, so `swiftc … && /tmp/x` swallows a compile error and
@@ -91,11 +78,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `app-name-test` | `Platform/AppDisplayName.swift` — every path that names a scanned bundle |
 | `calc-test` | all of `Calculator/Model/` |
 | `calendar-test` | all of `Calendar/Model/` — link detection, the join window, the day buckets |
-| `clipboard-search-test` | Ordinary and OCR result ordering, opt-in lifecycle, cancellation, pins and type filters |
-| `clipboard-text-test` | Apple Vision/PDF extraction, scheduling, retry backoff and recovery |
-| `paste-sequence-test` | `Clipboard/Model/PasteSequence.swift` — the walk's order, its end, and what starts it over |
-| `clipboard-test` | `Clipboard/Model/ClipboardStore.swift`, `ClipboardFilter.swift`, `ClipboardFileKind.swift`, the colour trio |
-| `pasteboard-test` | `Clipboard/Service/ClipboardManager.swift` capture and `Paster.write` — what a Finder copy reads as, and what a file entry writes back |
 | `emoji-test` | `Emoji/Model/EmojiCatalog.swift`, `EmojiGridGeometry.swift`, the generated data and keyword packs |
 | `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `scripts/gen-emoji.js`'s keyword format, multilingual search |
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` |
@@ -103,11 +85,6 @@ If a change touches anything in the right column, the harness on the left is man
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift`, `Extensions/Model/ExtensionFormMetrics.swift` |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
-| `dictation-test` | `Dictation/Model/DictationModel.swift`, `DictationTextFormatter.swift` — model paths and text formatting |
-| `dictation-field-test` | Composer rebinding and teardown, field-scoped dictation cancellation, and queued insertion validity; synthetic capture and real AppKit editors |
-| `dictation-volume-test` | Volume recovery across fade steps, user changes, output switching, failed writes and cancellation; injected audio controls only |
-| `dictation-inference-test` | Dictation byte BPE, Fourier/mel features and non-overlapping audio chunks; no downloaded models |
-| `dictation-worker-test` | Dictation's framed channel, worker reuse/switching, removal, cancellation and broken pipes with a fixture helper |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |
@@ -119,13 +96,14 @@ If a change touches anything in the right column, the harness on the left is man
 | `window-room-test` | `WindowManagement/Model/Room*.swift` — every room layout and its minimum sizes, the grid, arrangement reading, window matching, parking, the plan, Tab's choices and the three stores |
 | `custom-command-test` | `CustomCommands/Model/CustomCommand.swift`, `Service/ShellCommandRunner.swift` |
 | `uninstall-test` | all five pure files in `Uninstall/Model/` |
+| `quicklink-template-test` | Current clipboard and selection expansion, URL encoding, arguments, dates and UUIDs |
+| `text-injection-test` | Private pasteboard restoration and ownership, Unicode delivery chunks, replacement confirmation and queue ordering |
 | `quicklink-test` | all of `Quicklinks/Model/` |
 | `quicklink-coordinator-test` | Quicklink opening and inline argument focus — missing selection, manual input, clipboard fallback and default-app overrides; no platform effects |
 | `apple-shortcut-test` | all of `AppleShortcuts/Model/` — the `shortcuts list` parser and entry ids |
-| `snippets-test` | all of `Snippets/Model/` and `Snippets/Service/`, plus `Platform/HealthTicker.swift` |
 | `notes-test` | all of `Notes/Model/` and `Notes/Service/`, including the Markdown parser, edit plans and reveal policy, plus the real fuzzy matcher and signposts |
 | `notes-editor-test` | the Notes editor, rendered and literal, with real TextKit 2 and AppKit editing objects: styling, reveal, layout fragments, keys, chords, checkboxes and links |
-| `raycast-test` | `Backup/Service/RaycastDecoder.swift`, `Scrypt.swift`, `Platform/Compression/Zlib.swift`, `Clipboard/Model/RaycastClipboardImport.swift` and import-time clipboard retention |
+| `raycast-test` | `Backup/Service/RaycastDecoder.swift`, `Scrypt.swift`, `Platform/Compression/Zlib.swift` |
 | `symbols-test` | `Extensions/Service/SymbolCatalog.swift`, against this machine's CoreGlyphs |
 | `ext-store-test` | `Extensions/Model/` — GitHub source parsing and URLs, the store and Git tree parsers |
 | `ext-refresh-test` | `Extensions/Model/ExtensionRefreshPolicy.swift` — interval parsing, due dates, backoff, subtitle fallback, indicator state, Refresh Now refusals |
@@ -260,20 +238,6 @@ swiftc -O -swift-version 6 Fredie/Features/Calculator/Model/*.swift \
 against the engine, pass a token count, a workload (`dense`, `sparse`, `equal`, `empty`) and an
 iteration count for timings, or `--probe` to diff every chunk between two builds.
 
-`Tests/clipboard-file-performance.swift` measures file capture with private pasteboards and temporary
-fixtures. It reports wall and process CPU time as JSON for modern and legacy formats, including
-32/1,000/10,000 durable files, rejected-input controls and an uncapped-reader control that guards
-the attachment path against the bounded reader it now delegates to. Compare three fresh processes
-per build with identical `-O` settings:
-
-```sh
-swiftc -O -swift-version 6 Fredie/Platform/PasteboardFiles.swift \
-    Fredie/Features/Clipboard/Model/{ClipboardStore,ClipboardFilter,ClipboardFileKind,ColorValue,ColorFormat,ColorSpaces}.swift \
-    Fredie/Features/Clipboard/Service/ClipboardManager.swift \
-    Tests/clipboard-file-performance.swift -o /tmp/clipboard-file-performance
-/tmp/clipboard-file-performance
-```
-
 `Tests/emoji-search-performance.swift` times uncached queries, typing prefixes and memo hits against
 the loaded catalog, with process RSS and footprint as JSON; `--names` also lists every catalog name
 missing from its own top five results, and `--languages fr,ja` loads those keyword packs first (run it
@@ -311,14 +275,6 @@ swiftc -O -swift-version 6 Fredie/Platform/{Signposts,Appearance,NotificationTok
 leaks the interval when the work throws, because the `.end` emit is skipped on the throw path and the
 instrument then shows an interval that never closes.
 
-`./scripts/benchmark-dictation.sh AUDIO` measures all four installed dictation models with fresh and
-reused helpers, reporting load time, transcription time, sampled helper footprint and recognized text.
-It uses only the supplied audio and already downloaded models, outside the app and deterministic suite.
-See [Dictation validation](features/dictation.md#validation) for comparison limits and optional arguments.
-
-Measure before optimising, and measure the same way twice. For cold launch: quit fully, relaunch, time
-it three times, take the median.
-
 ### Recorded baselines
 
 Measured at the end of the 2026 refactor, on `main`. Useful as orders of magnitude, not as contracts.
@@ -332,8 +288,6 @@ Measured at the end of the 2026 refactor, on `main`. Useful as orders of magnitu
 | Comment density | 1,653 of 27,289 source lines (6.1%) |
 | The harness suite | ~15 s wall clock, 11-way parallel (~98 s serial, ~140 s before either) |
 | `palette-selection-test` | 111,684 assertions — a tripwire: a change in this count means the row-order model moved |
-| `SnippetKeywordPolicy` match | 7 µs/keystroke at 50 keywords, 59 µs at 1,000 — the `lowercased()` is 0.09 µs of it |
-| `ClipboardStore.pinnedItems` | 27–127 µs per uncached search, 1,000-row window — no cache earns its invalidation yet |
 | Rendered Notes editor, 100,000 characters | 30 ms install and full restyle; 7.5, 5.9 and 3.3 ms per character typed at the end, middle and start (5.2, 3.1 and 0.6 ms with rendering off); 0.6 ms per caret move |
 | `count items of trash` | 5,000 ms against a cold Finder on an *empty* Trash, 110 ms warm — why AppleScript is detached |
 
@@ -353,7 +307,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 - Palette hotkey opens the launcher; pressing it again closes it; Escape clears a non-empty query,
   then hides on a second press; clicking away closes it
-- Search a mode command (Clipboard History, Search Emoji, Search Quicklinks, Search Files, Quick AI)
+- Search a mode command (Search Emoji, Search Quicklinks, Search Files, Quick AI)
   and run it: Escape returns to the launcher **with the query still typed and the row still
   selected**, and the next press clears it. The same screen from its own global hotkey hides the
   palette instead, and shows its own header icon rather than a back chevron
@@ -378,7 +332,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - With macOS set to a decimal-comma region (Italian), `2,3 + 1,5` answers `3,8`, `max(2,5; 3)`
   answers `3`, and ↵ pastes `3,8`; General ▸ Calculator ▸ Number format `English` restores `2.3 + 1.5`
   and re-renders past Calculator History in the chosen format
-- Section headers appear in order: Favorites, Applications, System Settings, Quicklinks, Snippets,
+- Section headers appear in order: Favorites, Applications, System Settings, Quicklinks,
   System Actions, Window Management, Custom Commands, Commands
 - With a non-ASCII input source active, ⌘K opens Actions; ↑/↓ move it, ↵ activates, Escape closes it
 - In either ⌘K Actions panel, typing filters immediately in the bottom search band without changing
@@ -391,47 +345,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A click in the palette but outside its menu closes only the menu; a click outside the palette
   closes both, regardless of the menu query; the next summon accepts typing immediately
 - Footer menus are about 30pt wider; their row hover keeps the shared 10pt menu-row corner
-- Tab toggles launcher ↔ clipboard; bare Backspace on an empty query backs out of a sub-screen
+- Tab toggles launcher ↔ AI; bare Backspace on an empty query backs out of a sub-screen
 - Launching an app focuses it; escaping the palette returns focus to the app you came from
-- Paste from clipboard history lands in that app, not in Fredie
 - No flash, flicker or reflow on open, and row metrics unchanged
-
-### Clipboard
-
-- A copy appears at the top within about a second; an image copy records a thumbnail
-- Search is correct both under and over three characters
-- The type filter searches from its top band, retains its active checkmark when matched, and shows
-  centred **No Results** without changing the clipboard query; its native field supports selection
-- ⌘. pins and the highlight follows the row into Pinned; ⌘⌫ deletes; ⌘↵ copies without pasting
-- With enough pins to fill the list, opening it — the first show after launch too — highlights the
-  newest clip, centred with pins above; clearing a query or the filter lands there again
-- ⌃X deletes the selected entry and ⌃⇧X clears the history, from the list and from an open ⌘K menu
-- ⌃⇧X asks first, through Fredie's own dialog; Cancel and Esc both leave every entry in place
-- ↵ pastes into the previous app; ⌥↵ pastes without closing the palette
-- ⌃⌘↵ pastes as plain text: a text entry as typed, a file entry as its path rather than the file
-- Default action ▸ Paste as Plain Text: ↵ pastes plain, ⌃⌘↵ pastes, ⌘↵ still copies; an image
-  entry's ↵ still pastes the image and its ⌘K menu has no plain row
-- ⇧⌘T on an image row and on an image-file row copies the recognized text, and the ⌘K menu carries
-  the same Copy Text row
-- The "Reading text…" progress pill appears while the helper runs and is replaced by the outcome:
-  **Copied text**, or **No text found** when nothing was recognized
-- Copy Text on a vanished row reports by kind — "That file has moved or been deleted." for a
-  referenced file, "That image is no longer available." for a pruned blob
-- Copy Text works with clipboard text search off: the helper is bundled either way
-- Copying something else while "Reading text…" shows leaves that copy on the pasteboard, and the
-  pill says **Clipboard changed, text not copied**
-- A tall phone screenshot and a full-width Retina screenshot copy each line once, whole, in order
-- A copy from an excluded app (Settings ▸ Clipboard ▸ Disabled Applications) is **not** recorded
-- Password-manager copies are still not recorded
-- Off (Settings ▸ Clipboard ▸ Enable Clipboard History): nothing new is recorded, the launcher rows
-  and their shortcuts are gone, the menu-bar row is gone, and Tab rings straight past the screen
-- Off then on again: existing clips come back; Clear history erases them while it is still off
-- Paste Sequentially, bound to a shortcut: copy A, B, C, and three presses paste C, B, A into
-  the field in front; a fourth says **Nothing left to paste**; a new copy or a minute's pause
-  starts over from the newest; the history's order is unchanged afterwards; holding the shortcut
-  or double-pressing it fast never pastes one entry twice
-- A text, link, image and file row each drag into another app; a click still selects, a double
-  click still pastes, and a right click still opens ⌘K
 
 ### Launcher and icons
 
@@ -445,14 +361,14 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### Hotkeys
 
-- The palette, clipboard, emoji, File Search, and all three Notes shortcuts fire; a per-app shortcut
+- The palette, emoji, File Search, and all three Notes shortcuts fire; a per-app shortcut
   toggles that app
 - Recording captures a shortcut, and the old binding does not fire while recording
 - A conflicting binding is rejected and names its current owner
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing — Notes,
-  Clipboard, Emoji, File Search, Snippets, Quicklinks, Calendar, AI and the two layout commands
+  Emoji, File Search, Quicklinks, Calendar, AI and the two layout commands
 
 ### Uninstall
 
@@ -543,8 +459,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Return continues and leaves lists and quotes, Tab and Shift-Tab nest, ordered lists renumber, `[] `
   becomes a task, and every formatting shortcut works and undoes in one step
 - Pasting a URL over selected text makes a link; pasting anything else is plain text
-- Copy from a rendered line pastes raw Markdown into another app; a snippet keyword expands inside a
-  rendered note and is styled at once
+- Copy from a rendered line pastes raw Markdown into another app; Quick Actions replace selections in a
+  rendered note and are styled at once
 - The derived title of an Untitled note shows no Markdown markers
 - A narrow window wraps list items under their text, not under the marker
 - Typing new lines, wrapping text, and pasting grow the note vertically without changing its width,
@@ -606,14 +522,6 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Quitting inside the debounce window saves the last edit
 - Over a light desktop, the corner matches the palette's, the shadow follows it, and no dark edge shows
   around the glass controls
-
-### Snippets
-
-- With snippets **off**: no launcher entries, no keyword expansion, and no permission prompt at launch
-- Enabling shows the consent dialog **before** the Accessibility prompt
-- Declining leaves the feature off and prompts for nothing
-- After enabling, a keyword expands in a text field; an argument-bearing snippet prompts then delivers
-- Editing a snippet file externally reloads it
 
 ### Calculator and currency
 
@@ -724,10 +632,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Export produces a `.fredie`; import applies it and reports a per-category summary
 - Untick a category on export, and the import picker greys that row out rather than offering it
 - Untick a category on **import** and confirm it did not arrive, while the ticked ones did
-- An image clip round-trips and still renders; the archive can then be deleted without breaking it
 - A file whose `manifest.json` `format` was hand-edited is refused **with a message naming it**
 - Cancelling the save panel leaves nothing in `~/Library/Caches/nl.bentjes.fredie.dev/backup-staging/`
-- **`snippetsEnabled` is not in the exported file**, and importing does not enable snippets
 - Nothing in the extracted tree names a Keychain item, an extension, or an AI conversation
 
 ### Clean install
@@ -744,7 +650,7 @@ tccutil reset Accessibility nl.bentjes.fredie.dev 2>/dev/null || true
 ```
 
 - Launches with every store directory absent — no crash, no hang; onboarding runs
-- Palette opens and lists apps; clipboard, quicklinks, snippets and calculator history are all empty
+- Palette opens and lists apps; quicklinks and calculator history are all empty
   and all accept a first entry
 - Notes creates no directory until Show, Create, or Search is first used, then accepts its first edit
 - **Every setting shows its intended default.** Walk the panes: this is what catches a broken

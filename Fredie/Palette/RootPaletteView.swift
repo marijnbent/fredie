@@ -4,7 +4,6 @@ struct RootPaletteView: View {
     @Environment(AppCore.self) private var core
     @Environment(PaletteState.self) private var vm
     @Environment(AppIndex.self) private var appIndex
-    @Environment(ClipboardStore.self) private var store
     @Environment(FavoritesStore.self) private var favorites
     @Environment(VisibilityStore.self) private var visibility
     @Environment(CalculatorHistoryStore.self) private var calcHistory
@@ -15,13 +14,11 @@ struct RootPaletteView: View {
     @Environment(FileSearchSession.self) private var fileSearch
     @Environment(DictionarySession.self) private var dictionary
     @Environment(MenuSearchSession.self) private var menuSearch
-    @Environment(WindowSwitchSession.self) private var windowSwitch
     @Environment(CalendarStore.self) private var calendarStore
     /// Observed so the join card's countdown redraws on the minute boundary.
     @Environment(MeetingClock.self) private var meetingClock
     @Environment(UninstallSession.self) private var uninstall
     @Environment(QuicklinkStore.self) private var quicklinks
-    @Environment(SnippetsStore.self) private var snippets
     @Environment(ExtensionManager.self) private var extensions
     @Environment(AppSettings.self) private var settings
     @Environment(\.metrics) private var metrics
@@ -63,9 +60,6 @@ struct RootPaletteView: View {
             return QuicklinkListScreen(
                 store: quicklinks, core: core, vm: vm, openActions: openActions,
                 openArgumentOptions: openArgumentOptions)
-        case .snippets:
-            return SnippetsScreen(
-                store: snippets, core: core, vm: vm, openActions: openActions)
         case .emoji:
             return EmojiScreen(
                 index: emojiIndex, frequent: frequentEmoji, pinned: core.pinnedEmoji, core: core, vm: vm,
@@ -77,8 +71,6 @@ struct RootPaletteView: View {
         case .menuSearch:
             return MenuSearchScreen(
                 session: menuSearch, core: core, vm: vm, openActions: openActions)
-        case .switchWindows:
-            return WindowSwitchScreen(session: windowSwitch, core: core)
         case .rooms:
             return RoomsScreen(coordinator: core.roomCoordinator, session: core.roomSession, vm: vm)
         case .roomWindows:
@@ -90,10 +82,6 @@ struct RootPaletteView: View {
                 openActions: openActions)
         case .meetingDetails:
             return MeetingDetailsScreen(store: calendarStore, core: core)
-        case .clipboard:
-            return ClipboardScreen(
-                store: store, core: core, vm: vm, openActions: openActions,
-                scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
         case .ai:
             return AIScreen(
                 vm: vm, metrics: metrics, chat: quickAI,
@@ -149,20 +137,6 @@ struct RootPaletteView: View {
 
     // MARK: - Popover menu content
 
-    /// The clipboard type filter's rows; activating one is the only way the filter changes.
-    private var clipboardFilterContent: PopoverMenuContent {
-        PopoverMenuContent(
-            items: ClipboardFilter.allCases.enumerated().map { index, filter in
-                PopoverMenuItem(
-                    title: filter.title, systemImage: filter.systemImage,
-                    startsSection: index == 1
-                ) {
-                    vm.clipboardFilter = filter
-                }
-            })
-    }
-
-    /// The file search type filter's rows, built the way the clipboard's are.
     private var fileSearchFilterContent: PopoverMenuContent {
         PopoverMenuContent(
             items: FileSearchFilter.allCases.map { filter in
@@ -234,9 +208,6 @@ struct RootPaletteView: View {
                 search: PopoverMenu.Search(
                     placeholder: "Search for actions…", placement: .bottom),
                 onActivate: activateMenuItem, preferredSelection: filtered.bestMatch)
-        case .clipboardFilter:
-            return headerMenu(
-                clipboardFilterContent, width: metrics.size.clipboardFilterMenuWidth)
         case .fileSearchFilter:
             return headerMenu(fileSearchFilterContent, width: metrics.size.fileSearchFilterMenuWidth)
         case .emojiCategory:
@@ -378,7 +349,6 @@ struct RootPaletteView: View {
                 if vm.mode == .fileSearch { fileSearch.search(vm.query, filter: vm.fileSearchFilter) }
                 if vm.mode == .dictionary { dictionary.lookUp(vm.query) }
                 if vm.mode == .menuSearch { menuSearch.filter(vm.query) }
-                if vm.mode == .switchWindows { windowSwitch.filter(vm.query) }
                 // A command that took over the search text filters its own list.
                 if vm.mode == .extensionCommand, let handler = extensionScreen.searchTextHandler {
                     extensions.dispatch(handler: handler, arguments: [vm.query])
@@ -391,14 +361,12 @@ struct RootPaletteView: View {
             }
             .modifier(ExtensionSelectionForwarder(screen: extensionScreen, selection: vm.selection))
             // A narrower list means the old index points at a different row, or at none.
-            .onChange(of: vm.clipboardFilter) { land() }
             // The filter is part of the query, so narrowing re-runs it rather than thinning rows.
             .onChange(of: vm.fileSearchFilter) {
                 land()
                 fileSearch.search(vm.query, filter: vm.fileSearchFilter)
             }
             .onChange(of: vm.mode) {
-                vm.clipboardFilter = .all
                 vm.fileSearchFilter = .all
                 vm.emojiCategoryFilter = .all
                 vm.emojiGridColumnsOverride = nil
@@ -420,7 +388,6 @@ struct RootPaletteView: View {
                     dictionary.reset()
                 }
                 if vm.mode != .menuSearch { menuSearch.reset() }
-                if vm.mode != .switchWindows { windowSwitch.reset() }
                 if vm.mode != .meetingDetails { calendarStore.clearDetails() }
                 if vm.mode != .rooms, vm.mode != .roomWindows { core.roomCoordinator.screensDidClose() }
                 // Leaving the screen any other way than Escape still ends the command's session.
@@ -677,13 +644,6 @@ struct RootPaletteView: View {
                 headerGutter(width: metrics.spacing.md)
                 quickAITabHint
             }
-            // Keyed off the mode, which says which screen is up; the field just flexes narrower.
-            if !isCollapsed, vm.mode == .clipboard {
-                headerGutter(width: metrics.spacing.md)
-                ClipboardFilterButton(
-                    filter: vm.clipboardFilter, isOpen: openMenu == .clipboardFilter,
-                    action: toggleClipboardFilter)
-            }
             if !isCollapsed, vm.mode == .fileSearch {
                 headerGutter(width: metrics.spacing.md)
                 HeaderMenuButton(
@@ -780,8 +740,7 @@ struct RootPaletteView: View {
     private var tabOpensChat: Bool {
         guard !isCollapsed, headerAccessory?.fieldNames.isEmpty ?? true else { return false }
         return PaletteTabAction.resolve(
-            mode: vm.mode, aiEnabled: settings.aiEnabled,
-            clipboardEnabled: settings.clipboardEnabled) == .ask
+            mode: vm.mode, aiEnabled: settings.aiEnabled) == .ask
     }
 
     /// True when the screen took the keyboard over, which leaves the header empty beside the chevron.
@@ -962,16 +921,6 @@ struct RootPaletteView: View {
         }
     }
 
-    /// Opens on the active filter, so the current value is the highlighted row like a pop-up's.
-    private func toggleClipboardFilter() {
-        if openMenu == .clipboardFilter {
-            closeMenus()
-            return
-        }
-        let active = ClipboardFilter.allCases.firstIndex(of: vm.clipboardFilter) ?? 0
-        open(.clipboardFilter, highlighting: active)
-    }
-
     private func toggleFileSearchFilter() {
         if openMenu == .fileSearchFilter {
             closeMenus()
@@ -987,7 +936,6 @@ struct RootPaletteView: View {
             commandHasAccessory: extensionCommandScreen?.searchAccessory != nil)
         {
         case .extensionAccessory: toggleExtensionSearchAccessory()
-        case .clipboardFilter: toggleClipboardFilter()
         case .fileSearchFilter: toggleFileSearchFilter()
         case .emojiCategory: toggleEmojiCategory()
         case .aiModel: toggleAIModel()
@@ -1005,7 +953,6 @@ struct RootPaletteView: View {
         open(.emojiCategory, highlighting: active)
     }
 
-    /// Opens on the choice the dropdown holds, exactly as the clipboard filter opens on its own.
     private func toggleExtensionSearchAccessory() {
         if openMenu == .extensionAccessory {
             closeMenus()
@@ -1016,7 +963,6 @@ struct RootPaletteView: View {
         open(.extensionAccessory, highlighting: accessory.index(of: value))
     }
 
-    /// Opens on the selected model, mirroring the clipboard filter's active-row behavior.
     private func toggleAIModel() {
         if openMenu == .aiModel {
             closeMenus()
@@ -1223,7 +1169,7 @@ struct RootPaletteView: View {
         case .app: .bottomLeading
         case .actions: .bottomTrailing
         case .argumentOptions: .belowHeaderTrailing
-        case .clipboardFilter, .fileSearchFilter, .emojiCategory, .aiModel, .aiReasoning,
+        case .fileSearchFilter, .emojiCategory, .aiModel, .aiReasoning,
             .aiAttachments, .extensionAccessory:
             .belowHeaderTrailing
         case nil: nil
@@ -1322,14 +1268,12 @@ struct RootPaletteView: View {
     /// A ring hop leaves a step back — except the hop closing the ring on the launcher, its root.
     private func cycleMode() {
         switch PaletteTabAction.resolve(
-            mode: vm.mode, aiEnabled: settings.aiEnabled,
-            clipboardEnabled: settings.clipboardEnabled)
+            mode: vm.mode, aiEnabled: settings.aiEnabled)
         {
         case .carryQuery(.launcher):
             vm.mode = .launcher
             vm.resetNavigation()
         case .carryQuery(let mode): vm.pushCarryingQuery(mode: mode)
-        case .freshScreen(let mode): vm.push(mode: mode)
         case .ask: core.quickAICoordinator.ask(vm.query)
         }
     }
@@ -1437,7 +1381,6 @@ private enum OpenMenu {
     /// An `options=` argument field's choices, hung under the header where the chip sits.
     case argumentOptions
     case app
-    case clipboardFilter
     case fileSearchFilter
     case emojiCategory
     case aiModel

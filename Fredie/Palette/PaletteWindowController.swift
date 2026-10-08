@@ -87,7 +87,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             // Events go stale while the palette is closed, and the countdown only ticks while up.
             core.calendarCoordinator.paletteDidShow()
             core.palette.noteVisible(true)
-            core.clipboardStore.setTextSearchActive(true)
             // Only while we are on screen: a system-wide tap has no business outliving the window.
             commandEscapeTap.enable()
             // Non-activating, so summoning never raises our own aux windows behind it.
@@ -156,7 +155,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         core.calendarCoordinator.paletteDidHide()
         core.roomCoordinator.paletteDidHide()
         core.palette.noteVisible(false)
-        core.clipboardStore.setTextSearchActive(false)
         // Drop the anchor, so the next summon re-resolves for the screen in use then.
         anchor = nil
         // The guides must never outlive the panel they point at.
@@ -219,13 +217,6 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         return true
     }
 
-    /// Paste into the previous app while the palette stays frontmost.
-    @discardableResult
-    func pasteKeepingWindowOpen(_ item: ClipboardItem, store: ClipboardStore) -> Bool {
-        Paster.pasteInPlace(item, store: store, into: previousApp)
-    }
-
-    /// String flavor of the above, for emoji/symbol pastes.
     func pasteStringKeepingWindowOpen(_ text: String) {
         Paster.pasteStringInPlace(text, into: previousApp)
     }
@@ -411,7 +402,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
                 return true
             }
             guard Self.commandCharacter(from: event) != nil else { return false }
-            if self.core.palette.mode == .launcher || self.core.palette.mode == .clipboard,
+            if self.core.palette.mode == .launcher,
                 let index = FavoriteSlots.index(forKeyCode: event.keyCode)
             {
                 self.core.palette.noteFavoriteSlot(index)

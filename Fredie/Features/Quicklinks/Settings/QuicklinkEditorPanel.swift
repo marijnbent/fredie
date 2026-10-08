@@ -118,7 +118,6 @@ struct QuicklinkEditorPanel: View {
         }
     }
 
-    /// Only tokens meaningful in a destination; `{cursor}` and `{snippet:…}` stay literal.
     private var insertMenu: some View {
         Menu("Insert…") {
             Button("Argument") { insert("{argument}") }

@@ -101,7 +101,7 @@ and `accepts(contentType:isDirectory:)`, which the home-root branch uses because
 Spotlight. A type resolved from disk answers both, so a `.pages` package files under Documents and a plain
 folder under Folders.
 
-The filter lives on `PaletteState` beside the clipboard's, is reset on every summon, and is never
+The filter lives on `PaletteState` is reset on every summon, and is never
 persisted. ⌘P and the header button open it through `PaletteFilterAction` and the one `PopoverMenu` path
 `RootPaletteView` uses for every in-window menu; changing it resets the selection, snaps the scroll and
 re-runs the query.
@@ -160,7 +160,7 @@ magnitude, not budgets; rerun the benchmark after query-policy work.
 ## Palette and actions
 
 `FileSearchScreen.rows` is the exact flat selection order rendered by `FileSearchList`. Results sit in a
-290pt column beside a preview pane, split by the same `Theme.Colors.separator` hairline the clipboard
+290pt column beside a preview pane, split by a `Theme.Colors.separator` hairline that the palette
 draws. The list uses the shared Results header, row metrics, edge dissolve, thin scrollbar and scroll
 intent; its header reads **Recently Used** on the blank screen and **Results** under a query. A row shows
 a fitted native file icon and the full filename — a folder prefixed by its parent's name, dimmed, since
@@ -195,8 +195,7 @@ what the extension declares. `PlainTextSurface` copies QuickLook's own text prev
 off: arrow-keying a list must not start a movie, while opening Quick Look on one is the ask itself.
 The player view is `KeyboardFocusRefusing` either way, so clicking its transport leaves the caret in
 the search field; see [palette.md](palette.md#the-keyboard-belongs-to-the-search-field).
-The player is File Search's own, deliberately: the clipboard's preview is a separate surface with its own
-sizing, and copying forty lines of `AVPlayerView` teardown is the cheaper trade.
+The player is owned by File Search.
 
 **The surface outlives the selection**, and there is no timer in front of it. A move hands the same
 `QLPreviewView` another item rather than closing one and building the next, which is the whole cost:
@@ -231,10 +230,7 @@ not outlive the window.
 | Paste File to … | ⇧⌘V | `Paster.pasteFile` into the app the palette was summoned over, named by `PasteTarget` |
 | Move to Trash | ⌃X | `FileManager.trashItem` off the main actor, then the row leaves the session |
 
-None of the copies is marked with `ClipboardManager.internalType`, so a copied file enters clipboard
-history like any other copy. Move to Trash rides the clipboard's own ⌃X, asks nothing first — trashing is
-undoable, as it is for Uninstall and for an extension's `trash` — and has no ⌃⇧X counterpart, since there
-is no "all" to trash. The three ⌘C chords differ only by their second modifier, which
+Move to Trash uses ⌃X and is undoable. The three ⌘C chords differ only by their second modifier, which
 `PaletteShortcut` reads in order — ⇧, then ⌥, then ⌃; bare ⌘C stays with the search field.
 
 The first in-flight query says nothing — the rows it is about to replace would only flash a message — an
@@ -245,10 +241,8 @@ says "File search is unavailable" inline.
 ### Dragging out
 
 A row drags its file or folder straight into another app — a Finder window, a browser's upload field,
-a mail being written — through the same `onRowClick(drag:)` the clipboard uses, so the press, the
-**copy-only** operation and the fly-back are the ones [clipboard.md](clipboard.md#dragging-out)
-explains. Copy matters more here than there: every result is the user's own file, and on the boot
-volume a plain file-URL drag would default to moving it. The image is the row's fitted tile, already
+a mail being written — through `onRowClick(drag:)`. The operation is copy-only: on the boot volume a
+plain file-URL drag would default to moving the user's file. The image is the row's fitted tile, already
 warm by the time a pointer can reach it; a landed drop hides the palette through
 `PaletteCoordinator.dragLanded()`. There is no stat first: a result is seconds old, and its session is
 cleared whenever the palette hides.

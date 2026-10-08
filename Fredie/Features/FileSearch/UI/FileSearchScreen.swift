@@ -106,7 +106,7 @@ struct FileSearchScreen: PaletteScreen {
                     },
                     onDropped: { core.paletteCoordinator.dragLanded() }
                 )
-                .frame(width: metrics.size.clipboardListWidth)
+                .frame(width: metrics.size.detailListWidth)
                 Rectangle()
                     .fill(Theme.Colors.separator)
                     .frame(width: Theme.Size.hairline)

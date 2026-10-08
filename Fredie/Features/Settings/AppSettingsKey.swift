@@ -3,11 +3,6 @@ import Foundation
 /// The UserDefaults keys `AppSettings` owns; `CaseIterable` so the backup harness enumerates them.
 enum AppSettingsKey: String, CaseIterable {
     // Every raw value is spelled out so renaming a case can never rename a persisted key.
-    case clipboardEnabled = "clipboardEnabled"
-    case clipboardTextSearchEnabled = "clipboardTextSearchEnabled"
-    case clipboardRetention = "clipboardRetentionDays"
-    case clipboardDefaultAction = "clipboardDefaultAction"
-    case clipboardDisabledApps = "clipboardDisabledApps"
     case hyperKey = "hyperKeyPhysicalKey"
     case hyperKeyIncludesShift = "hyperKeyIncludesShift"
     case hyperKeyQuickPress = "hyperKeyQuickPress"
@@ -39,9 +34,6 @@ enum AppSettingsKey: String, CaseIterable {
     case notesFolder = "notesFolder"
     case customCommandsEnabled = "customCommandsEnabled"
     case customCommandsShowInLauncher = "customCommandsShowInLauncher"
-    case snippetsEnabled = "snippetsEnabled"
-    case snippetsShowInLauncher = "snippetsShowInLauncher"
-    case snippetsFolder = "snippetsFolder"
     case navigationEnabled = "navigationEnabled"
     case menuSearchDisabledApps = "menuSearchDisabledApps"
     case menuSearchShowsAppleMenu = "menuSearchShowsAppleMenu"
@@ -98,14 +90,6 @@ enum AppSettingsKey: String, CaseIterable {
     case quickActionPreviews = "quickActionPreviews"
     case quickActionInstructions = "quickActionInstructions"
     case quickActionLanguage = "quickActionLanguage"
-    case dictationEnabled = "dictationEnabled"
-    case dictationMode = "dictationMode"
-    case dictationModel = "dictationModel"
-    case dictationMicrophone = "dictationMicrophone"
-    case dictationDestination = "dictationDestination"
-    case dictationAdaptsCapitalization = "dictationAdaptsCapitalization"
-    case dictationIdleRelease = "dictationIdleReleaseMinutes"
-    case dictationLanguage = "dictationLanguage"
     case supportReminders = "supportReminders"
     case settingsFileEnabled = "settingsFileEnabled"
 }

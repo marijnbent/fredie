@@ -3,8 +3,6 @@ import Foundation
 /// One selectable slice of a backup; `descriptor` is exhaustive, as `AppEntry.Kind`'s is.
 enum BackupCategory: String, CaseIterable, Identifiable, Sendable {
     case configuration
-    case clipboard
-    case snippets
     case notes
     case learning
 
@@ -25,13 +23,6 @@ enum BackupCategory: String, CaseIterable, Identifiable, Sendable {
             return .init(
                 label: "Settings & Shortcuts", symbol: "slider.horizontal.3", subpath: "",
                 countNoun: nil)
-        case .clipboard:
-            return .init(
-                label: "Clipboard History", symbol: "doc.on.clipboard", subpath: "clipboard",
-                countNoun: "clips")
-        case .snippets:
-            return .init(
-                label: "Snippets", symbol: "curlybraces", subpath: "snippets", countNoun: "snippets")
         case .notes:
             return .init(label: "Notes", symbol: "note.text", subpath: "notes", countNoun: "notes")
         case .learning:

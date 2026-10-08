@@ -129,34 +129,6 @@ final class AppSettings {
         }
     }
 
-    /// Ships on, unlike every other feature switch: a launcher is expected to keep history.
-    var clipboardEnabled: Bool {
-        didSet { defaults.set(clipboardEnabled, forKey: Key.clipboardEnabled.rawValue) }
-    }
-
-    var clipboardTextSearchEnabled: Bool {
-        didSet { defaults.set(clipboardTextSearchEnabled, forKey: Key.clipboardTextSearchEnabled.rawValue) }
-    }
-
-    var clipboardRetention: ClipboardRetention {
-        didSet {
-            defaults.set(clipboardRetention.rawValue, forKey: Key.clipboardRetention.rawValue)
-        }
-    }
-
-    /// Bundle IDs never recorded from; ordered, so the Settings list stays stable.
-    var clipboardDisabledApps: [String] {
-        didSet { defaults.set(clipboardDisabledApps, forKey: Key.clipboardDisabledApps.rawValue) }
-    }
-
-    /// What ↵ does on a clipboard entry; Paste takes the chord the chosen action leaves free.
-    var clipboardDefaultAction: ClipboardDefaultAction {
-        didSet {
-            defaults.set(
-                clipboardDefaultAction.rawValue, forKey: Key.clipboardDefaultAction.rawValue)
-        }
-    }
-
     var launchAtLogin: Bool {
         didSet { LaunchAtLogin.set(launchAtLogin) }
     }
@@ -317,41 +289,6 @@ final class AppSettings {
         didSet { defaults.set(notesEnabled, forKey: Key.notesEnabled.rawValue) }
     }
 
-    var dictationEnabled: Bool {
-        didSet { defaults.set(dictationEnabled, forKey: Key.dictationEnabled.rawValue) }
-    }
-
-    var dictationMode: DictationMode {
-        didSet { defaults.set(dictationMode.rawValue, forKey: Key.dictationMode.rawValue) }
-    }
-
-    var dictationModel: DictationModel {
-        didSet { defaults.set(dictationModel.rawValue, forKey: Key.dictationModel.rawValue) }
-    }
-
-    /// Nil lets macOS follow the system input device as it changes.
-    var dictationMicrophone: String? {
-        didSet { defaults.set(dictationMicrophone, forKey: Key.dictationMicrophone.rawValue) }
-    }
-
-    var dictationDestination: DictationDestination {
-        didSet { defaults.set(dictationDestination.rawValue, forKey: Key.dictationDestination.rawValue) }
-    }
-
-    var dictationAdaptsCapitalization: Bool {
-        didSet {
-            defaults.set(dictationAdaptsCapitalization, forKey: Key.dictationAdaptsCapitalization.rawValue)
-        }
-    }
-
-    var dictationIdleRelease: DictationIdleRelease {
-        didSet { defaults.set(dictationIdleRelease.rawValue, forKey: Key.dictationIdleRelease.rawValue) }
-    }
-
-    var dictationLanguage: String? {
-        didSet { defaults.set(dictationLanguage, forKey: Key.dictationLanguage.rawValue) }
-    }
-
     var notesRendersMarkdown: Bool {
         didSet { defaults.set(notesRendersMarkdown, forKey: Key.notesRendersMarkdown.rawValue) }
     }
@@ -385,23 +322,9 @@ final class AppSettings {
         }
     }
 
-    /// Also keyword-expansion consent, so it confirms first and never rides a backup.
-    var snippetsEnabled: Bool {
-        didSet { defaults.set(snippetsEnabled, forKey: Key.snippetsEnabled.rawValue) }
-    }
-
     /// Off out of the box: on means Fredie may read a selection anywhere and type over it.
     var quickActionsEnabled: Bool {
         didSet { defaults.set(quickActionsEnabled, forKey: Key.quickActionsEnabled.rawValue) }
-    }
-
-    var snippetsShowInLauncher: Bool {
-        didSet { defaults.set(snippetsShowInLauncher, forKey: Key.snippetsShowInLauncher.rawValue) }
-    }
-
-    /// The snippets folder as the user wrote it, `~` allowed; nil keeps it in Application Support.
-    var snippetsFolder: String? {
-        didSet { defaults.set(snippetsFolder, forKey: Key.snippetsFolder.rawValue) }
     }
 
     var navigationEnabled: Bool {
@@ -623,22 +546,6 @@ final class AppSettings {
     }
 
     init() {
-        // The only feature switch that defaults on, so absence has to outrank a stored `false`.
-        clipboardEnabled =
-            defaults.object(forKey: Key.clipboardEnabled.rawValue) == nil
-            || defaults.bool(forKey: Key.clipboardEnabled.rawValue)
-        // `integer(forKey:)` returns 0 when unset, which no case matches.
-        clipboardTextSearchEnabled = defaults.bool(forKey: Key.clipboardTextSearchEnabled.rawValue)
-        clipboardRetention =
-            ClipboardRetention(rawValue: defaults.integer(forKey: Key.clipboardRetention.rawValue))
-            ?? .threeMonths
-        // Password managers ship excluded, until the user first edits the list.
-        clipboardDisabledApps =
-            defaults.stringArray(forKey: Key.clipboardDisabledApps.rawValue)
-            ?? ["com.apple.keychainaccess", "com.apple.Passwords"]
-        clipboardDefaultAction =
-            defaults.string(forKey: Key.clipboardDefaultAction.rawValue)
-            .flatMap(ClipboardDefaultAction.init) ?? .paste
         launchAtLogin = LaunchAtLogin.isEnabled
         showInMenuBar =
             defaults.object(forKey: Key.showInMenuBar.rawValue) == nil
@@ -708,27 +615,6 @@ final class AppSettings {
         fileSearchIgnorePatterns =
             defaults.stringArray(forKey: Key.fileSearchIgnorePatterns.rawValue) ?? []
         notesEnabled = defaults.bool(forKey: Key.notesEnabled.rawValue)
-        dictationEnabled = defaults.bool(forKey: Key.dictationEnabled.rawValue)
-        dictationMode =
-            defaults.string(forKey: Key.dictationMode.rawValue)
-            .flatMap(DictationMode.init) ?? .toggle
-        dictationModel =
-            defaults.string(forKey: Key.dictationModel.rawValue)
-            .flatMap(DictationModel.init) ?? .redux
-        dictationMicrophone = defaults.string(forKey: Key.dictationMicrophone.rawValue)
-        dictationDestination =
-            defaults.string(forKey: Key.dictationDestination.rawValue)
-            .flatMap(DictationDestination.init) ?? .paste
-        dictationAdaptsCapitalization =
-            defaults.object(forKey: Key.dictationAdaptsCapitalization.rawValue) == nil
-            || defaults.bool(forKey: Key.dictationAdaptsCapitalization.rawValue)
-        dictationIdleRelease =
-            defaults.object(forKey: Key.dictationIdleRelease.rawValue)
-            .flatMap { $0 as? Int }
-            .flatMap(DictationIdleRelease.init(rawValue:)) ?? .oneMinute
-        dictationLanguage =
-            defaults.string(forKey: Key.dictationLanguage.rawValue)
-            .flatMap(DictationLanguage.init(rawValue:))?.rawValue
         notesRendersMarkdown =
             defaults.object(forKey: Key.notesRendersMarkdown.rawValue) == nil
             || defaults.bool(forKey: Key.notesRendersMarkdown.rawValue)
@@ -743,12 +629,7 @@ final class AppSettings {
         customCommandsShowInLauncher =
             defaults.object(forKey: Key.customCommandsShowInLauncher.rawValue) == nil
             || defaults.bool(forKey: Key.customCommandsShowInLauncher.rawValue)
-        snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
         quickActionsEnabled = defaults.bool(forKey: Key.quickActionsEnabled.rawValue)
-        snippetsShowInLauncher =
-            defaults.object(forKey: Key.snippetsShowInLauncher.rawValue) == nil
-            || defaults.bool(forKey: Key.snippetsShowInLauncher.rawValue)
-        snippetsFolder = defaults.string(forKey: Key.snippetsFolder.rawValue)
         // Opt-in, unlike its siblings: until it is asked for, nothing about extensions is loaded.
         extensionsEnabled = defaults.bool(forKey: Key.extensionsEnabled.rawValue)
         extensionsShowInLauncher =

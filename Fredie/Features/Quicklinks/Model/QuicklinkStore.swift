@@ -44,7 +44,6 @@ final class QuicklinkStore {
         if !isAvailable { closeDatabase() }
     }
 
-    /// Under Application Support, the same per-channel root snippets use.
     private static var defaultDirectory: URL {
         let bundleID = Bundle.main.bundleIdentifier ?? "nl.bentjes.fredie"
         return FileManager.default

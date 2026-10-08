@@ -18,9 +18,6 @@ final class PaletteState {
     var selection: Int = 0
     /// True while an IME holds marked text, which leaves `query` empty. The panel publishes it.
     var isComposing = false
-    /// The clipboard screen's type filter, reset with the rest of the screen state on each summon.
-    var clipboardFilter: ClipboardFilter = .all
-    /// The file search screen's type filter, reset on each summon like the clipboard's.
     var fileSearchFilter: FileSearchFilter = .all
     /// The emoji picker's visible category, reset with the rest of a freshly opened screen.
     var emojiCategoryFilter: EmojiCategoryFilter = .all
@@ -149,7 +146,6 @@ final class PaletteState {
         commandArguments = [:]
         pendingArgumentEntryID = nil
         argumentEntryID = nil
-        clipboardFilter = .all
         fileSearchFilter = .all
         emojiCategoryFilter = .all
         emojiGridColumnsOverride = nil

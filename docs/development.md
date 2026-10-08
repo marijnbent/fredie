@@ -38,20 +38,12 @@ Xcode, prefix with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (t
 project settings in `project.yml`, run `xcodegen generate` and commit the result. There is no
 `Package.swift`, and `Bundle.module` must never be used.
 
-The app target builds and embeds `ClipboardTextHelper` under `Contents/Helpers`, signing it on copy.
-Build the app scheme to include it; copying only the main executable omits OCR support. The helper's
-executable name stays fixed even when release builds override the app's product name for a channel.
-
-Dictation similarly embeds its Swift/Core ML helper, named `Fredie Dev Dictation` in Debug and
-`Fredie Dictation` in Release, in an accessory `.app` bundle without a bundled icon. Model weights
-download on demand; none are app resources.
-
 ### The dev channel
 
 Debug builds are a separate channel: **`Fredie Dev.app`**, bundle id `nl.bentjes.fredie.dev`. Every
 persisted thing is keyed by bundle id — `~/Library/Preferences/<id>.plist` (settings and hotkey
-bindings), `~/Library/Application Support/<id>/` (the onboarding marker, Notes, snippets, quicklinks,
-clipboard history, calculator history, launch ranking and frequent emoji; Notes and snippets unless
+bindings), `~/Library/Application Support/<id>/` (the onboarding marker, Notes, quicklinks,
+calculator history, launch ranking and frequent emoji; Notes unless
 a folder is chosen),
 `~/Library/Caches/<id>/` (exchange rates, the update check, staged downloads), the opt-in
 `~/.config/fredie-dev/settings.json` (`fredie` on stable), the `SMAppService`

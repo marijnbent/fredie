@@ -254,7 +254,8 @@ struct LauncherScreen: PaletteScreen {
         // Error cards no-op — copyCalculatorResult only acts on value payloads.
         case .calc(let result): core.calculatorCoordinator.copyCalculatorResult(result)
         case .color(let color):
-            core.clipboardCoordinator.copyColor(color, as: ColorFormat.primary(for: color))
+            core.paletteCoordinator.hidePalette(restoreFocus: false)
+            Paster.copyPlainText(ColorFormat.primary(for: color).string(for: color))
         case .meeting(let meeting): core.calendarCoordinator.activateMeeting(id: meeting.id)
         case .entry(let app):
             core.launcherCoordinator.launch(

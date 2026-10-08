@@ -13,12 +13,12 @@ every shortcut without re-registering.
 ## Invariants
 
 - **Quicklinks are authored data, and their store never deletes.** A database that will not open is
-  **reported, never discarded** — `ClipboardStore`'s delete-and-recreate is only sound because history is
-  regenerable, and a link library is not. The database lives in **Application Support**, not Caches.
+  **reported, never discarded** — a link library is user-authored content.
+  The database lives in **Application Support**, not Caches.
 - **`Model/` stays Foundation-only (plus SQLite3) and pure** for `quicklink-test` — the home directory is
   injected, never read. `Service/QuicklinkLauncher` owns every `NSWorkspace` call.
 - **Drawing an argument field reads nothing.** The header's chips come from
-  `SnippetTemplateEngine.declaredArguments(in:)`, a parse of the template alone, so moving the
+  `QuicklinkTemplateEngine.declaredArguments(in:)`, a parse of the template alone, so moving the
   selection never touches the clipboard or the frontmost app's selection. Only opening does.
 - **`Quicklink.precedes` is the one display order**, sorted through by both the store and the `AppIndex`
   slice.
@@ -27,7 +27,7 @@ every shortcut without re-registering.
   attached — name, link, alias, shortcut, favorite slot, ranking — stays exactly as it was. The
   **Settings → Quicklinks** row is the one place that turns it back on, through the checkbox launcher
   items and custom commands carry: last in the row, dimming the alias field and shortcut recorder.
-- **There is one template engine.** Quicklinks expand through `SnippetTemplateEngine` rather than a
+- **There is one template engine.** Quicklinks expand through `QuicklinkTemplateEngine` rather than a
   second parser, which is what makes `| raw` mean something — it opts a value out of the automatic
   percent-encoding a URL destination asks for. `{selectedText}` is accepted as an alias for
   `{selection}`, but nothing ever *writes* it.
@@ -58,10 +58,8 @@ before the placeholders are resolved.
 
 ## Placeholders
 
-Quicklinks reuse Fredie's one template engine — the same
-[`SnippetTemplateEngine`](snippets.md#template-tokens) snippets use, so every token and every modifier
-is available and there is no second parser to keep in sync. `{cursor}` and `{snippet:…}` are text
-concerns with nothing to resolve against in a destination, so they are left literal.
+Quicklinks expand through `QuicklinkTemplateEngine`. It expands current clipboard text, selection, date/time, UUIDs, and
+arguments. Modifiers support casing, trimming, percent encoding, JSON encoding, and raw values.
 
 ```text
 https://google.com/search?q={argument}
@@ -98,7 +96,7 @@ to the palette and are described in
 answer means.
 
 `promptedArguments(for:)` is the one place that decides: the `{argument}`s the link declares, read
-straight off the template by `SnippetTemplateEngine.declaredArguments(in:)` — a pure parse, so nothing
+straight off the template by `QuicklinkTemplateEngine.declaredArguments(in:)` — a pure parse, so nothing
 is expanded and no clipboard is read to draw a chip — plus the synthetic **"Selected Text"** field when
 the setting says ask. An argument with a `default=` is still offered, as an optional chip: left
 empty, the default fills it, so a default is a starting value rather than a fixed one. It stays owed
@@ -161,7 +159,7 @@ Fredie's own dialog and leaves no partial state.
 ## Search and pinning
 
 Quicklinks are their own `AppEntry.Kind`, their own `AppIndex` slice and their own launcher section,
-between System Settings and Snippets. Only the **name** is indexed; the destination is not searchable
+after System Settings. Only the **name** is indexed; the destination is not searchable
 (a URL is a subsequence of almost any query) — beside the name, a quicklink answers to whatever
 [user alias](launcher.md#user-aliases) its Settings row carries, which is why a hidden one dims the
 field. Per-quicklink "Show in root search" filters the slice;
@@ -176,12 +174,12 @@ from Search Quicklinks and its shortcut while dropping it from the root list.
 rest by name — and both the store and the launcher slice sort through it, so the two can never
 disagree. **Pinned means the top of the Quicklinks section**, not above Applications: a second
 position in root search would need a second `AppEntry.Kind`, which the kind invariant forbids for one
-feature. The Search Quicklinks screen gives pins their own section, like the clipboard's.
+feature. The Search Quicklinks screen gives pins their own section.
 
 ## Search Quicklinks
 
-`PaletteMode.quicklinks` is a sub-screen reached from the `Search Quicklinks` command. It is shaped
-like Search Snippets and the clipboard: the list on the left, a **detail pane** on the right showing
+`PaletteMode.quicklinks` is a sub-screen reached from the `Search Quicklinks` command. It has
+a list on the left and a **detail pane** on the right showing
 the selected quicklink's glyph over an Information block (name, link, the app it opens with, its
 shortcut, when it was created). Like Calculator History it stays out of the Tab cycle and exits via the
 back chevron or a bare backspace.
@@ -199,15 +197,9 @@ and use the system handler, once, without changing what is saved.
 ~/Library/Application Support/<bundle-id>/quicklinks.sqlite3
 ```
 
-Quicklinks are **authored data**, which decides the one way `QuicklinkStore` differs from
-`ClipboardStore` — they are neighbours in Application Support, and otherwise mirror each other (WAL,
-prepared statements, an `isolated deinit`):
+`QuicklinkStore` uses WAL mode and parameterized SQLite statements.
 
-- **A database that won't open is never deleted.** `ClipboardStore` discards and recreates a corrupt
-  file because a history is captured rather than authored; doing that here would destroy the user's
-  library. The store publishes `isAvailable == false`, every mutation refuses with
-  `QuicklinkError.storageUnavailable`, and the pane says so. `Tests/quicklink-test.swift` asserts the
-  file survives byte-for-byte.
+- **A database that won't open is never deleted.** Opening failures are surfaced to the user.
 
 `CREATE TABLE IF NOT EXISTS` leaves an existing table alone, so a new column arrives as an unchecked
 `ALTER TABLE … ADD COLUMN … DEFAULT` right after the schema, which fails harmlessly once the column is
@@ -238,7 +230,7 @@ takes a fresh identity for every entry, so it can never collide with a shortcut 
 owns.
 
 Quicklinks and their bindings also ride in native settings backups, and the settings flags with them.
-Unlike `snippetsEnabled`, `quicklinksEnabled` grants no permission class and enables no listening, so
+`quicklinksEnabled` grants no permission class and enables no listening, so
 excluding it would be cargo-culting.
 
 The encrypted `.rayconfig` flow in **Settings → Backup** can import Raycast's quicklinks as an

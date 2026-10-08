@@ -4,10 +4,6 @@ import Foundation
 enum SettingsBackupCoverage {
     /// Each `SettingsData` field paired with the `AppSettings` key it mirrors.
     static let mirrored: [String: AppSettingsKey] = [
-        "clipboardEnabled": .clipboardEnabled,
-        "clipboardRetentionDays": .clipboardRetention,
-        "clipboardDefaultAction": .clipboardDefaultAction,
-        "clipboardDisabledApps": .clipboardDisabledApps,
         "hyperKey": .hyperKey,
         "hyperKeyIncludesShift": .hyperKeyIncludesShift,
         "hyperKeyQuickPress": .hyperKeyQuickPress,
@@ -35,7 +31,6 @@ enum SettingsBackupCoverage {
         "notesShowsFormattingBar": .notesShowsFormattingBar,
         "customCommandsEnabled": .customCommandsEnabled,
         "customCommandsShowInLauncher": .customCommandsShowInLauncher,
-        "snippetsShowInLauncher": .snippetsShowInLauncher,
         "navigationEnabled": .navigationEnabled,
         "menuSearchDisabledApps": .menuSearchDisabledApps,
         "menuSearchShowsAppleMenu": .menuSearchShowsAppleMenu,
@@ -73,23 +68,6 @@ enum SettingsBackupCoverage {
 
     /// Keys kept out of a backup on purpose, each with the reason it has to stay out.
     static let deliberatelyExcluded: [String: String] = [
-        AppSettingsKey.dictationEnabled.rawValue:
-            "Microphone capture is an opt-in capability on this Mac; a backup must not enable it.",
-        AppSettingsKey.dictationMode.rawValue: "Dictation preferences stay local until backup supports them.",
-        AppSettingsKey.dictationModel.rawValue: "Downloaded models are local to this Mac.",
-        AppSettingsKey.dictationLanguage.rawValue:
-            "Dictation preferences stay local until backup supports them.",
-        AppSettingsKey.dictationMicrophone.rawValue: "Names a microphone attached to this Mac.",
-        AppSettingsKey.dictationDestination.rawValue:
-            "An import must not change where dictated text is sent.",
-        AppSettingsKey.dictationAdaptsCapitalization.rawValue:
-            "Dictation preferences stay local until backup supports them.",
-        AppSettingsKey.dictationIdleRelease.rawValue:
-            "Dictation memory use stays a device-local preference.",
-        AppSettingsKey.clipboardTextSearchEnabled.rawValue:
-            "Background OCR is an opt-in processing choice on this Mac; a backup must not enable it.",
-        AppSettingsKey.snippetsEnabled.rawValue:
-            "Doubles as keyword-expansion consent; an import must not enable keystroke listening.",
         AppSettingsKey.extensionPackageManager.rawValue:
             "Names a tool on this Mac; the machine a backup lands on may not have it.",
         AppSettingsKey.extensionCustomSearchPaths.rawValue:
@@ -171,8 +149,6 @@ enum SettingsBackupCoverage {
             "Custom model instructions change transformed results and must not move unseen.",
         AppSettingsKey.quickActionLanguage.rawValue:
             "Follows the language the person at this Mac reads, not the one who wrote the backup.",
-        AppSettingsKey.snippetsFolder.rawValue:
-            "Names a folder on this Mac; the one a backup lands on may not have it.",
         AppSettingsKey.notesFolder.rawValue:
             "Names a folder on this Mac; the one a backup lands on may not have it.",
         AppSettingsKey.settingsFileEnabled.rawValue:

@@ -10,12 +10,9 @@ enum CommandID: String, CaseIterable, Sendable {
     case translate = "command:translate"
     case summarize = "command:summarize"
     case calculatorHistory = "command:calculator-history"
-    case clipboardHistory = "command:clipboard-history"
-    case pasteSequentially = "command:paste-sequentially"
     case searchEmoji = "command:search-emoji"
     case searchFiles = "command:search-files"
     case searchMenuItems = "command:search-menu-items"
-    case switchWindows = "command:switch-windows"
     case openCamera = "command:open-camera"
     case openInBrowser = "command:open-in-browser"
     case runShellCommand = "command:run-shell-command"
@@ -36,8 +33,6 @@ enum CommandID: String, CaseIterable, Sendable {
     case searchQuicklinks = "command:search-quicklinks"
     case importQuicklinks = "command:import-quicklinks"
     case exportQuicklinks = "command:export-quicklinks"
-    case searchSnippets = "command:search-snippets"
-    case createSnippet = "command:create-snippet"
     case exportSettings = "command:export-settings"
     case importSettings = "command:import-settings"
     case importFromRaycast = "command:import-from-raycast"
@@ -56,12 +51,9 @@ enum CommandID: String, CaseIterable, Sendable {
         case .translate: return BuiltInQuickAction.translate.title
         case .summarize: return BuiltInQuickAction.summarize.title
         case .calculatorHistory: return "Calculator History"
-        case .clipboardHistory: return "Clipboard History"
-        case .pasteSequentially: return "Paste Sequentially"
         case .searchEmoji: return "Search Emoji & Symbols"
         case .searchFiles: return "Search Files"
         case .searchMenuItems: return "Search Menu Bar Items"
-        case .switchWindows: return "Switch Windows"
         case .openCamera: return "Open Camera"
         case .openInBrowser: return "Open in Browser"
         case .runShellCommand: return "Run Shell Command"
@@ -82,8 +74,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .searchQuicklinks: return "Search Quicklinks"
         case .importQuicklinks: return "Import Quicklinks"
         case .exportQuicklinks: return "Export Quicklinks"
-        case .searchSnippets: return "Search Snippets"
-        case .createSnippet: return "Create Snippet"
         case .exportSettings: return "Export Backup"
         case .importSettings: return "Import Backup"
         case .importFromRaycast: return "Import from Raycast"
@@ -104,12 +94,9 @@ enum CommandID: String, CaseIterable, Sendable {
         case .translate: return BuiltInQuickAction.translate.symbol
         case .summarize: return BuiltInQuickAction.summarize.symbol
         case .calculatorHistory: return "plus.forwardslash.minus"
-        case .clipboardHistory: return "doc.on.clipboard"
-        case .pasteSequentially: return "list.bullet.clipboard"
         case .searchEmoji: return "face.smiling"
         case .searchFiles: return "doc.text.magnifyingglass"
         case .searchMenuItems: return "menubar.rectangle"
-        case .switchWindows: return "macwindow.on.rectangle"
         case .openCamera: return "camera"
         case .openInBrowser: return "globe"
         case .runShellCommand: return "terminal"
@@ -130,8 +117,6 @@ enum CommandID: String, CaseIterable, Sendable {
         case .searchQuicklinks: return Quicklink.sfSymbol
         case .importQuicklinks: return "square.and.arrow.down"
         case .exportQuicklinks: return "square.and.arrow.up"
-        case .searchSnippets: return "curlybraces"
-        case .createSnippet: return "plus.rectangle.on.rectangle"
         case .exportSettings: return "square.and.arrow.up"
         case .importSettings: return "square.and.arrow.down"
         case .importFromRaycast: return "arrow.down.doc"
@@ -175,11 +160,10 @@ enum CommandID: String, CaseIterable, Sendable {
     /// Suggested, highest first, until the user's own habits fill the section.
     var suggestionPriority: Int? {
         switch self {
-        case .clipboardHistory: 80
         case .searchFiles: 70
         case .mySchedule: 60
         case .searchEmoji: 50
-        case .createQuicklink, .createSnippet: 30
+        case .createQuicklink: 30
         default: nil
         }
     }

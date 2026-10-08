@@ -30,8 +30,6 @@ struct BackupArchiveTest {
         defer { try? FileManager.default.removeItem(at: root) }
 
         roundTrip(in: root)
-        clipboardLines(in: root)
-        noAbsolutePathsEscape(in: root)
         formatGuard(in: root)
         rejectsGarbage(in: root)
         refusesTraversal(in: root)
@@ -52,14 +50,14 @@ struct BackupArchiveTest {
 
         // A binary blob, so a wrong keyset or a text-only path shows up as corruption.
         let png = Data((0..<200_000).map { UInt8($0 % 251) })
-        try? bundle.write(png, to: bundle.clipboardImagesDirectory.appendingPathComponent("a.png"))
+        try? bundle.write(png, to: bundle.notesDirectory.appendingPathComponent("a.png"))
         _ = try? bundle.writeDocument(
             title: "Café — notes/with:separators", extension: "md", contents: "héllo\nwörld",
             in: bundle.notesDirectory)
-        try? bundle.write(Data(), to: bundle.snippetsDirectory.appendingPathComponent("empty.md"))
+        try? bundle.write(Data(), to: bundle.root.appendingPathComponent("empty.md"))
         let manifest = BackupManifest(
             appVersion: "1.2.3", createdAt: Date(timeIntervalSince1970: 1_700_000_000),
-            counts: ["clipboard": 1, "notes": 1])
+            counts: ["notes": 1])
         try? bundle.writeManifest(manifest)
 
         let archive = root.appendingPathComponent("out.fredie")
@@ -76,7 +74,7 @@ struct BackupArchiveTest {
         check(
             "a binary blob survives the round trip",
             (try? Data(
-                contentsOf: reopened.clipboardImagesDirectory.appendingPathComponent("a.png")))
+                contentsOf: reopened.notesDirectory.appendingPathComponent("a.png")))
                 == png)
         let notes = reopened.documents(in: reopened.notesDirectory, extension: "md")
         check("a note with separators and non-ASCII survives", notes.first?.contents == "héllo\nwörld")
@@ -86,66 +84,23 @@ struct BackupArchiveTest {
         check(
             "a zero-byte file survives",
             reopened.documents(
-                in: reopened.snippetsDirectory, extension: "md"
+                in: reopened.root, extension: "md"
             ).first?.contents == "")
         let decoded = try? reopened.readManifest()
         check("the manifest round trips", decoded == manifest)
-        check("an absent category reads as absent", decoded?.categories == [.clipboard, .notes])
-        check("a present category keeps its count", decoded?.count(.clipboard) == 1)
-        check("an absent category counts zero", decoded?.count(.snippets) == 0)
+        check("an absent category reads as absent", decoded?.categories == [.notes])
+        check("a present category keeps its count", decoded?.count(.notes) == 1)
+        check("an absent category counts zero", decoded?.count(.configuration) == 0)
 
         // Ownership must not travel: the extract belongs to whoever opened it.
         let attributes = try? FileManager.default.attributesOfItem(
-            atPath: reopened.clipboardImagesDirectory.appendingPathComponent("a.png").path)
+            atPath: reopened.notesDirectory.appendingPathComponent("a.png").path)
         check(
             "the extracted file is owned by the current user",
             (attributes?[.ownerAccountID] as? NSNumber)?.uint32Value == getuid())
     }
 
     // MARK: - Clipboard
-
-    static func clipboardLines(in root: URL) {
-        let bundle = BackupBundle(root: root.appendingPathComponent("clips"))
-        try? bundle.prepare([.clipboard])
-        let items = [
-            BackupClipboardItem(
-                kind: .text, text: "one\ntwo\nthree", imageName: nil,
-                createdAt: Date(timeIntervalSince1970: 10), sourceBundleID: "com.apple.Safari",
-                pinnedAt: nil),
-            BackupClipboardItem(
-                kind: .text, text: "carriage\r\nreturn", imageName: nil,
-                createdAt: Date(timeIntervalSince1970: 20), sourceBundleID: nil,
-                pinnedAt: Date(timeIntervalSince1970: 25)),
-            BackupClipboardItem(
-                kind: .image, text: nil, imageName: "b.png",
-                createdAt: Date(timeIntervalSince1970: 30), sourceBundleID: nil, pinnedAt: nil)
-        ]
-        if let writer = try? bundle.clipboardWriter() {
-            for item in items { try? writer.write(item) }
-        }
-
-        check("every clip round trips through JSONL", Array(bundle.clipboardItems()) == items)
-
-        // The invariant the line splitting rests on: a newline in a clip is escaped, never raw.
-        let raw = (try? Data(contentsOf: bundle.clipboardItemsURL)) ?? Data()
-        check(
-            "one line per clip, whatever the clip contains",
-            raw.split(separator: 0x0A, omittingEmptySubsequences: true).count == items.count)
-    }
-
-    /// The analogue of settings-backup-test's `snippetsEnabled` check: this file leaves the Mac.
-    static func noAbsolutePathsEscape(in root: URL) {
-        let bundle = BackupBundle(root: root.appendingPathComponent("paths"))
-        try? bundle.prepare([.clipboard])
-        let item = BackupClipboardItem(
-            kind: .image, text: nil, imageName: "c.png", createdAt: Date(), sourceBundleID: nil,
-            pinnedAt: nil)
-        if let writer = try? bundle.clipboardWriter() { try? writer.write(item) }
-        let raw = (try? Data(contentsOf: bundle.clipboardItemsURL)) ?? Data()
-        let text = String(bytes: raw, encoding: .utf8) ?? ""
-        check("no home directory leaks into the file", !text.contains("/Users"))
-        check("no image path leaks into the file", !text.contains("/Library"))
-    }
 
     // MARK: - Guards
 

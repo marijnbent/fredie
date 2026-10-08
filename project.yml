@@ -9,7 +9,7 @@ options:
 settings:
   base:
     MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     SWIFT_VERSION: "6.0"
     DEVELOPMENT_TEAM: "X44F5HTS6P"
     CODE_SIGN_STYLE: Manual
@@ -19,9 +19,7 @@ settings:
   configs:
     Debug:
       FREDIE_BUNDLE_IDENTIFIER: nl.bentjes.fredie.dev
-      DICTATION_EXECUTABLE_NAME: Fredie Dev Dictation
     Release:
-      DICTATION_EXECUTABLE_NAME: Fredie Dictation
       # Release-only: library validation refuses Debug's `.debug.dylib`, whose team never matches.
       ENABLE_HARDENED_RUNTIME: YES
       # Strip the shipped binary (dSYM is still generated first) and drop unused code.
@@ -36,12 +34,7 @@ targets:
     platform: macOS
     sources:
       - path: Fredie
-        # The helper's own sources: compiling them in would link Vision and PDFKit into the app,
-        # which is the whole thing running recognition out of process avoids.
         excludes:
-          - Features/Clipboard/Service/ClipboardTextExtractor.swift
-          - Features/Clipboard/Service/ClipboardTextHelper.swift
-          - Features/Dictation/Helper
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
       - path: Fredie/Resources/EmojiKeywords
@@ -49,25 +42,6 @@ targets:
       # The MIT mark's licence asks the notice to travel with the binary, not just the repo.
       - path: NOTICE.md
         buildPhase: resources
-    dependencies:
-      - target: DictationHelper
-        link: false
-        embed: false
-      # Resolve the embedded helper against the active channel, not Xcode's default configuration.
-      - framework: "$(BUILT_PRODUCTS_DIR)/$(DICTATION_EXECUTABLE_NAME).app"
-        link: false
-        embed: true
-        codeSign: true
-        copy:
-          destination: wrapper
-          subpath: Contents/Helpers
-      - target: ClipboardTextHelper
-        link: false
-        embed: true
-        codeSign: true
-        copy:
-          destination: wrapper
-          subpath: Contents/Helpers
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: "$(FREDIE_BUNDLE_IDENTIFIER)"
@@ -81,40 +55,3 @@ targets:
       configs:
         Debug:
           PRODUCT_NAME: Fredie Dev
-
-  ClipboardTextHelper:
-    type: tool
-    platform: macOS
-    sources:
-      - Fredie/Features/Clipboard/Service/ClipboardTextExtractor.swift
-      - Fredie/Features/Clipboard/Service/ClipboardTextHelper.swift
-    settings:
-      base:
-        EXECUTABLE_NAME: ClipboardTextHelper
-        PRODUCT_MODULE_NAME: ClipboardTextHelper
-        SKIP_INSTALL: YES
-
-  DictationHelper:
-    type: application
-    platform: macOS
-    info:
-      path: Fredie/Features/Dictation/Helper/Info.plist
-      properties:
-        CFBundleName: "$(DICTATION_EXECUTABLE_NAME)"
-        CFBundleDisplayName: "$(DICTATION_EXECUTABLE_NAME)"
-        LSUIElement: true
-    sources:
-      - Fredie/Features/Dictation/Helper
-      - Fredie/Features/Dictation/Model/DictationModel.swift
-      - Fredie/Features/Dictation/Model/DictationAudioChunks.swift
-      - Fredie/Features/Dictation/Model/DictationLanguage.swift
-      - Fredie/Features/Dictation/Service/DictationWire.swift
-    settings:
-      base:
-        EXECUTABLE_NAME: "$(DICTATION_EXECUTABLE_NAME)"
-        PRODUCT_NAME: "$(DICTATION_EXECUTABLE_NAME)"
-        WRAPPER_NAME: "$(DICTATION_EXECUTABLE_NAME).app"
-        PRODUCT_MODULE_NAME: DictationHelper
-        PRODUCT_BUNDLE_IDENTIFIER: "$(FREDIE_BUNDLE_IDENTIFIER).dictation"
-        SKIP_INSTALL: YES
-        SWIFT_OPTIMIZATION_LEVEL: -O

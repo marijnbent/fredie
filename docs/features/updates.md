@@ -37,7 +37,7 @@ no appcast: the release feed the website already reads is the feed the app reads
 - **Relaunching goes through `NSApp.terminate`, never `exit`.** That is what flushes a pending note
   draft and hands back the Hyper Key's HID-level caps remap, which outlives the process.
 - **An automatic prompt defers to whatever the user is doing, and is never spent unshown.**
-  `UpdateReadiness` withholds it while a snippet is expanding, an extension command is running, an
+  `UpdateReadiness` withholds it while text insertion is in progress, an extension command is running, an
   uninstall is trashing, a shortcut is being recorded, a prompt or dialog is up, or the palette is
   open. A withheld prompt is still owed: `presentIfAvailable` answers `false`, the version is left
   unannounced, and the pump re-offers it every two minutes for half an hour before falling back to
@@ -123,7 +123,7 @@ One route, whatever the install came from:
    `open` on a bundle id that is still running would only re-activate the instance on its way out.
 
 Nothing here touches `~/Library/Preferences`, `~/Library/Caches` or `Application Support`, so no
-setting, clipboard entry, note or snippet is affected by an update, by `brew upgrade`, or by both.
+setting, note is affected by an update, by `brew upgrade`, or by both.
 
 ## Releasing into it
 

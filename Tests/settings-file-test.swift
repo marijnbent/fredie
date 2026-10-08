@@ -48,15 +48,15 @@ struct SettingsFileTest {
             SettingsFileKey.sections == [
                 "general", "appearance", "hyperKey", "calculator", "search", "applications",
                 "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts", "ai",
-                "quickActions", "dictation", "fileSearch", "notes", "snippets", "navigation",
-                "windowManagement", "clipboard", "emoji", "calendar", "extensions"
+                "quickActions", "fileSearch", "notes", "navigation",
+                "windowManagement", "emoji", "calendar", "extensions"
             ])
 
         // A file that could switch one of these on would grant what only the app may ask for.
         let grantPaths = [
-            "snippets.enabled", "extensions.enabled", "calendar.enabled",
+            "extensions.enabled", "calendar.enabled",
             "calendar.autoJoinMeetings", "calendar.cameraPreview", "quickActions.enabled",
-            "ai.mcpEnabled", "mcp.enabled", "clipboard.textSearchEnabled", "dictation.enabled"
+            "ai.mcpEnabled", "mcp.enabled"
         ]
         check(
             "no capability grant has a settings.json key",
@@ -354,25 +354,25 @@ struct SettingsFileTest {
 
         let folder = scratchFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let target = folder.appending(path: "dotfiles/snippets")
+        let target = folder.appending(path: "dotfiles/notes")
         let link = folder.appending(path: "Snippets")
         try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
         check(
             "a symlinked folder resolves to its target",
-            AppPaths.contentFolder(link.path, named: "Snippets", bundleID: bundleID).path
+            AppPaths.contentFolder(link.path, named: "Notes", bundleID: bundleID).path
                 == target.resolvingSymlinksInPath().path)
 
-        let defaultFolder = AppPaths.contentFolder(nil, named: "Snippets", bundleID: bundleID)
+        let defaultFolder = AppPaths.contentFolder(nil, named: "Notes", bundleID: bundleID)
         check(
             "choosing the default folder stores nothing",
-            AppPaths.contentFolderSetting(for: defaultFolder, named: "Snippets", bundleID: bundleID)
+            AppPaths.contentFolderSetting(for: defaultFolder, named: "Notes", bundleID: bundleID)
                 == nil)
         check(
             "choosing one in the home folder stores it under ~",
             AppPaths.contentFolderSetting(
-                for: URL(filePath: home + "/Dotfiles/snippets"), named: "Snippets", bundleID: bundleID)
-                == "~/Dotfiles/snippets")
+                for: URL(filePath: home + "/Dotfiles/notes"), named: "Notes", bundleID: bundleID)
+                == "~/Dotfiles/notes")
     }
 
     private static func testPaths() {

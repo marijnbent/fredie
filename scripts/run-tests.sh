@@ -126,8 +126,6 @@ run file-search-session-test Fredie/Platform/Signposts.swift \
 run menu-search-test       $L/SearchRelevance.swift \
                            Fredie/Features/MenuSearch/Model/*.swift \
                            Fredie/Features/MenuSearch/Service/*.swift
-run window-switch-test     $L/SearchRelevance.swift \
-                           Fredie/Features/WindowSwitcher/Model/*.swift
 run index file-search-performance Fredie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Features/FileSearch/Model/*.swift \
@@ -161,45 +159,13 @@ run launcher-settings-file-test \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/Snippets/Model/Snippet.swift
+                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
 run apple-shortcut-test    Fredie/Features/AppleShortcuts/Model/*.swift
 run calc-test              Fredie/Features/Calculator/Model/*.swift
 run index calc-performance Fredie/Features/Calculator/Model/*.swift
 run calendar-test          Fredie/Features/Calendar/Model/*.swift
-run clipboard-test         Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift
 # `Q` is the URL detector a drag payload builds its link with, rather than a second one.
 Q=Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift
-run clipboard-search-test  Fredie/Features/Clipboard/Model/*.swift $Q
-run paste-sequence-test    Fredie/Features/Clipboard/Model/*.swift $Q
-run clipboard-text-test    Fredie/Features/Clipboard/Model/*.swift $Q \
-                           Fredie/Features/Clipboard/Service/ClipboardTextExtractor.swift \
-                           Fredie/Features/Clipboard/Service/ClipboardTextIndexer.swift \
-                           Fredie/Features/Clipboard/Service/ClipboardTextWorker.swift \
-                           Fredie/Platform/ProcessExit.swift
-run pasteboard-test        Fredie/Platform/PasteboardFiles.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift \
-                           Fredie/Features/Clipboard/Service/ClipboardManager.swift \
-                           Fredie/Features/Clipboard/Service/Paster.swift
-run index clipboard-file-performance \
-                           Fredie/Platform/PasteboardFiles.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift \
-                           Fredie/Features/Clipboard/Service/ClipboardManager.swift
 run emoji-test             Fredie/Features/Emoji/Model/EmojiCatalog.swift \
                            Fredie/Features/Emoji/Model/EmojiGridGeometry.swift \
                            Fredie/Features/Emoji/Model/EmojiData.generated.swift
@@ -242,13 +208,10 @@ run hover-arming-test      Fredie/Palette/HoverArming.swift \
                            Fredie/Palette/PaletteState.swift \
                            Fredie/Palette/PaletteMode.swift \
                            Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
                            Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift \
+                           Fredie/Features/Calculator/Model/ColorValue.swift \
+                           Fredie/Features/Calculator/Model/ColorFormat.swift \
+                           Fredie/Features/Calculator/Model/ColorSpaces.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
@@ -263,13 +226,10 @@ run palette-navigation-test Fredie/Palette/PaletteState.swift \
                            Fredie/Palette/PaletteMode.swift \
                            Fredie/Palette/HoverArming.swift \
                            Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
                            Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift \
+                           Fredie/Features/Calculator/Model/ColorValue.swift \
+                           Fredie/Features/Calculator/Model/ColorFormat.swift \
+                           Fredie/Features/Calculator/Model/ColorSpaces.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
@@ -296,40 +256,9 @@ run fallback-test          Fredie/Features/Launcher/Model/Fallback.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/Snippets/Model/Snippet.swift
+                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
 run dictionary-test        Fredie/Features/Dictionary/Model/DictionaryEntry.swift \
                            Fredie/Features/Dictionary/Model/DictionaryMarkup.swift
-run dictation-test         Fredie/Features/Dictation/Model/DictationModel.swift Fredie/Features/Dictation/Model/DictationIdleRelease.swift Fredie/Features/Dictation/Model/DictationTextFormatter.swift
-run dictation-field-test   Fredie/Features/Dictation/Model/DictationModel.swift \
-                           Fredie/Features/Dictation/Model/DictationMode.swift \
-                           Fredie/Features/Dictation/Model/DictationDestination.swift \
-                           Fredie/Features/Dictation/Model/DictationTextFormatter.swift \
-                           Fredie/Features/Dictation/Service/DictationCoordinator.swift \
-                           Fredie/Features/Dictation/Service/DictationInsertionContext.swift \
-                           Fredie/Features/AI/UI/ChatComposerTextView.swift \
-                           Fredie/Features/TextInjection/Service/*.swift \
-                           Fredie/Features/Snippets/Model/*.swift \
-                           Fredie/Platform/AccessibilityText.swift \
-                           Fredie/Platform/PasteboardFiles.swift \
-                           Fredie/Platform/Appearance.swift Fredie/DesignSystem/Theme.swift
-run dictation-volume-test  Fredie/Features/Dictation/Model/DictationVolumeSnapshot.swift \
-                           Fredie/Features/Dictation/Service/DictationAudioDucker.swift \
-                           Fredie/Platform/AppPaths.swift
-run index -O dictation-performance Fredie/Platform/ProcessExit.swift \
-                           Fredie/Features/Dictation/Model/DictationModel.swift \
-                           Fredie/Features/Dictation/Service/DictationWire.swift
-run dictation-inference-test Fredie/Features/Dictation/Model/DictationAudioChunks.swift \
-    Fredie/Features/Dictation/Service/DictationSpectrum.swift \
-    Fredie/Features/Dictation/Helper/DictationTensor.swift Fredie/Features/Dictation/Helper/DictationTokenizer.swift \
-    Fredie/Features/Dictation/Helper/DictationMel.swift
-run dictation-worker-test  Fredie/Features/Dictation/Model/DictationModel.swift \
-                           Fredie/Features/Dictation/Model/DictationIdleRelease.swift \
-                           Fredie/Features/Dictation/Service/DictationWire.swift \
-                           Fredie/Features/Dictation/Service/DictationWorker.swift \
-                           Fredie/Features/Dictation/Service/DictationModelStore.swift \
-                           Fredie/Features/Dictation/Service/DictationModelDownloader.swift \
-                           Fredie/Platform/ProcessExit.swift Fredie/Platform/AppPaths.swift
 run hotkey-test            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
                            Fredie/Features/HotKeys/Model/ModifierKey.swift \
                            Fredie/Features/HotKeys/Model/ModifierKeyDetector.swift \
@@ -347,8 +276,7 @@ run hotkey-test            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/Snippets/Model/Snippet.swift
+                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
 run callout-test          Fredie/Platform/Appearance.swift \
                            Fredie/DesignSystem/Theme.swift \
                            Fredie/DesignSystem/InterfaceMetrics.swift \
@@ -380,8 +308,8 @@ run ext-icon-test          Fredie/Platform/Appearance.swift \
                            Fredie/Features/Extensions/Service/ExtensionIconCache.swift \
                            Fredie/Features/Extensions/UI/ExtensionAnimatedImage.swift \
                            Fredie/Features/Extensions/UI/ExtensionImage.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift
+                           Fredie/Features/Calculator/Model/ColorValue.swift \
+                           Fredie/Features/Calculator/Model/ColorSpaces.swift
 run system-action-test     Fredie/Features/SystemActions/Model/SystemAction.swift
 run microphone-mute-test   Fredie/Features/SystemActions/Service/SystemActionFailure.swift \
                            Fredie/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
@@ -457,6 +385,12 @@ run uninstall-test         Fredie/Features/Uninstall/Model/UninstallTarget.swift
                            Fredie/Features/Uninstall/Model/UninstallRules.swift \
                            Fredie/Features/Uninstall/Model/UninstallProtection.swift \
                            Fredie/Features/Uninstall/Model/UninstallPlan.swift
+run text-injection-test Fredie/Features/TextInjection/Service/*.swift \
+    Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift \
+    Fredie/Platform/{Paster,PasteboardFiles,Permissions,AccessibilityText,CalendarAccess,CameraAccess}.swift
+
+run quicklink-template-test Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
+
 run quicklink-test         Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkStore.swift \
@@ -468,14 +402,7 @@ run quicklink-coordinator-test Fredie/Features/Quicklinks/Model/Quicklink.swift 
                            Fredie/Features/Quicklinks/Model/QuicklinkArchive.swift \
                            Fredie/Features/Quicklinks/UI/QuicklinkCoordinator.swift \
                            Fredie/Features/Quicklinks/UI/QuicklinkArgumentsAccessory.swift \
-                           Fredie/Features/Snippets/Model/Snippet.swift \
-                           Fredie/Features/Snippets/Model/SnippetTemplateEngine.swift
-run slow snippets-test     Fredie/Platform/NotificationToken.swift \
-                           Fredie/Platform/HealthTicker.swift \
-                           Fredie/Platform/AccessibilityText.swift \
-                           Fredie/Features/Snippets/Model/*.swift \
-                           Fredie/Features/Snippets/Service/*.swift \
-                           Fredie/Features/TextInjection/Service/*.swift
+                           Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
 run notes-test             Fredie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Features/Notes/Model/*.swift \
@@ -535,13 +462,9 @@ run slow -O raycast-test   Fredie/Features/Backup/Model/RaycastImportError.swift
                            Fredie/Features/Backup/Service/RaycastDecoder.swift \
                            Fredie/Features/Backup/Service/Scrypt.swift \
                            Fredie/Platform/Compression/Zlib.swift \
-                           Fredie/Features/Clipboard/Model/RaycastClipboardImport.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardStore.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFilter.swift \
-                           Fredie/Features/Clipboard/Model/ClipboardFileKind.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorFormat.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift
+                           Fredie/Features/Calculator/Model/ColorValue.swift \
+                           Fredie/Features/Calculator/Model/ColorFormat.swift \
+                           Fredie/Features/Calculator/Model/ColorSpaces.swift
 run settings-backup-test   Fredie/Features/Settings/AppSettingsKey.swift \
                            Fredie/Features/Backup/Model/SettingsBackupCoverage.swift
 run settings-file-test     Fredie/Features/Settings/Model/*.swift \
@@ -552,7 +475,6 @@ run backup-archive-test    Fredie/Platform/AppPaths.swift \
                            Fredie/Features/Backup/Model/BackupArchive.swift \
                            Fredie/Features/Backup/Model/BackupBundle.swift \
                            Fredie/Features/Backup/Model/BackupCategory.swift \
-                           Fredie/Features/Backup/Model/BackupClipboardItem.swift \
                            Fredie/Features/Backup/Model/BackupManifest.swift \
                            Fredie/Features/Backup/Service/BackupStaging.swift
 E=Fredie/Features/Extensions
@@ -631,8 +553,8 @@ run slow ext-test          -parse-as-library \
                            $E/UI/ExtensionScreen.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Platform/Compression/Zlib.swift \
-                           Fredie/Features/Clipboard/Model/ColorValue.swift \
-                           Fredie/Features/Clipboard/Model/ColorSpaces.swift
+                           Fredie/Features/Calculator/Model/ColorValue.swift \
+                           Fredie/Features/Calculator/Model/ColorSpaces.swift
 run settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
                            Fredie/Features/Settings/SettingsHistory.swift \
                            Fredie/Features/Settings/SettingsAnchor.swift \

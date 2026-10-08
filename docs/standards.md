@@ -83,10 +83,8 @@ fit the table.
 | `Policy` | A pure decision — no state, no effects |
 
 `Manager` is the one worth thinking twice about. It means *lifecycle plus policy*, which is a lot for one
-type, so there are only two: `ClipboardManager` (polls, and owns the capture policy and the paste-side
-handshake) and `HotKeyManager` (persists bindings, and drives Carbon registration and double-tap
-dispatch). A third is fine if it genuinely owns both halves — but check first whether `Store`, `Monitor`
-or `Coordinator` describes it better, because usually one of them does.
+type. `HotKeyManager` persists bindings and drives Carbon registration and modifier-tap dispatch.
+Check whether `Store`, `Monitor`, or `Coordinator` describes a new type more precisely.
 
 `Registry` and `ViewModel` are retired: a static table is a `Catalog`, shared app state is a `State`.
 SwiftUI-layer names (`View`, `Screen`, `Card`, `Row`, `Sheet`) are a separate vocabulary and are not
@@ -140,8 +138,6 @@ Swift 6 language mode: data-race violations are hard errors, and that is the des
 - Every escaping closure capturing `self` uses `[weak self]`, or `[unowned self]` where the closure
   cannot outlive the owner (as in `AppCore`'s coordinator wiring).
 - `DispatchQueue.main.async` is not a fix for an ordering problem. If order matters, make it explicit.
-- `ClipboardStore` uses `isolated deinit` for its SQLite teardown — the idiom to copy for a resource that
-  must be torn down on its actor.
 
 Two gotchas worth knowing before they cost an afternoon:
 

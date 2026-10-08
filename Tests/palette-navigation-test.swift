@@ -20,7 +20,7 @@ struct PaletteNavigationTests {
     static func searchingLauncher() -> PaletteState {
         let vm = PaletteState()
         vm.prepare(mode: .launcher)
-        vm.query = "clipboard"
+        vm.query = "quicklinks"
         vm.selection = 3
         return vm
     }
@@ -29,9 +29,9 @@ struct PaletteNavigationTests {
         let vm = searchingLauncher()
         expect(!vm.canGoBack, "a prepared screen is a root with nothing behind it")
 
-        vm.push(mode: .clipboard)
+        vm.push(mode: .quicklinks)
         expect(
-            vm.mode == .clipboard && vm.query.isEmpty && vm.selection == 0,
+            vm.mode == .quicklinks && vm.query.isEmpty && vm.selection == 0,
             "a pushed screen opens as fresh as a prepared one")
         expect(vm.canGoBack, "the screen it was pushed over is still there to return to")
 
@@ -40,12 +40,12 @@ struct PaletteNavigationTests {
 
         expect(vm.pop(), "a pushed screen has a step back")
         expect(
-            vm.mode == .launcher && vm.query == "clipboard" && vm.selection == 3,
+            vm.mode == .launcher && vm.query == "quicklinks" && vm.selection == 3,
             "the back step restores the screen, its query and its selection")
         expect(!vm.canGoBack, "the restored screen is the root again")
         expect(!vm.pop(), "a root has nowhere left to go")
         expect(
-            vm.mode == .launcher && vm.query == "clipboard",
+            vm.mode == .launcher && vm.query == "quicklinks",
             "a refused back step leaves the screen untouched")
 
         let freshEmoji = searchingLauncher()
@@ -73,7 +73,7 @@ struct PaletteNavigationTests {
             nested.pop() && nested.mode == .ai && nested.query == "why is the sky blue",
             "history returns to the chat draft it was opened over")
         expect(
-            nested.pop() && nested.mode == .launcher && nested.query == "clipboard",
+            nested.pop() && nested.mode == .launcher && nested.query == "quicklinks",
             "and chat returns to the search that found it")
 
         // `replace` is for a screen swapping its own contents, which is not a step of its own.
@@ -86,30 +86,30 @@ struct PaletteNavigationTests {
             "so one back step still lands on the launcher")
 
         let summoned = searchingLauncher()
-        summoned.push(mode: .clipboard)
+        summoned.push(mode: .quicklinks)
         summoned.prepare(mode: .emoji)
         expect(!summoned.canGoBack, "a summon is a new root, not a step onto the old stack")
 
         let ringed = searchingLauncher()
-        ringed.push(mode: .clipboard)
+        ringed.push(mode: .quicklinks)
         ringed.resetNavigation()
         expect(
-            !ringed.canGoBack && ringed.mode == .clipboard,
+            !ringed.canGoBack && ringed.mode == .quicklinks,
             "closing the Tab ring drops the stack without disturbing the screen")
 
         let hopped = searchingLauncher()
-        hopped.pushCarryingQuery(mode: .clipboard)
+        hopped.pushCarryingQuery(mode: .quicklinks)
         expect(
-            hopped.mode == .clipboard && hopped.query == "clipboard" && hopped.selection == 3,
+            hopped.mode == .quicklinks && hopped.query == "quicklinks" && hopped.selection == 3,
             "a ring hop carries the query and the row it was on")
         expect(
-            hopped.pop() && hopped.mode == .launcher && hopped.query == "clipboard",
+            hopped.pop() && hopped.mode == .launcher && hopped.query == "quicklinks",
             "and the screen it crossed from is the step back")
 
         let chatted = searchingLauncher()
         chatted.push(mode: .ai)
         chatted.query = "why is the sky blue"
-        chatted.push(mode: .clipboard)
+        chatted.push(mode: .quicklinks)
         expect(
             chatted.pop() && chatted.mode == .ai && chatted.query == "why is the sky blue",
             "Tab out of chat leaves the draft to come back to")

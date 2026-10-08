@@ -102,9 +102,6 @@ struct InterfaceSizeTests {
         expect(m.size.checkbox, Theme.Size.checkbox, "size.checkbox")
         expect(m.size.menuWidth, Theme.Size.menuWidth, "size.menuWidth")
         expect(
-            m.size.clipboardFilterMenuWidth, Theme.Size.clipboardFilterMenuWidth,
-            "size.clipboardFilterMenuWidth")
-        expect(
             m.size.fileSearchFilterMenuWidth, Theme.Size.fileSearchFilterMenuWidth,
             "size.fileSearchFilterMenuWidth")
         expect(
@@ -117,12 +114,6 @@ struct InterfaceSizeTests {
         expect(m.size.menuSectionHeader, Theme.Size.menuSectionHeader, "size.menuSectionHeader")
         expect(m.size.menuRowHeight, Theme.Size.menuRowHeight, "size.menuRowHeight")
         expect(m.size.menuRowsMaxHeight, Theme.Size.menuRowsMaxHeight, "size.menuRowsMaxHeight")
-        expect(m.size.clipboardListWidth, Theme.Size.clipboardListWidth, "size.clipboardListWidth")
-        expect(
-            m.size.clipboardMediaHeight, Theme.Size.clipboardMediaHeight, "size.clipboardMediaHeight")
-        expect(
-            m.size.clipboardPreviewPixel, Theme.Size.clipboardPreviewPixel,
-            "size.clipboardPreviewPixel")
         expect(m.size.emojiCell, Theme.Size.emojiCell, "size.emojiCell")
         expect(m.size.emojiGridInset, Theme.Size.emojiGridInset, "size.emojiGridInset")
         expect(m.size.markdownListMarker, Theme.Size.markdownListMarker, "size.markdownListMarker")
@@ -301,7 +292,6 @@ struct InterfaceSizeTests {
             ("size.keyCap", m.size.keyCap), ("size.compactKeyCap", m.size.compactKeyCap),
             ("size.heroKeyCap", m.size.heroKeyCap), ("size.menuButton", m.size.menuButton),
             ("size.checkbox", m.size.checkbox), ("size.menuWidth", m.size.menuWidth),
-            ("size.clipboardFilterMenuWidth", m.size.clipboardFilterMenuWidth),
             ("size.fileSearchFilterMenuWidth", m.size.fileSearchFilterMenuWidth),
             ("size.emojiCategoryMenuWidth", m.size.emojiCategoryMenuWidth),
             ("size.menuIcon", m.size.menuIcon), ("size.menuBrandIcon", m.size.menuBrandIcon),
@@ -309,8 +299,6 @@ struct InterfaceSizeTests {
             ("size.menuSectionHeader", m.size.menuSectionHeader),
             ("size.menuRowHeight", m.size.menuRowHeight),
             ("size.menuRowsMaxHeight", m.size.menuRowsMaxHeight),
-            ("size.clipboardListWidth", m.size.clipboardListWidth),
-            ("size.clipboardMediaHeight", m.size.clipboardMediaHeight),
             ("size.emojiGridInset", m.size.emojiGridInset),
             ("size.emojiCell", m.size.emojiCell),
             ("size.markdownListMarker", m.size.markdownListMarker),

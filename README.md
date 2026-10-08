@@ -1,8 +1,8 @@
 # Fredie
 
 A native macOS menu-bar launcher, forked from [Tinycast](https://github.com/abue-ammar/tinycast).
-SwiftUI and AppKit, with app search, hotkeys, clipboard history, snippets, quicklinks, window
-management, dictation, and native Raycast extension support.
+SwiftUI and AppKit, with app search, hotkeys, quicklinks, window
+management, and native Raycast extension support.
 
 Requires macOS 26+, Xcode 26, and XcodeGen (`brew install xcodegen`).
 
@@ -12,7 +12,7 @@ Requires macOS 26+, Xcode 26, and XcodeGen (`brew install xcodegen`).
 ./scripts/release-local.sh
 ```
 
-Quits Fredie if it is running, builds a signed Release bundle, verifies both embedded helpers,
+Quits Fredie if it is running, builds a signed Release bundle, verifies the bundle,
 installs `/Applications/Fredie.app`, and opens it. Signing uses the existing Apple Development
 identity recorded in `release/Release.plist`. A missing identity or signing failure stops the
 release; there is no unsigned fallback.
@@ -48,4 +48,4 @@ workflows remain restricted to the upstream repository.
 
 Fredie retains Tinycast's [AGPL-3.0 license](LICENSE), original copyright notices, and
 [third-party notices](NOTICE.md). Tinycast was created by Abue Ammar. The inherited icon and
-features are retained. In-app support links explicitly support the upstream Tinycast project.
+core launcher features are retained. In-app support links explicitly support the upstream Tinycast project.

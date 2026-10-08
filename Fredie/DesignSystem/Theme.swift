@@ -5,7 +5,6 @@ import SwiftUI
 enum Theme {
     enum Spacing {
         static let xxs: CGFloat = 2
-        static let dictationWaveGap: CGFloat = 3
         static let xs: CGFloat = 4
         static let sm: CGFloat = 6
         static let md: CGFloat = 8
@@ -65,6 +64,7 @@ enum Theme {
     }
 
     enum Size {
+        static let detailListWidth: CGFloat = 290
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
         /// Opening size on a first run and the floor: below it the title bar's own parts collide.
@@ -155,14 +155,11 @@ enum Theme {
         static let dropHintDash: CGFloat = 6
         /// The uninstall list's leading checkbox / lock glyph.
         static let checkbox: CGFloat = 16
-        static let clipboardListWidth: CGFloat = 290
         /// Symmetric clearance between the emoji grid and both panel edges.
         static let emojiGridInset: CGFloat = 16
         static let emojiCell: CGFloat = 56
         static let menuWidth: CGFloat = 276
         static let actionMenuWidth: CGFloat = 320
-        /// The clipboard type filter's menu; `menuWidth` is far too wide for six short rows.
-        static let clipboardFilterMenuWidth: CGFloat = 200
         static let fileSearchFilterMenuWidth: CGFloat = 200
         /// Fits "Shapes & Punctuation", the longest category title.
         static let emojiCategoryMenuWidth: CGFloat = 220
@@ -192,10 +189,7 @@ enum Theme {
         static let chatAttachmentRemove: CGFloat = 14
         /// Tighter than the gap inside the pill, so the thumbnail reads as filling it.
         static let chatAttachmentInset: CGFloat = 3
-        /// The clipboard preview's player; `VideoPlayer` expands unbounded without a height.
-        static let clipboardMediaHeight: CGFloat = 260
         /// The preview pane is ~460pt wide, so 900px stays crisp at 2× without over-decoding.
-        static let clipboardPreviewPixel: CGFloat = 900
         /// File search's preview stage: video's own shape, and enough height to read a page in.
         static let previewAspectRatio: CGFloat = 16 / 9
         /// Opening size and resize floor: the Quick Actions row's width, the sidebar's full height.
@@ -259,7 +253,6 @@ enum Theme {
         static let aiVariableName: CGFloat = 170
         /// A Codex usage window's meter, beside its "72% left" readout.
         static let aiUsageBar: CGFloat = 110
-        /// Settings editor modals (Custom Commands, Snippets): fixed width, intrinsic height.
         static let editorSheetWidth: CGFloat = 480
         /// The multi-line box inside those modals; it scrolls rather than grows the panel.
         static let editorTextHeight: CGFloat = 120
@@ -293,8 +286,6 @@ enum Theme {
         /// Transient volume HUD shown after any volume or mute command.
         static let hudWidth: CGFloat = 200
         static let hudHeight: CGFloat = 100
-        static let dictationPanel = CGSize(width: 144, height: 44)
-        static let dictationWaveBar: CGFloat = 2
         /// Read-only volume bar geometry used by the HUD.
         static let volumeTrackHeight: CGFloat = 6
         /// Fixed slot for the level readout, sized to the widest string it ever holds.

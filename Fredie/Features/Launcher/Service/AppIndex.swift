@@ -7,7 +7,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
         case command
         case quickAction
         case customCommand
-        case snippet
         case systemAction
         case windowCommand
         case windowLayout
@@ -44,11 +43,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
                     label: "Custom Command", sectionTitle: "Custom Commands",
                     openVerb: "Run Custom Command", canHideFromSearch: false,
                     canRevealInFinder: false, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
-            case .snippet:
-                return KindDescriptor(
-                    label: "Snippet", sectionTitle: "Snippets",
-                    openVerb: "Paste Snippet", canHideFromSearch: false,
-                    canRevealInFinder: true, canDragOut: false, isSymbolIcon: true, rankPriority: 3)
             case .systemAction:
                 return KindDescriptor(
                     label: "System Action", sectionTitle: "System Actions",
@@ -196,8 +190,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
             return Quicklink.id(fromEntryID: id).map { .quicklink(id: $0) }
         case .appleShortcut:
             return AppleShortcut.id(fromEntryID: id).map { .appleShortcut(id: $0) }
-        case .snippet:
-            return StoredSnippet.id(fromEntryID: id).map { .snippet(id: $0) }
         case .extensionCommand, .meeting:
             return nil
         }
@@ -222,7 +214,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     private var kindSymbol: String {
         switch kind {
         case .quicklink: return Quicklink.sfSymbol
-        case .snippet: return "text.quote"
         case .customCommand: return CustomCommand.sfSymbol
         case .command: return CommandCatalog.command(for: self)?.sfSymbol ?? "questionmark"
         case .quickAction:
@@ -323,8 +314,6 @@ extension AppEntry.Kind {
 @Observable
 final class AppIndex {
     private(set) var apps: [AppEntry] = []
-
-    private var snippetEntries: [AppEntry] = []
 
     /// The launcher's rows in order, with the size of each pinned section at their head.
     struct Results: Equatable {
@@ -526,25 +515,6 @@ final class AppIndex {
         publishEntries()
     }
 
-    func updateSnippets(_ records: [StoredSnippet]) {
-        let entries =
-            records
-            .filter { $0.snippet.isEnabled }
-            .map { record in
-                AppEntry(
-                    id: record.entryID,
-                    name: record.snippet.name,
-                    url: record.fileURL,
-                    bundleID: nil,
-                    kind: .snippet,
-                    alternateTitles: [record.snippet.keyword].compactMap { $0 })
-            }
-            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        guard entries != snippetEntries else { return }
-        snippetEntries = entries
-        publishEntries()
-    }
-
     /// Wires the scopes, re-indexing on edit rather than waiting for the next open.
     func start(settings: AppSettings) {
         self.settings = settings
@@ -657,7 +627,7 @@ final class AppIndex {
         let updated =
             Self.named(meetingEntries) + discoveredEntries
             + Self.named(
-                extensionEntries + quicklinkEntries + appleShortcutEntries + snippetEntries
+                extensionEntries + quicklinkEntries + appleShortcutEntries
                     + Self.systemActionEntries + windowLayoutEntries + windowRoomEntries
                     + windowCommandEntries
                     + customWindowSizeEntries + customCommandEntries + quickActionEntries

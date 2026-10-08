@@ -100,7 +100,6 @@ enum SettingsSearchCatalog {
         } else {
             band = 0
         }
-        // A pane outranks its own rows, so a bare "clipboard" lands on the pane rather than a row.
         return band + titleScore + (entry.anchor == nil ? 500_000 : 0)
     }
 
@@ -109,8 +108,8 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + systemSettings + systemActions + commands + quicklinks
-        + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
-        + navigation + notes + calendar + emoji + ai + quickActions + dictation + extensions + permissions
+        + appleShortcuts + fallbacks + fileSearch + windowManagement
+        + navigation + notes + calendar + emoji + ai + quickActions + extensions + permissions
         + backup + about
 
     private static let general: [SettingsSearchEntry] = [
@@ -329,20 +328,6 @@ enum SettingsSearchCatalog {
             keywords: ["language", "locale"])
     ]
 
-    private static let dictation: [SettingsSearchEntry] = [
-        .init(pane: .dictation, keywords: ["speech", "voice", "transcription", "microphone"]),
-        .init(.dictationDictation, "Enable Dictation"),
-        .init(.dictationCommands, "Shortcut behavior"),
-        .init(.dictationCommands, "Shortcut"),
-        .init(.dictationModel, "Model"),
-        .init(.dictationModel, "Engine", keywords: ["parakeet", "redux", "ultra", "qwen"]),
-        .init(.dictationModel, "Language"),
-        .init(.dictationMemory, "Release model from memory"),
-        .init(.dictationOutput, "Microphone"),
-        .init(.dictationOutput, "When finished"),
-        .init(.dictationOutput, "Adapt capitalization", keywords: ["uppercase", "lowercase", "sentence"])
-    ]
-
     private static let fileSearch: [SettingsSearchEntry] = [
         .init(
             pane: .fileSearch,
@@ -380,33 +365,15 @@ enum SettingsSearchCatalog {
             keywords: ["shortcut", "new note", "search notes"])
     ]
 
-    private static let snippets: [SettingsSearchEntry] = [
-        .init(
-            pane: .snippets,
-            keywords: ["expansion", "keyword", "text replacement", "template"]),
-        .init(
-            .snippetsSnippets, "Enable snippets",
-            keywords: ["expansion", "keystrokes", "accessibility"]),
-        .init(
-            group: .snippetsCommands, "Snippet commands",
-            keywords: ["shortcut", "hotkey", "launcher", "browser"]),
-        .init(
-            .snippetsLibrary, "New Snippet",
-            keywords: ["add", "keyword", "expansion"]),
-        .init(
-            .snippetsLibrary, "Snippets Folder",
-            keywords: ["reveal", "finder", "markdown", "files", "location", "path", "dotfiles"])
-    ]
-
     private static let navigation: [SettingsSearchEntry] = [
         .init(
             pane: .navigation,
-            keywords: ["window", "switch", "menu bar", "focus", "raise"]),
+            keywords: ["menu bar", "search", "focus"]),
         .init(
             .navigationNavigation, "Enable navigation",
-            keywords: ["window switcher", "menu bar", "accessibility"]),
+            keywords: ["menu bar", "accessibility"]),
         .init(
-            group: .navigationCommands, "Navigation commands",
+            group: .navigationMenuSearch, "Menu search commands",
             keywords: ["shortcut", "hotkey", "alias", "launcher"]),
         .init(
             .navigationMenuSearch, "Show Apple menu items",
@@ -473,33 +440,6 @@ enum SettingsSearchCatalog {
         .init(
             .windowManagementCustomSizes, "New Custom Size",
             keywords: ["add", "create", "resize", "window size"])
-    ]
-
-    private static let clipboard: [SettingsSearchEntry] = [
-        .init(
-            pane: .clipboard,
-            keywords: ["paste", "history", "copy", "pasteboard"]),
-        .init(
-            .clipboardClipboard, "Enable Clipboard History",
-            keywords: ["disable", "turn off", "monitor", "record", "privacy"]),
-        .init(
-            group: .clipboardCommands, "Clipboard commands",
-            keywords: ["shortcut", "hotkey", "launcher", "paste", "browser"]),
-        .init(
-            .clipboardHistory, "Keep history for",
-            keywords: ["retention", "delete", "privacy", "expire"]),
-        .init(
-            .clipboardHistory, "Search text in images and PDFs",
-            keywords: ["OCR", "recognize", "scan", "screenshot", "background", "idle"]),
-        .init(
-            .clipboardHistory, "Default action",
-            keywords: ["enter", "return", "paste", "copy", "primary"]),
-        .init(
-            group: .clipboardDisabledApplications, "Disabled Applications",
-            keywords: ["exclude", "password manager", "ignore", "privacy"]),
-        .init(
-            .clipboardDisabledApplications, "Clear history",
-            keywords: ["delete", "erase", "wipe"])
     ]
 
     private static let emoji: [SettingsSearchEntry] = [
@@ -613,9 +553,7 @@ enum SettingsSearchCatalog {
         .init(
             .permissionsCalendars, "Calendars",
             keywords: ["events", "privacy", "grant", "eventkit"]),
-        .init(
-            .permissionsMicrophone, "Microphone",
-            keywords: ["dictation", "recording", "privacy", "grant"])
+
     ]
 
     private static let backup: [SettingsSearchEntry] = [

@@ -70,11 +70,11 @@ struct PaletteEscapeTests {
 
         // Provenance, not the mode, decides whether there is anywhere to go back to.
         expect(
-            resolve(mode: .clipboard, canGoBack: true),
+            resolve(mode: .quicklinks, canGoBack: true),
             .goBack,
             "a clipboard screen opened from the root search returns to it")
         expect(
-            resolve(mode: .clipboard),
+            resolve(mode: .quicklinks),
             .hidePalette,
             "the same screen summoned by its own hotkey is a root, so it hides")
         expect(
@@ -86,13 +86,13 @@ struct PaletteEscapeTests {
             .hidePalette,
             "chat summoned by its own hotkey hides rather than falling back to the launcher")
         expect(
-            resolve(query: "notes", mode: .clipboard, canGoBack: true),
+            resolve(query: "notes", mode: .quicklinks, canGoBack: true),
             .clearQuery,
             "a typed query still clears before the back step it would otherwise skip")
 
         // Close and pop to root: one press ends the session, whatever it was opened over.
         expect(
-            resolve(mode: .clipboard, canGoBack: true, behavior: .closeAndPopToRoot),
+            resolve(mode: .quicklinks, canGoBack: true, behavior: .closeAndPopToRoot),
             .hidePalette,
             "close-and-pop-to-root hides even where a back step exists")
         expect(

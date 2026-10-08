@@ -25,16 +25,16 @@ struct LauncherSettingsFileTest {
 
     private static func testInvalidRecords() {
         let fixture = Fixture()
-        let action = HotKeyAction.command(.clipboardHistory)
-        let key = CommandID.clipboardHistory.rawValue
+        let action = HotKeyAction.command(.searchQuicklinks)
+        let key = CommandID.searchQuicklinks.rawValue
         fixture.hotKeys.setBinding(chord, for: action)
         fixture.aliases.setAlias("ch", for: key)
         fixture.visibility.setItemVisible(false, forKey: key)
         let aliasRevision = fixture.aliases.revision
         let visibilityRevision = fixture.visibility.revision
-        let binding = fixture.file.commandsBinding(for: .clipboardCommands, owner: .clipboard)
+        let binding = fixture.file.commandsBinding(for: .quicklinkCommands, owner: .quicklinks)
 
-        let invalid = binding.write(.object(["clipboard-history": chordText.settingsJSON]))
+        let invalid = binding.write(.object(["search-quicklinks": chordText.settingsJSON]))
         check("a non-object record is reported", invalid.count == 1)
         check("the existing shortcut survives", fixture.hotKeys.binding(for: action) == chord)
         check("the existing alias survives", fixture.aliases.alias(for: key) == "ch")
@@ -45,7 +45,7 @@ struct LauncherSettingsFileTest {
 
         let fields = binding.write(
             .object([
-                "clipboard-history": .object(["shortcut": 5, "alias": true, "showInLauncher": "no"])
+                "search-quicklinks": .object(["shortcut": 5, "alias": true, "showInLauncher": "no"])
             ]))
         check("invalid fields are reported", fields.count == 3)
         check("invalid fields preserve the shortcut", fixture.hotKeys.binding(for: action) == chord)
@@ -56,7 +56,7 @@ struct LauncherSettingsFileTest {
             "a partial edit applies",
             binding.write(
                 .object([
-                    "clipboard-history": .object(["alias": "history"])
+                    "search-quicklinks": .object(["alias": "history"])
                 ])
             ).isEmpty)
         check("the shortcut stays put", fixture.hotKeys.binding(for: action) == chord)
@@ -168,16 +168,16 @@ struct LauncherSettingsFileTest {
 
     private static func testMovedShortcut() {
         let fixture = Fixture()
-        fixture.hotKeys.setBinding(chord, for: .command(.clipboardHistory))
+        fixture.hotKeys.setBinding(chord, for: .command(.searchQuicklinks))
         let launcher = fixture.shortcuts.binding(
             for: .launcherShortcut, action: .togglePalette, name: "App Launcher")
-        let clipboard = fixture.file.commandsBinding(for: .clipboardCommands, owner: .clipboard)
+        let clipboard = fixture.file.commandsBinding(for: .quicklinkCommands, owner: .quicklinks)
         let issues =
             launcher.write(chordText.settingsJSON) + clipboard.write(.object([])) + fixture.shortcuts.commit()
         check("a shortcut moves across sections without a conflict", issues.isEmpty)
         check("the launcher receives the chord", fixture.hotKeys.binding(for: .togglePalette) == chord)
         check(
-            "Clipboard History releases it", fixture.hotKeys.binding(for: .command(.clipboardHistory)) == nil)
+            "Search Quicklinks releases it", fixture.hotKeys.binding(for: .command(.searchQuicklinks)) == nil)
     }
 
     private static func entry(_ bundleID: String, kind: AppEntry.Kind) -> AppEntry {

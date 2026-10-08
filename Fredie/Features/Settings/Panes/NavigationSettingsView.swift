@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Moving somewhere — a window, a menu item — rather than changing something. Two features,
-/// one switch, so the pane lives here rather than inside either of them.
 struct NavigationSettingsView: View {
     @Environment(AppSettings.self) private var settings
 
@@ -12,17 +10,10 @@ struct NavigationSettingsView: View {
                 Toggle(isOn: $settings.navigationEnabled) {
                     SettingsFeatureToggleLabel(
                         anchor: .navigationNavigation, title: "Enable navigation",
-                        subtitle: "Switch windows and search menu bar items.")
+                        subtitle: "Search menu bar items.")
                 }
             }
             .settingsAnchor(.navigationNavigation)
-
-            // No "show in launcher" switch: the per-command checkboxes below already are one.
-            FeatureCommandsSection(
-                owner: .navigation, anchor: .navigationCommands,
-                excluding: [.searchMenuItems]
-            )
-            .settingsEnabled(settings.navigationEnabled)
 
             // The menu-search command sits with the two settings that only it reads.
             Section {

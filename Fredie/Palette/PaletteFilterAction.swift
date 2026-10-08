@@ -4,7 +4,6 @@ import Foundation
 enum PaletteFilterAction: Equatable {
     /// A running command's `searchBarAccessory` dropdown.
     case extensionAccessory
-    case clipboardFilter
     case fileSearchFilter
     case emojiCategory
     case aiModel
@@ -18,7 +17,6 @@ enum PaletteFilterAction: Equatable {
         guard !collapsed else { return .ignored }
         switch mode {
         case .extensionCommand: return commandHasAccessory ? .extensionAccessory : .ignored
-        case .clipboard: return .clipboardFilter
         case .fileSearch: return .fileSearchFilter
         case .emoji: return .emojiCategory
         case .ai: return .aiModel

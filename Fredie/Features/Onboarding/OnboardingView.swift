@@ -98,7 +98,7 @@ struct OnboardingView: View {
         switch step {
         case 0: "Set a shortcut to summon the launcher from anywhere."
         case 1: "Let Fredie paste items back into the app you were using."
-        case 2: "Bring your shortcuts, favorites, and clipboard history along."
+        case 2: "Bring your shortcuts, favorites, and quicklinks along."
         default: readyMessage
         }
     }
@@ -169,7 +169,7 @@ struct OnboardingView: View {
                 OnboardingRow(
                     title: "Accessibility",
                     subtitle:
-                        "Allows pasting clipboard items and expanded snippets into active apps.",
+                        "Allows inserting text into active apps.",
                     systemImage: "accessibility", tint: .blue
                 ) {
                     statusBadge

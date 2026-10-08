@@ -227,7 +227,7 @@ ever setting `.fullScreenPrimary` on it, so testing that flag would make Fullscr
 Settings. The Notes panel is `.fullScreenAuxiliary` and stays a no-op, as an unwilling external
 window already is.
 
-This mirrors `InjectionTarget` in [Text injection](text-injection.md), which solved the same problem
+This mirrors `InjectionTarget` in [Quick Actions delivery](quick-actions.md#delivery), which solved the same problem
 for keystrokes: same shape, same `Service/` position, one idea applied twice.
 
 ## Applying a placement
@@ -371,12 +371,12 @@ and every shortcut stays editable afterwards.
 - **`AppIndex.setCustomWindowSizes(_:)`** publishes the custom-size slice immediately after the
   window commands, inside the same section. Custom sizes and their bindings ride in settings backups.
 - **Settings** — `windowManagementEnabled` (off), `windowManagementShowInLauncher` (on), `windowGap`
-  (0) and `windowCycle` (`.off`). All four ride in settings backups: unlike `snippetsEnabled` they
+  (0) and `windowCycle` (`.off`). All four ride in settings backups: they
   grant no permission class of their own.
 - **Per-command visibility** reuses `VisibilityStore` as-is; clearing a recorded shortcut is how a
   hotkey is disabled, so there is no separate per-command enabled flag. Window commands deliberately
   get **no** launcher-category pane of their own — they are managed inside Settings › Window
-  Management, the same call already made for snippets.
+  Management.
 
 ## Testing
 

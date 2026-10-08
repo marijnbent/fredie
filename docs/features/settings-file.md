@@ -13,8 +13,8 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   deleting it, or updating the app never loses a setting, so there is nothing to migrate.
 - **Off by default, and only the pane turns it on.** `settingsFileEnabled` has no key in the file and is
   excluded from backups: a file or an import must never switch on something that reads a file.
-- **A capability grant never has a key.** Snippets, Extensions, Calendar access, Auto Join, Camera
-  Preview, Quick Actions, MCP and clipboard text recognition are switched on only in the app, which
+- **A capability grant never has a key.** Extensions, Calendar access, Auto Join, Camera
+  Preview, Quick Actions, and MCP are switched on only in the app, which
   asks first. `settings-file-test` checks those paths stay absent.
 - **`SettingsFileSchema`'s switch is exhaustive.** A new `SettingsFileKey` case fails to build until it
   is bound to a property.
@@ -24,8 +24,8 @@ in `Features/Settings/` (`Model/`, `Service/`, `SettingsFileSchema.swift`), the 
   record's field left out or of the wrong type keeps its value, and `null` clears it.
 - **Applying the file never writes it.** Only a change made in the app rewrites the file, so hand
   formatting stays until then.
-- **Content and machine state never enter it.** Notes, snippets, custom commands, quicklinks, MCP
-  servers and AI connections stay where they are — the file can say which folder notes and snippets
+- **Content and machine state never enter it.** Notes, custom commands, quicklinks, MCP
+  servers and AI connections stay where they are — the file can say which folder notes
   live in, never what is in them — as do the palette's position, the extension toolchain,
   the shortcuts and aliases of content, extensions and Apple Shortcuts, and what a room learns by
   being entered.
@@ -72,11 +72,11 @@ target, so a file linked from a dotfiles repository stays linked.
   on. Writes are atomic. Quitting or turning the switch off flushes a pending save.
 - **File → app.** Two watchers, on the folder and the file, reload 150 ms after the last event. A
   reload skips its own write by comparing bytes. Problems go to a HUD, first one and a count:
-  `settings.json: unknown setting “clipboard.enabeld” (+1 more)`.
+  `settings.json: unknown setting “emoji.enabeld” (+1 more)`.
 - **Turning it off** stops both directions and leaves the file on disk.
 
 A side effect of a setting runs from an `AppCore` `track` sink, never from a pane's `.onChange`: the file
-can change a setting while no pane is open. Clipboard retention, AI retention and the extensions'
+can change a setting while no pane is open. AI retention and the extensions'
 launcher presence are the three that moved for this.
 
 ## The format
@@ -112,7 +112,6 @@ Where a number has a special case, the case is a word:
 
 | Key | Values |
 | --- | --- |
-| `clipboard.retentionDays` | 1, 7, 30, 90, 180, 365, `"forever"` |
 | `ai.retentionDays` | 7, 30, 90, `"forever"` |
 | `ai.newChatAfterMinutes` | 2, 5, 10, 30, `"never"` |
 | `ai.toolRounds` | 10, 25, 50, 100, `"unlimited"` |
@@ -123,7 +122,6 @@ Where a number has a special case, the case is a word:
 | `calendar.menuBarUpcomingEvents` | `"today"`, or 2, 5, 10, 30 minutes before |
 | `calendar.hideCurrentEventAfterMinutes` | `"never"`, 0 (as it starts), 5, 10, 30 |
 | `windowManagement.gap` | 0 to 64 |
-| `snippets.folder`, `notes.folder` | an absolute or `~/` path, or `null` for Application Support |
 
 ## Shortcut chords
 
@@ -142,14 +140,8 @@ where it was. A chord another action still holds is reported, and the old bindin
 
 ## Launcher items
 
-Each pane that lists items writes the ones with something set, as records keyed by ID:
-`applications.apps` and `systemSettings.panes` by bundle ID, `systemActions.actions` by action ID, and
-built-in commands under the pane that lists them — `clipboard.commands`, `emoji.commands`, and the rest
-in `commands.builtIn` — by their ID after `command:`. App Launcher and Dictation are
-`general.launcherShortcut` and `dictation.shortcut`.
-
 ```json
-"clipboard-history": { "shortcut": "cmd+shift+v", "alias": "ch", "showInLauncher": true }
+"search-quicklinks": { "shortcut": "cmd+shift+v", "alias": "ql", "showInLauncher": true }
 ```
 
 - **A record left out has no shortcut, no alias, and is shown.**

@@ -8,7 +8,6 @@ final class PaletteCoordinator {
     private let appIndex: AppIndex
     private let fileSearch: FileSearchSession
     private let menuSearch: MenuSearchSession
-    private let windowSwitch: WindowSwitchSession
     private let windowController: PaletteWindowController
     /// Features whose launcher rows are read from outside Fredie re-read them on each open.
     var onLauncherShown: (() -> Void)?
@@ -21,7 +20,6 @@ final class PaletteCoordinator {
         appIndex: AppIndex,
         fileSearch: FileSearchSession,
         menuSearch: MenuSearchSession,
-        windowSwitch: WindowSwitchSession,
         windowController: PaletteWindowController
     ) {
         self.palette = palette
@@ -29,7 +27,6 @@ final class PaletteCoordinator {
         self.appIndex = appIndex
         self.fileSearch = fileSearch
         self.menuSearch = menuSearch
-        self.windowSwitch = windowSwitch
         self.windowController = windowController
     }
 
@@ -100,7 +97,6 @@ final class PaletteCoordinator {
         windowController.show()
         if palette.mode == .fileSearch { fileSearch.search(palette.query) }
         if palette.mode == .menuSearch { menuSearch.filter(palette.query) }
-        if palette.mode == .switchWindows { windowSwitch.filter(palette.query) }
         // Re-scan on open so an app uninstalled since the last scan drops out of the launcher.
         if palette.mode == .launcher {
             Task { await appIndex.refresh() }
@@ -122,7 +118,6 @@ final class PaletteCoordinator {
     func hidePalette(restoreFocus: Bool = true) {
         fileSearch.cancel()
         menuSearch.reset()
-        windowSwitch.reset()
         windowController.hide(restoreFocus: restoreFocus)
     }
 

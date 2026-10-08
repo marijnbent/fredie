@@ -10,52 +10,50 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 
 ```
 ┌─ PURE ─────────────────────────────────────────────────────────────────────┐
-│ Foundation only. No AppKit, no clock, no network, no filesystem. Every     │
-│ environment fact is an injected parameter.                                 │
-│ ⇒ Compiled verbatim by a harness, so it cannot drift.                      │
-│                                                                            │
-│ SearchRelevance · LauncherMatch · EntryNaming · ScriptRomanization ·       │
-│ LauncherOrder · LauncherSuggestions · LauncherRankingStore · SearchScopes · │
-│ FileSearch{Query,Result,Scope} ·                                           │
-│ Calculator/* · EmojiCatalog · EmojiGridGeometry · SystemAction ·            │
-│ VolumeLevel ·                                                              │
-│ WindowCommand · WindowPlacementEngine · WindowActionMemory · WindowLayout/* ·      │
-│ CustomWindowSize{,Store} · Room/* ·                                        │
-│ PaletteRowIndex ·                                                          │
-│ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                       │
-│ Quicklink{,Destination,Store,Archive} · AppleShortcut · Notes/Model/* ·    │
-│ Snippets/Model/* ·                                                         │
-│ ShellCommandRunner · DoubleTap{Modifier,Detector} · ClipboardStore ·       │
-│ RaycastDecoder · Scrypt · AppSettingsKey · SettingsBackupCoverage          │
-│ SettingsFile{JSON,Key,Value,Format,Binding,Issue,Identity} ·               │
-│ HotKeySpelling · WindowManagementFileFormat ·                              │
-│ MeetingLink · MeetingEvent · UpcomingWindow · MeetingDay · MenuBarSummary  │
-│ AutoJoinPolicy · EventDraft · SupportReminderSchedule ·                    │
-│ MenuSearch{Item,Shortcut,Query,TreeNode,SnapshotPolicy,Target} ·           │
-│ WindowSwitch{Entry,Order,Query}                                            │
+│ Foundation only. No AppKit, no clock, no network, no filesystem. Every    │
+│ environment fact is an injected parameter.                                │
+│ ⇒ Compiled verbatim by a harness, so it cannot drift.                     │
+│                                                                           │
+│ SearchRelevance · LauncherMatch · EntryNaming · ScriptRomanization ·      │
+│ LauncherOrder · LauncherSuggestions · LauncherRankingStore · SearchScopes ·│
+│ FileSearch{Query,Result,Scope} ·                                          │
+│ Calculator/* · EmojiCatalog · EmojiGridGeometry · SystemAction ·          │
+│ VolumeLevel ·                                                             │
+│ WindowCommand · WindowPlacementEngine · WindowActionMemory · WindowLayout/* ·│
+│ CustomWindowSize{,Store} · Room/* ·                                       │
+│ PaletteRowIndex ·                                                         │
+│ Uninstall{Target,SearchRoot,Rules,Protection,Plan} ·                      │
+│ Quicklink{,Destination,Store,Archive} · AppleShortcut · Notes/Model/* ·   │
+│ ShellCommandRunner · DoubleTap{Modifier,Detector} ·                       │
+│ RaycastDecoder · Scrypt · AppSettingsKey · SettingsBackupCoverage         │
+│ SettingsFile{JSON,Key,Value,Format,Binding,Issue,Identity} ·              │
+│ HotKeySpelling · WindowManagementFileFormat ·                             │
+│ MeetingLink · MeetingEvent · UpcomingWindow · MeetingDay · MenuBarSummary │
+│ AutoJoinPolicy · EventDraft · SupportReminderSchedule ·                   │
+│ MenuSearch{Item,Shortcut,Query,TreeNode,SnapshotPolicy,Target} ·          │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ consumed by
 ┌─ EFFECT ─────────────────────────▼─────────────────────────────────────────┐
-│ All platform I/O, one folder per feature.                                  │
-│ AppIndex · FileSearchService · SettingsPaneScanner ·                       │
-│ AXWindowAccess · AXScreens · WindowInventory · WindowLayoutRunner ·        │
-│ RoomWindowSweep · RoomRunner ·                                             │
-│ IconCache · WindowMover · UninstallScanner · UninstallRunner ·             │
-│ SystemActionRunner · QuicklinkLauncher · TextInjector ·             │
-│ SnippetKeywordListener · NotesRepository · CurrencyRateStore · Paster ·    │
-│ HotKeyCenter · HyperKeyTap · ModifierTapMonitor · RunningAppsMonitor ·     │
-│ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·           │
-│ SupportReminderStore · AXMenuAccess · WindowZOrder · WindowSwitchSweep ·   │
-│ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·       │
-│ WindowManagementSettingsFile                                               │
+│ All platform I/O, one folder per feature.                                 │
+│ AppIndex · FileSearchService · SettingsPaneScanner ·                      │
+│ AXWindowAccess · AXScreens · WindowInventory · WindowLayoutRunner ·       │
+│ RoomWindowSweep · RoomRunner ·                                            │
+│ IconCache · WindowMover · UninstallScanner · UninstallRunner ·            │
+│ SystemActionRunner · QuicklinkLauncher · TextInjector ·                   │
+│ NotesRepository · CurrencyRateStore · Paster ·                            │
+│ HotKeyCenter · HyperKeyTap · ModifierTapMonitor · RunningAppsMonitor ·    │
+│ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·          │
+│ SupportReminderStore · AXMenuAccess ·                                     │
+│ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·      │
+│ WindowManagementSettingsFile                                              │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 39 @MainActor @Observable stores, sessions, indices and State types        │
+│ 39 @MainActor @Observable stores, sessions, indices and State types       │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
-│ SwiftUI screens, views and each feature's coordinator — declarative, thin  │
+│ SwiftUI screens, views and each feature's coordinator — declarative, thin │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -88,13 +86,13 @@ the shared primitives and system shims every feature draws on. Neither may depen
 ## Single-owner core
 
 `AppCore.shared` (`App/AppCore.swift`) is a `@MainActor` singleton owning every long-lived thing in the
-app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`, `CustomCommandStore`,
+app: the stores (`AppIndex`, `QuicklinkStore`, `CustomCommandStore`,
 `FavoritesStore`, `VisibilityStore`, `AliasStore`, `LauncherRankingStore`, `CalculatorHistoryStore`,
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
-(`ClipboardManager`, the opt-in `ClipboardTextIndexer`, the opt-in `SettingsFileRepository`,
-`HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`, `SnippetKeywordListener`), the shared state
+(the opt-in `SettingsFileRepository`,
+`HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`), the shared state
 (`AppSettings`, `PaletteState`, `FileSearchSession`, `MenuSearchSession`, `UninstallSession`,
-`MeetingClock`), `NotesStore`, the twenty-one feature coordinators, and the
+`MeetingClock`), `NotesStore`, the feature coordinators, and the
 window controllers.
 
 `AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
@@ -111,16 +109,6 @@ fine too; deciding something with one is what the rule forbids. `showNotice`, `c
 
 New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a competing singleton: this is a singleton, not a container.
 
-Clipboard text recognition runs outside the process. `AppCore` owns the indexer;
-the stateless `ClipboardTextWorker` runs one bundled `ClipboardTextHelper` per item, from
-`Contents/Helpers`, and reaps it before returning. Vision's and PDFKit's allocations therefore belong
-to a process that exits, and the helper — which has no database, clipboard or settings access — is
-handed an input path and answers with bounded text down a pipe.
-
-Dictation similarly runs its model adapters in a bundled helper, with bounded in-memory audio and
-text over pipes. The coordinator keeps microphone capture, UI and insertion in Fredie; the model
-store starts the helper on demand and reaps it after the selected idle delay or a model switch.
-`AppCore` owns the audio ducker and starts volume recovery on every launch, even when Dictation is off.
 
 ## Entry points and windows
 
@@ -206,7 +194,6 @@ House idioms for the sharp edges:
 
 - Block-observer lifetimes go through the RAII `NotificationToken` (`Platform/NotificationToken.swift`)
   rather than removal in a `deinit`.
-- `ClipboardStore` uses `isolated deinit` for its SQLite teardown.
 - Raw Carbon and C pointers are decoded to plain values before crossing into actor code (see
   `hotKeyCarbonEventHandler`).
 - `HealthTicker` (`Platform/HealthTicker.swift`) is the one shared timer for periodic health checks, so
@@ -233,8 +220,8 @@ Fredie/
   Assets.xcassets/  the app icon and the bundled image sets some catalog symbols resolve to
   Features/
     PaletteRowIndex.swift   the flat selection index — palette-owned, so it sits at the top
-    Launcher/ Clipboard/ Calculator/ Calendar/ Emoji/ FileSearch/ MenuSearch/ Notes/
-    Quicklinks/ Snippets/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
+    Launcher/ Calculator/ Calendar/ Emoji/ FileSearch/ MenuSearch/ Notes/
+    Quicklinks/ Uninstall/ SystemActions/ CustomCommands/ HotKeys/ Backup/
     WindowManagement/ Onboarding/ Updates/ Support/ AI/ Settings/
     Extensions/
         Model/      pure — the harness inputs
