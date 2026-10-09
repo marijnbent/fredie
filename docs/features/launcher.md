@@ -454,6 +454,9 @@ from `InterfaceMetrics`, so the drawn grid and `LauncherAppGrid`'s arrow moves r
 last tile. That holds while typing too, so ←/→ move between tiles rather than the caret, as in the
 emoji grid. With no match the card keeps one tile row's height and says "No apps found".
 
+The bottom fade appears only when results exceed three tile rows and more content remains below.
+It occupies a narrow edge band and disappears at the end of the scroll; fitting results stay fully opaque.
+
 The launcher no longer has a separate Suggestions section or its setting. When nothing is pinned,
 the app grid uses launch frequency and recency to select apps.
 

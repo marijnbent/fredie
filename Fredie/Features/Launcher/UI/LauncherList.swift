@@ -23,6 +23,15 @@ struct LauncherList: View {
         selectedRowID != nil && selectedRowID == results.first?.id
     }
 
+    private var hasOverflow: Bool {
+        switch layout {
+        case .grid(let columns):
+            results.count > max(columns, 1) * Theme.Size.launcherVisibleTileRows
+        case .list:
+            results.count > Theme.Size.launcherVisibleRows
+        }
+    }
+
     var body: some View {
         Group {
             if results.isEmpty {
@@ -35,7 +44,7 @@ struct LauncherList: View {
                             .hideNativeScrollers()
                             .scrollOriginAnchor()
                     }
-                    .edgeDissolve()
+                    .modifier(LauncherBottomFade(hasOverflow: hasOverflow))
                     .thinScrollbar()
                     .scrollFollowsSelection(
                         scroll, row: selectedRowID, atOrigin: firstRowSelected, proxy: proxy)
@@ -88,6 +97,30 @@ struct LauncherList: View {
         return RowDrag(
             item: { .file(app.url, image: IconCache.cached(app.iconSource, fileURL: app.url)) },
             dropped: onDropped)
+    }
+}
+
+private struct LauncherBottomFade: ViewModifier {
+    @Environment(\.metrics) private var metrics
+    @State private var remainingBelow: CGFloat = 0
+    let hasOverflow: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                max(0, geometry.contentSize.height + geometry.contentInsets.bottom
+                    - geometry.containerSize.height - geometry.contentOffset.y)
+            } action: { _, distance in
+                remainingBelow = distance
+            }
+            .mask {
+                VStack(spacing: 0) {
+                    Color.black
+                    LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: hasOverflow ? min(remainingBelow, metrics.spacing.xl) : 0)
+                }
+                .ignoresSafeArea()
+            }
     }
 }
 
