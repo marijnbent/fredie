@@ -205,7 +205,7 @@ struct RootPaletteView: View {
             return PaletteMenuContent(
                 popover: filtered.content, selection: $menuSelection,
                 search: PopoverMenu.Search(
-                    placeholder: "Search for actions…", placement: .bottom),
+                    placeholder: "Search for actions…", placement: headerHangsMenus ? .top : .bottom),
                 onActivate: activateMenuItem, preferredSelection: filtered.bestMatch)
         case .fileSearchFilter:
             return headerMenu(fileSearchFilterContent, width: metrics.size.fileSearchFilterMenuWidth)
@@ -262,7 +262,7 @@ struct RootPaletteView: View {
                 }
                 .safeAreaInset(edge: .top, spacing: surface.cardGap) { header }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if !isCollapsed {
+                    if !isCollapsed, !surface.detached {
                         bottomBar(
                             pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup,
                             formPrimaryShortcut: isExtensionForm,
@@ -307,6 +307,8 @@ struct RootPaletteView: View {
     }
 
     private var surface: PaletteSurface { core.paletteCoordinator.paletteSurface }
+
+    private var headerHangsMenus: Bool { surface.detached }
 
     /// The emoji grid's observers, split out so `stateObservers` stays within type-checker reach.
     @ViewBuilder
@@ -644,6 +646,10 @@ struct RootPaletteView: View {
             if vm.mode == .launcher, headerAccessory == nil {
                 headerGutter(width: metrics.spacing.md)
                 launcherAIButton
+                if !isCollapsed {
+                    headerGutter(width: metrics.spacing.xs)
+                    launcherMenuButton
+                }
             }
             if !isCollapsed, vm.mode == .fileSearch {
                 headerGutter(width: metrics.spacing.md)
@@ -725,16 +731,33 @@ struct RootPaletteView: View {
     }
 
     private var launcherAIButton: some View {
-        BarButton(chrome: .rounded, action: { core.quickAICoordinator.askFromLauncher(vm.query) }) {
+        BarButton(action: { core.quickAICoordinator.askFromLauncher(vm.query) }) {
             HStack(spacing: metrics.spacing.sm) {
                 Image(systemName: "sparkles")
+                    .foregroundStyle(Theme.Colors.textSecondary)
                 Text("Ask AI")
                     .font(metrics.typography.bar)
-                KeyCapChip(text: "⌘↵", style: .outline)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                Text(verbatim: "⌘↵")
+                    .font(metrics.typography.keyCap)
+                    .foregroundStyle(Theme.Colors.textTertiary)
             }
-            .foregroundStyle(Theme.Colors.textSecondary)
         }
+        .accessibilityLabel(settings.aiEnabled ? "Ask AI" : "Set up AI")
         .tooltip(settings.aiEnabled ? "Ask AI" : "Set up AI", edge: .bottom)
+    }
+
+    private var launcherMenuButton: some View {
+        BarButton(isSelected: openMenu == .app, isCompact: true) {
+            if openMenu == .app { closeMenus() } else { open(.app, highlighting: 0) }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(metrics.typography.bar)
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .frame(width: metrics.size.headerIconSlot, height: metrics.size.headerIconSlot)
+        }
+        .accessibilityLabel(Bundle.main.appDisplayName)
+        .tooltip(Bundle.main.appDisplayName, edge: .bottom)
     }
 
     /// True when the screen took the keyboard over, which leaves the header empty beside the chevron.
@@ -1160,8 +1183,8 @@ struct RootPaletteView: View {
 
     private var menuCorner: MenuPanelCorner? {
         switch openMenu {
-        case .app: .bottomLeading
-        case .actions: .bottomTrailing
+        case .app: headerHangsMenus ? .belowHeaderTrailing : .bottomLeading
+        case .actions: headerHangsMenus ? .belowHeaderTrailing : .bottomTrailing
         case .argumentOptions: .belowHeaderTrailing
         case .fileSearchFilter, .emojiCategory, .aiModel, .aiReasoning,
             .aiAttachments, .extensionAccessory:

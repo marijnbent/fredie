@@ -30,9 +30,7 @@ struct LauncherList: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         content
-                            .padding(.horizontal, metrics.spacing.md)
-                            .padding(.top, metrics.spacing.xs)
-                            .padding(.bottom, metrics.spacing.md)
+                            .padding(metrics.spacing.md)
                             .hideNativeScrollers()
                             .scrollOriginAnchor()
                     }
@@ -118,34 +116,41 @@ private struct AppTile: View {
         return .clear
     }
 
+    private var plate: CGFloat { metrics.size.appTileIcon + metrics.spacing.md * 2 }
+
     var body: some View {
         VStack(spacing: metrics.spacing.xs) {
             AppIconView(app: app, pointSize: metrics.size.appTileIcon)
                 .frame(width: metrics.size.appTileIcon, height: metrics.size.appTileIcon)
+                .frame(width: plate, height: plate)
+                .background(
+                    RoundedRectangle(cornerRadius: metrics.radius.appTile, style: .continuous)
+                        .fill(fill)
+                )
+                .overlay(alignment: .bottom) {
+                    RunningDot(running: running).padding(.bottom, metrics.spacing.xxs)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if let slot, palette.commandHeld {
+                        HStack(spacing: metrics.spacing.xxs) {
+                            KeyCapChip(text: "⌘", style: .outline)
+                            KeyCapChip(text: String(slot), style: .outline)
+                        }
+                        .fixedSize()
+                        .alignmentGuide(.trailing) { $0[.leading] + $0.width / 2 }
+                    }
+                }
             Text(app.name)
                 .font(metrics.typography.rowTrailing)
                 .foregroundStyle(selected ? Color.primary : Theme.Colors.textSecondary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-            RunningDot(running: running)
+                .allowsTightening(true)
+                .minimumScaleFactor(0.9)
+                .padding(.horizontal, metrics.spacing.xs)
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, metrics.spacing.xl)
-        .padding(.horizontal, metrics.spacing.xs)
-        .padding(.bottom, metrics.spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: metrics.radius.appTile, style: .continuous)
-                .fill(fill)
-        )
-        .overlay(alignment: .topTrailing) {
-            if let slot, palette.commandHeld {
-                HStack(spacing: metrics.spacing.xxs) {
-                    KeyCapChip(text: "⌘", style: .outline)
-                    KeyCapChip(text: String(slot), style: .outline)
-                }
-                .padding(metrics.spacing.sm)
-            }
-        }
+        .frame(height: metrics.size.launcherTileHeight)
         .armedHover($hovered)
     }
 }
@@ -220,7 +225,7 @@ private struct AppRow: View {
             }
         }
         .padding(.horizontal, metrics.spacing.md)
-        .padding(.vertical, metrics.spacing.sm)
+        .frame(height: metrics.size.launcherRowHeight)
         .background(
             RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous)
                 .fill(fill)

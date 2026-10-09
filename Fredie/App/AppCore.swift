@@ -283,6 +283,13 @@ final class AppCore {
             paletteCoordinator.onLauncherShown = { [weak self] in
                 self?.appleShortcutCoordinator.refresh()
             }
+            paletteCoordinator.launcherBody = { [weak self] in
+                guard let self else { return .list(count: 0) }
+                return LauncherScreen.resolve(
+                    appIndex: appIndex, favorites: favorites, visibility: visibility, core: self,
+                    vm: palette
+                ).body
+            }
             paletteCoordinator.onScreenOpening = { [weak self] mode in
                 switch mode {
                 case .menuSearch: self?.menuSearchCoordinator.load()

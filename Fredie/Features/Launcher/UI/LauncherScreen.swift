@@ -32,8 +32,31 @@ struct LauncherScreen: PaletteScreen {
         self.openActions = openActions
         self.scrollToFollow = scrollToFollow
 
+        let resolved = Self.resolve(
+            appIndex: appIndex, favorites: favorites, visibility: visibility, core: core, vm: vm)
+        columns = resolved.columns
+        rows = resolved.results.entries
+        pinnedCount = resolved.results.favoriteCount
+        showsGrid = resolved.showsGrid
+    }
+
+    struct Resolved {
+        let results: AppIndex.Results
+        let showsGrid: Bool
+        let columns: Int
+
+        var body: LauncherBody {
+            showsGrid
+                ? .grid(count: results.entries.count, columns: columns)
+                : .list(count: results.entries.count)
+        }
+    }
+
+    static func resolve(
+        appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore, core: AppCore,
+        vm: PaletteState
+    ) -> Resolved {
         let columns = Self.columns(for: core.settings.interfaceSize.metrics)
-        self.columns = columns
         // Listed even when hidden from search: the shortcut that opened it still has to be answered.
         let pinned = vm.argumentEntryID.flatMap(core.customCommands.command(entryID:))
             .map(AppEntry.init).flatMap { $0.name == vm.query ? $0 : nil }
@@ -42,9 +65,9 @@ struct LauncherScreen: PaletteScreen {
             ?? appIndex.appResults(
                 query: vm.query, visibility: visibility, favorites: favorites,
                 fallbackLimit: columns * 2)
-        rows = results.entries
-        pinnedCount = results.favoriteCount
-        showsGrid = pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty
+        return Resolved(
+            results: results, showsGrid: pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty,
+            columns: columns)
     }
 
     private static func columns(for metrics: InterfaceMetrics) -> Int {
@@ -102,6 +125,18 @@ struct LauncherScreen: PaletteScreen {
                 if let index = rows.firstIndex(of: app) { vm.selection = index }
             },
             onHideFromSearch: { _ = hideFromSearch(at: selection) })
+    }
+
+    func menuContent(
+        at selection: Int, searchQuery: ActionMenuSearchQuery, menuSelection: Binding<Int>,
+        onActivate: @escaping (Int) -> Void
+    ) -> PaletteMenuContent? {
+        guard let content = actions(at: selection) else { return nil }
+        let filtered = content.matching(searchQuery)
+        return PaletteMenuContent(
+            popover: filtered.content, selection: menuSelection,
+            search: PopoverMenu.Search(placeholder: "Search for actions…", placement: .top),
+            onActivate: onActivate, preferredSelection: filtered.bestMatch)
     }
 
     func activate(at selection: Int) {

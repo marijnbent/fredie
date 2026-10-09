@@ -13,6 +13,7 @@ final class PaletteCoordinator {
     var onLauncherShown: (() -> Void)?
     /// Screens that snapshot other apps re-read them on every open, a restored one included.
     var onScreenOpening: ((PaletteMode) -> Void)?
+    var launcherBody: () -> LauncherBody = { .list(count: 0) }
 
     init(
         palette: PaletteState,
@@ -146,7 +147,9 @@ final class PaletteCoordinator {
 
     var paletteSurface: PaletteSurface {
         PaletteSurface(
-            mode: palette.mode, collapsed: paletteIsCollapsed, metrics: settings.interfaceSize.metrics)
+            mode: palette.mode, collapsed: paletteIsCollapsed,
+            launcher: palette.mode == .launcher ? launcherBody() : .list(count: 0),
+            metrics: settings.interfaceSize.metrics)
     }
 
     func syncPaletteSize() {

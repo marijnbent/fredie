@@ -70,7 +70,7 @@ and closes, so its actions belong in a trailing row; this one asks, so the ask i
 
 ## Where it is reachable from
 
-The palette's bottom-left menu circle (between About and Settings), Settings → About, the menu bar
+The palette's app menu (the launcher header's `…`, or the bottom-left menu circle elsewhere; between About and Settings), Settings → About, the menu bar
 menu, and the launcher as `CommandID.support`. All four land on `showSupport()`. The launcher arm
 hides the palette first, the way `.about` does; the menu-circle row does not, because the panel
 dismisses itself on `windowDidResignKey`.

@@ -69,7 +69,10 @@ enum Theme {
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
         static let launcherWidth: CGFloat = 560
-        static let launcherHeight: CGFloat = 380
+        static let launcherTileHeight: CGFloat = 84
+        static let launcherRowHeight: CGFloat = 40
+        static let launcherVisibleTileRows = 3
+        static let launcherVisibleRows = 7
         /// Opening size on a first run and the floor: below it the title bar's own parts collide.
         static let noteWindow = CGSize(width: 440, height: 180)
         /// The tallest a note window grows to fit its text; past it the editor scrolls.

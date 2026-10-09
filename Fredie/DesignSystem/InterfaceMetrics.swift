@@ -62,7 +62,8 @@ struct InterfaceMetrics: Equatable, Sendable {
         var panelWidth: CGFloat { scaledPoints(Theme.Size.panelWidth, scale) }
         var panelHeight: CGFloat { scaledPoints(Theme.Size.panelHeight, scale) }
         var launcherWidth: CGFloat { scaledPoints(Theme.Size.launcherWidth, scale) }
-        var launcherHeight: CGFloat { scaledPoints(Theme.Size.launcherHeight, scale) }
+        var launcherTileHeight: CGFloat { scaledPoints(Theme.Size.launcherTileHeight, scale) }
+        var launcherRowHeight: CGFloat { scaledPoints(Theme.Size.launcherRowHeight, scale) }
         var headerHeight: CGFloat { scaledPoints(Theme.Size.headerHeight, scale) }
         var headerIconSlot: CGFloat { scaledPoints(Theme.Size.headerIconSlot, scale) }
         var searchFieldMinWidth: CGFloat { scaledPoints(Theme.Size.searchFieldMinWidth, scale) }

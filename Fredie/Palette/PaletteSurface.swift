@@ -1,5 +1,33 @@
 import SwiftUI
 
+enum LauncherBody: Equatable {
+    case grid(count: Int, columns: Int)
+    case list(count: Int)
+
+    func cardHeight(_ metrics: InterfaceMetrics) -> CGFloat {
+        let inset = metrics.spacing.md * 2
+        switch self {
+        case .grid(let count, let columns):
+            let rows = Self.visible(
+                (max(count, 1) + max(columns, 1) - 1) / max(columns, 1),
+                limit: Theme.Size.launcherVisibleTileRows)
+            return inset + CGFloat(rows) * metrics.size.launcherTileHeight
+                + CGFloat(rows - 1) * metrics.spacing.xs
+        case .list(let count):
+            let rows = Self.visible(count, limit: Theme.Size.launcherVisibleRows)
+            return inset + CGFloat(rows) * metrics.size.launcherRowHeight
+        }
+    }
+
+    static func tallestCard(_ metrics: InterfaceMetrics) -> CGFloat {
+        max(
+            LauncherBody.grid(count: Theme.Size.launcherVisibleTileRows, columns: 1).cardHeight(metrics),
+            LauncherBody.list(count: Theme.Size.launcherVisibleRows).cardHeight(metrics))
+    }
+
+    private static func visible(_ rows: Int, limit: Int) -> Int { min(max(rows, 1), limit) }
+}
+
 struct PaletteSurface: Equatable {
     let slotWidth: CGFloat
     let width: CGFloat
@@ -11,22 +39,24 @@ struct PaletteSurface: Equatable {
     let detached: Bool
     let radius: CGFloat
 
-    init(mode: PaletteMode, collapsed: Bool, metrics: InterfaceMetrics) {
+    init(mode: PaletteMode, collapsed: Bool, launcher: LauncherBody, metrics: InterfaceMetrics) {
         let size = metrics.size
         slotWidth = size.panelWidth
         fieldHeight = size.headerHeight
         radius = metrics.radius.panel
         detached = mode == .launcher
-        expandedHeight = detached ? size.launcherHeight : size.panelHeight
         if detached {
+            let cardTop = size.headerHeight + metrics.spacing.md
             width = size.launcherWidth
             fieldTop = 0
-            cardTop = collapsed ? nil : size.headerHeight + metrics.spacing.md
-            height = collapsed ? size.headerHeight : expandedHeight
+            expandedHeight = cardTop + LauncherBody.tallestCard(metrics)
+            self.cardTop = collapsed ? nil : cardTop
+            height = collapsed ? size.headerHeight : cardTop + launcher.cardHeight(metrics)
         } else {
             width = size.panelWidth
             fieldTop = size.headerPadding
             cardTop = nil
+            expandedHeight = size.panelHeight
             height = collapsed ? size.compactHeight : expandedHeight
         }
     }

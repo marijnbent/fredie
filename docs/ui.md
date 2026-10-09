@@ -10,8 +10,11 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 ## The palette
 
-The launcher uses a 560 × 380-point surface, with four columns of app tiles when empty and a
-combined app list when searching. Other modes retain the 750 × 475-point panel. Both sizes scale
+The launcher is 560 points wide and its card is as tall as its results: four columns of app tiles
+when empty, up to three rows, and a combined app list when searching, up to seven rows, after which
+it scrolls. `LauncherBody` sizes the card from the resolved result count, so nothing is measured;
+the top edge stays put as it grows. The launcher has no bottom bar: its app menu is the header's `…`
+button, and both it and ⌘K hang below the field. Other modes retain the 750 × 475-point panel. Both sizes scale
 with Interface Size. `PaletteSurface` owns the window and clipping geometry, preserving the
 center and top edge when switching modes. The launcher field is 44 points tall with an 8-point
 gap above the results card. Ask AI and ⌘Return use the same field; Ctrl-⌘Return reveals an app.
@@ -20,7 +23,7 @@ Fredie is an **app launcher**: a borderless floating panel whose surface is just
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
 white at a fixed alpha ramp. The surface comes in two separate pieces: the search field is its own
 **capsule**, and the results sit on a **card** below it, `Spacing.md` apart; collapsed, only the
-capsule shows. The bottom bar **floats over the list as a fully transparent overlay**; there are no
+capsule shows. Outside the launcher, the bottom bar **floats over the list as a fully transparent overlay**; there are no
 hard-edged bars, strips, or dividers inside the card. Rows don't clip under the bar, they
 **dissolve**: a scroll-driven gradient mask ghosts them as they pass beneath. Floating controls (the
 action pill, the menu circle, popover menus) are **Liquid Glass**.
@@ -157,7 +160,8 @@ panel, the shortcut-recorder callout and the Notes switcher, and `menuRow` is de
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
-`rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
+`launcherWidth 560` · `launcherTileHeight 84` · `launcherRowHeight 40` · `launcherVisibleTileRows 3` ·
+`launcherVisibleRows 7` · `rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
 `detailListWidth 290` ·
 `menuWidth 276` · `fileSearchFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
@@ -249,7 +253,7 @@ Source: `Palette/PalettePanel.swift`, `Palette/RootPaletteView.swift`.
 - **The results layer fills the card.** The header and bottom bar attach via `.safeAreaInset(edge: .top/.bottom)`; the top inset's spacing is the `Spacing.md` field-to-card gap, collapsed to zero in compact. The list underlaps the bottom bar and dissolves at the edges; scrolled rows end at the card's top edge.
 - **Header** (`headerHeight 44`): the field capsule — a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background of its own). Sub-screens (Quicklinks, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
 - **Compact keyboard entry:** pressing `↓` in the collapsed launcher expands the results and selects the first row without replacing or defocusing the shared search field.
-- **Bottom bar** (`bottomBarHeight 52`): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
+- **Bottom bar** (`bottomBarHeight 52`, every mode but the launcher): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
 - **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. Set `isSelected` and it fills with `selection` instead, which beats hover; the Notes formatting bar lights its buttons this way. Set `isCompact` for `sm` padding instead of `md`: around a 16-point glyph frame that makes a 28-point square. It carries the footer's two buttons and the file search header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.
 
 ---
@@ -404,8 +408,8 @@ Source: `Launcher/UI/LauncherList.swift`, `FileSearch/UI/FileSearchList.swift`,
 
 All lists share one row grammar so launcher and file search look identical:
 
-- `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`. A launcher row ends in its dimmed `⌘n` slot instead of a kind label, and ↩ in the accent colour when selected.
-- **The empty launcher is a grid of `AppTile`s**: a 40pt `appTileIcon` over a one-line `rowTrailing` name, `appTile 14` corners, the same `fill` precedence as a row. `Size.appTile` is the column width the panel is divided by.
+- `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`. A launcher row is a fixed `launcherRowHeight` tall and ends in its dimmed `⌘n` slot instead of a kind label, and ↩ in the accent colour when selected.
+- **The empty launcher is a grid of `AppTile`s**: a 40pt `appTileIcon` on an `appTile 14`-cornered plate over a one-line `rowTrailing` name. Only the plate takes the row `fill` precedence, and it carries the running dot and, while ⌘ is held, the slot keycaps; the name brightens to primary when selected. `Size.appTile` is the column width the panel is divided by.
 - **The palette result slot is always `Theme.Size.resultRowIcon`, whatever fills it.** A glyph smaller than an app icon — the uninstall list's 16pt checkbox — is centred _inside_ that 26pt slot rather than sizing the slot to itself. Every list then starts its title at the same x, so switching palette modes doesn't jog the column sideways. The slot doubles as the hit target. Settings and compact favorites keep the existing 24pt `rowIcon`.
 - Background is a `RoundedRectangle(row, .continuous)` filled by `fill`: **selection → hover → clear**, in that precedence. This `fill` computed property is copy-identical across `AppRow` and `UninstallRow` — keep them in sync. The launcher's lead cards don't restate it: `.leadCard(selected:)` (`Features/Launcher/UI/LeadCard.swift`) owns their fill and hover, so a card can't answer a selection differently from its siblings.
 - **Hover state lives on the row**, not the list, so a mouse sweep repaints only the rows entering/leaving (a list-level hover rebuilds every row per move — don't do that).
