@@ -13,7 +13,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case appearance = "appearance.theme"
     case interfaceSize = "appearance.interfaceSize"
     case compactMode = "appearance.compactMode"
-    case showFavoritesInCompactMode = "appearance.showFavoritesInCompactMode"
+    case launcherTileStyle = "appearance.tileStyle"
     case openOnCursorScreen = "appearance.followCursorAcrossDisplays"
     case paletteDraggable = "appearance.dragToReposition"
     case hyperKey = "hyperKey.key"

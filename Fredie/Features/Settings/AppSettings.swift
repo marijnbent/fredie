@@ -199,17 +199,13 @@ final class AppSettings {
         }
     }
 
-    /// Summon the launcher as a slim search bar that expands into the full list on typing.
+    /// Summon the launcher as just its search bar, revealing results on typing or ↓.
     var compactMode: Bool {
         didSet { defaults.set(compactMode, forKey: Key.compactMode.rawValue) }
     }
 
-    /// Pin favorite app icons to the right of the compact search bar (⌘1–⌘5 to launch).
-    var showFavoritesInCompactMode: Bool {
-        didSet {
-            defaults.set(
-                showFavoritesInCompactMode, forKey: Key.showFavoritesInCompactMode.rawValue)
-        }
+    var launcherTileStyle: LauncherTileStyle {
+        didSet { defaults.set(launcherTileStyle.rawValue, forKey: Key.launcherTileStyle.rawValue) }
     }
 
     /// Summon the palette on the display under the pointer instead of the one holding the menu bar.
@@ -578,10 +574,9 @@ final class AppSettings {
             defaults.string(forKey: Key.interfaceSize.rawValue).flatMap(InterfaceSize.init)
             ?? .standard
         compactMode = defaults.bool(forKey: Key.compactMode.rawValue)
-        // Defaults to true, so absence must be distinguished from a stored `false`.
-        showFavoritesInCompactMode =
-            defaults.object(forKey: Key.showFavoritesInCompactMode.rawValue) == nil
-            || defaults.bool(forKey: Key.showFavoritesInCompactMode.rawValue)
+        launcherTileStyle =
+            defaults.string(forKey: Key.launcherTileStyle.rawValue).flatMap(LauncherTileStyle.init)
+            ?? .iconHighlight
         // Unset seeds the defaults; a stored empty array is a deliberately cleared list.
         searchScopes =
             defaults.stringArray(forKey: Key.searchScopes.rawValue) ?? SearchScopes.defaults

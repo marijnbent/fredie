@@ -142,11 +142,11 @@ enum SettingsSearchCatalog {
             .generalAppearance, "Interface size",
             keywords: ["text size", "font size", "scale", "zoom", "bigger", "larger", "legible"]),
         .init(
-            .generalAppearance, "Window mode",
-            keywords: ["compact", "expanded", "slim", "search bar", "small"]),
+            .generalAppearance, "Layout",
+            keywords: ["compact", "expanded", "window mode", "slim", "search bar", "small", "grid"]),
         .init(
-            .generalAppearance, "Show favorites in compact mode",
-            keywords: ["pinned", "apps", "compact"]),
+            .generalAppearance, "Tile style",
+            keywords: ["icon highlight", "full tile", "selection", "hover", "grid", "apps"]),
         .init(
             .generalAppearance, "Follow the cursor across displays",
             keywords: ["monitor", "screen", "pointer", "multi display"]),

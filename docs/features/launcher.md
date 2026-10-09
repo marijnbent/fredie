@@ -424,7 +424,7 @@ only while the score is above 1 and the entry was opened in the last 17 days, wh
 stale habit stop overriding the alignment.
 
 Every pick through `LauncherCoordinator.launch` is a visit, with the query as it was typed: a list
-click, a result, a favorite by ⌘-digit or from the compact bar, the ⌘K Open row. A global shortcut
+click, a result, a favorite by ⌘-digit, the ⌘K Open row. A global shortcut
 is not a visit, and neither is a fallback or a query-driven row. A category listing records the visit
 and not the word. `rank` reads the store once per pass through `snapshot()` — one clock read, not one
 per candidate — and the memos key on the ranking, alias, visibility, favorites and shortcut revisions
@@ -437,13 +437,22 @@ per-item reset in its Actions menu, and users can clear all learned ranking in G
 
 A grid of the pinned apps, in `FavoritesStore.keys` order. With no visible app pinned, the grid shows
 the most-used apps instead — `LauncherOrder.byUsage`, capped at three rows — and those tiles are not
-favorites, so `Results.favoriteCount` is zero and nothing about them reorders. A typed query swaps the
-grid for one ranked list of apps; there are no section headers, cards or fallback rows in either.
+favorites, so `Results.favoriteCount` is zero and nothing about them reorders. A typed query keeps the
+grid and fills it with the ranked apps; there are no section headers, cards or fallback rows in either.
+Only a pinned custom command awaiting its arguments draws as a row, which carries the arguments
+accessory. `LauncherScreen.showsFavorites` holds only while the trimmed query is empty, and favorite
+reorder, the selection after a toggle and the pinned set all read it, so a typed grid never acts as
+the favorites.
+
+**Settings → Appearance → Tile style** picks what the hover and selection fill paint
+(`LauncherTileStyle`): the 40pt icon's plate (Icon highlight, the default) or the whole 84pt tile
+(Full tile). It applies in both layouts and never changes a tile's size.
 
 The column count is `(panelWidth − 2 × spacing.md) / Size.appTile`, computed by `LauncherScreen`
 from `InterfaceMetrics`, so the drawn grid and `LauncherAppGrid`'s arrow moves read the same number.
 ←/→ step one tile and stop at the ends; ↑/↓ step one row, and ↓ into a short last row lands on its
-last tile. A typed list returns nil from `move`, so ←/→ stay with the caret.
+last tile. That holds while typing too, so ←/→ move between tiles rather than the caret, as in the
+emoji grid. With no match the card keeps one tile row's height and says "No apps found".
 
 The launcher no longer has a separate Suggestions section or its setting. When nothing is pinned,
 the app grid uses launch frequency and recency to select apps.
@@ -640,7 +649,7 @@ internals live in [navigation.md](navigation.md) and [menu-search.md](menu-searc
 The ranking harness covers the frecency curve, search-term retention and its 17-day gate, pruning,
 persistence and both reset paths; see the command in `development.md`.
 
-Launcher rows and compact favorites ask for the point size they actually draw at, scaled by the
+Launcher rows and tiles ask for the point size they actually draw at, scaled by the
 view's `displayScale`: 24/26/29pt becomes 48/52/58px at 2×. `IconCache` still rasterizes through its
 96px canvas first — AppKit picks the representation and the drop shadow from that size — and then
 keeps only the row-sized bitmap, in an 8 MB cost-capped row cache separate from the 32 MB one.
@@ -663,9 +672,8 @@ whose icon moved.
 `FavoritesStore.keys` is the order — the array *is* the ranking, and it only shows while the query is
 empty, where `AppIndex.appResults` lays it out as the grid and counts it in
 `Results.favoriteCount`. Only applications are pinned there; a favorite of another kind stays in
-`keys` and simply isn't drawn. `LauncherScreen` reads that count once in `init`, and the grid, the
-reorder rows and the compact strip all read that one number, so the visible pins and what a move
-acts on can't disagree.
+`keys` and simply isn't drawn. `LauncherScreen` reads that count once in `init`, and the grid and the
+reorder rows both read that one number, so the visible pins and what a move acts on can't disagree.
 
 The ⌘K menu carries **Add / Remove from Favorites** (⇧⌘F) plus **Move Favorite Up / Down** (⌥⌘↑ /
 ⌥⌘↓). A move row is only built in a direction that exists, so the first favorite has no Up row and
@@ -695,15 +703,13 @@ so the same positions work on QWERTY and AZERTY. The same slots address pinned C
 that screen; the eleventh favorite is still listed and reorderable, and simply has no slot.
 
 **A slot is a position in what root search shows**: the grid's tiles while the field is empty (pins,
-or the most-used apps when nothing is pinned), the ranked rows once a query is typed. `launchSlot`
+or the most-used apps when nothing is pinned), the ranked tiles once a query is typed. `launchSlot`
 reads `LauncherScreen.rows`, the same array the view draws, so a digit can't name a tile it isn't on.
-Both palette sizes agree because `paletteIsCollapsed` already requires an empty query: **compact
-implies empty implies the grid**. The compact strip draws the first five pins
-(`LauncherScreen.pinnedFavorites`); ⌘6–⌘0 still launch tiles it has no room for, and the "…" is a
-button after them rather than a slot.
+The collapsed compact bar shows no tiles, yet ⌘-digit still launches the slots the expanded grid
+would show, because `paletteIsCollapsed` requires an empty query and the rows are the same.
 
-A typed row shows its chord on the trailing edge, dimmed, and the selected row shows ↩ in its place.
-A tile shows its chord only while ⌘ is held. `PalettePanel` publishes the modifier
+A tile shows its chord only while ⌘ is held; a pinned custom command's argument row shows its chord
+on the trailing edge, dimmed, and ↩ in its place when selected. `PalettePanel` publishes the modifier
 into `PaletteState.commandHeld` from `.flagsChanged` and clears it in `resignKey` — not in `prepare`,
 which a re-show that preserves state skips entirely. The flag flips **400 ms after** the press, not
 on it: every ⌘ chord in the palette starts as a ⌘ press, so revealing on the down edge flashed the

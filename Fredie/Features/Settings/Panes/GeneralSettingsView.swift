@@ -94,12 +94,18 @@ struct GeneralSettingsView: View {
                     SettingsRowTitle(.generalAppearance, "Theme")
                 }
                 InterfaceSizeRow()
-                WindowModeRow()
-                Toggle(isOn: $settings.showFavoritesInCompactMode) {
-                    SettingsRowTitle(.generalAppearance, "Show favorites in compact mode")
-                    Text("Launch them with ⌘1–⌘5.")
+                SettingsRow(title: "Layout", anchor: .generalAppearance) {
+                    LauncherPreviewPicker(
+                        selection: $settings.compactMode, options: [false, true],
+                        title: { $0 ? "Compact" : "Expanded" },
+                        preview: { LayoutPreview(compact: $0) })
                 }
-                .settingsEnabled(settings.compactMode)
+                SettingsRow(title: "Tile style", anchor: .generalAppearance) {
+                    LauncherPreviewPicker(
+                        selection: $settings.launcherTileStyle,
+                        options: LauncherTileStyle.allCases, title: \.title,
+                        preview: { TileStylePreview(style: $0) })
+                }
                 Toggle(isOn: $settings.openOnCursorScreen) {
                     SettingsRowTitle(.generalAppearance, "Follow the cursor across displays")
                 }
@@ -219,51 +225,137 @@ struct GeneralSettingsView: View {
     }
 }
 
-private struct WindowModeRow: View {
-    @Environment(AppSettings.self) private var settings
+private struct LauncherPreviewPicker<Value: Hashable, Preview: View>: View {
+    @Binding var selection: Value
+    let options: [Value]
+    let title: (Value) -> String
+    @ViewBuilder let preview: (Value) -> Preview
 
-    private static let preview = CGSize(width: 135, height: 80)
+    private var thumbnail: CGSize { Theme.Size.launcherSettingsPreview }
 
     var body: some View {
-        SettingsRow(
-            title: "Window mode", subtitle: "Choose how the launcher opens.",
-            subtitleLineLimit: 2, alignment: .top, anchor: .generalAppearance
-        ) {
-            HStack(spacing: Theme.Spacing.md) {
-                option("Compact", image: "WindowModeCompact", compact: true)
-                option("Expanded", image: "WindowModeExpanded", compact: false)
+        HStack(spacing: Theme.Spacing.md) {
+            ForEach(options, id: \.self) { option in
+                choice(option)
             }
         }
     }
 
-    private func option(_ title: String, image: String, compact: Bool) -> some View {
-        let selected = settings.compactMode == compact
+    private func choice(_ option: Value) -> some View {
+        let selected = selection == option
+        let shape = RoundedRectangle(cornerRadius: Theme.Radius.barControl, style: .continuous)
         return Button {
-            settings.compactMode = compact
+            selection = option
         } label: {
             VStack(spacing: Theme.Spacing.xs) {
-                Image(image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: Self.preview.width, height: Self.preview.height)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: Theme.Radius.barControl, style: .continuous)
-                    )
-                    .saturation(selected ? 1 : 0)
-                Text(title)
+                preview(option)
+                    .frame(width: thumbnail.width, height: thumbnail.height)
+                    .background(shape.fill(Theme.Colors.cardFill))
+                    .clipShape(shape)
+                    .overlay {
+                        shape.strokeBorder(
+                            selected ? Color.accentColor : Theme.Colors.separator,
+                            lineWidth: selected ? Miniature.selectedRing : 1)
+                    }
+                Text(title(option))
                     .font(.caption)
-                    .fontWeight(selected ? .semibold : .regular)
                     .foregroundStyle(selected ? Color.primary : Color.secondary)
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(WindowModeButtonStyle())
-        .accessibilityLabel(title)
+        .buttonStyle(PreviewChoiceButtonStyle())
+        .accessibilityLabel(title(option))
         .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 }
 
-private struct WindowModeButtonStyle: ButtonStyle {
+private enum Miniature {
+    static let selectedRing: CGFloat = 2
+    static let inset: CGFloat = 6
+    static let gap: CGFloat = 3
+    static let pillHeight: CGFloat = 7
+    static let cardRadius: CGFloat = 3
+    static let cardIcon: CGFloat = 6
+    static let cardIconRadius: CGFloat = 1.5
+    static let cardIconSpacing: CGFloat = 4
+    static let cardGrid = (rows: 2, columns: 4)
+    static let icon: CGFloat = 10
+    static let iconRadius: CGFloat = 2.5
+    static let plate: CGFloat = 16
+    static let tile = CGSize(width: 19, height: 30)
+    static let tileRadius: CGFloat = 4
+    static let tileSpacing: CGFloat = 2
+    static let label = CGSize(width: 11, height: 2.5)
+}
+
+private struct LayoutPreview: View {
+    let compact: Bool
+
+    var body: some View {
+        VStack(spacing: Miniature.gap) {
+            Capsule().fill(Theme.Colors.launcherPreviewMark).frame(height: Miniature.pillHeight)
+            if !compact {
+                RoundedRectangle(cornerRadius: Miniature.cardRadius, style: .continuous)
+                    .fill(Theme.Colors.launcherPreviewSurface)
+                    .overlay { icons }
+            }
+        }
+        .padding(Miniature.inset)
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private var icons: some View {
+        Grid(horizontalSpacing: Miniature.cardIconSpacing, verticalSpacing: Miniature.cardIconSpacing) {
+            ForEach(0..<Miniature.cardGrid.rows, id: \.self) { _ in
+                GridRow {
+                    ForEach(0..<Miniature.cardGrid.columns, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: Miniature.cardIconRadius, style: .continuous)
+                            .fill(Theme.Colors.launcherPreviewMark)
+                            .frame(width: Miniature.cardIcon, height: Miniature.cardIcon)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct TileStylePreview: View {
+    let style: LauncherTileStyle
+
+    private var highlight: some View {
+        RoundedRectangle(cornerRadius: Miniature.tileRadius, style: .continuous)
+            .fill(Theme.Colors.launcherPreviewSurface)
+    }
+
+    var body: some View {
+        HStack(spacing: Miniature.tileSpacing) {
+            tile(selected: false)
+            tile(selected: true)
+            tile(selected: false)
+        }
+    }
+
+    private func tile(selected: Bool) -> some View {
+        VStack(spacing: Miniature.gap) {
+            RoundedRectangle(cornerRadius: Miniature.iconRadius, style: .continuous)
+                .fill(Theme.Colors.launcherPreviewMark)
+                .frame(width: Miniature.icon, height: Miniature.icon)
+                .frame(width: Miniature.plate, height: Miniature.plate)
+                .background {
+                    if selected, style == .iconHighlight { highlight }
+                }
+            Capsule()
+                .fill(Theme.Colors.launcherPreviewLabel)
+                .frame(width: Miniature.label.width, height: Miniature.label.height)
+        }
+        .frame(width: Miniature.tile.width, height: Miniature.tile.height)
+        .background {
+            if selected, style == .fullTile { highlight }
+        }
+    }
+}
+
+private struct PreviewChoiceButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         PressedLabel(configuration: configuration)
     }

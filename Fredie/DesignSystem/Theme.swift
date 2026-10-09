@@ -235,6 +235,7 @@ enum Theme {
         static let emojiSkinToneGlyph: CGFloat = 13
         /// One density preview; five fit across the Emoji settings detail pane.
         static let emojiSettingsGridPreview: CGFloat = 72
+        static let launcherSettingsPreview = CGSize(width: 64, height: 40)
         /// The layout editor. Height is stated so selecting an entry cannot resize the panel.
         static let layoutEditorSheet = CGSize(width: 900, height: 660)
         /// The inspector column; the preview takes the rest, keeping the split two-to-one.
@@ -492,6 +493,9 @@ enum Theme {
         static let roomCardShadow = adaptive(
             dark: .srgbInk(0, alpha: 0.25), light: .srgbInk(0, alpha: 0.25))
         static let roomCardDot = ramp(dark: 0.25, light: 0.25)
+        static let launcherPreviewSurface = ramp(dark: 0.10, light: 0.08)
+        static let launcherPreviewLabel = ramp(dark: 0.20, light: 0.18)
+        static let launcherPreviewMark = ramp(dark: 0.34, light: 0.30)
         /// The pill behind the header of the section a Settings search jumped to.
         static let searchFlash = Color.accentColor.opacity(0.35)
         /// The two squares of a checkerboard, behind a colour with alpha to show.

@@ -10,9 +10,9 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 ## The palette
 
-The launcher is 560 points wide and its card is as tall as its results: four columns of app tiles
-when empty, up to three rows, and a combined app list when searching, up to seven rows, after which
-it scrolls. `LauncherBody` sizes the card from the resolved result count, so nothing is measured;
+The launcher is 560 points wide and its card is as tall as its results: four columns of app tiles,
+empty or searching, up to three rows, after which it scrolls; only a custom command awaiting its
+arguments draws as a list row. `LauncherBody` sizes the card from the resolved result count, so nothing is measured;
 the top edge stays put as it grows. The launcher has no bottom bar: its app menu is the header's `…`
 button, and both it and ⌘K hang below the field. Other modes retain the 750 × 475-point panel. Both sizes scale
 with Interface Size. `PaletteSurface` owns the window and clipping geometry, preserving the
@@ -409,8 +409,8 @@ Source: `Launcher/UI/LauncherList.swift`, `FileSearch/UI/FileSearchList.swift`,
 All lists share one row grammar so launcher and file search look identical:
 
 - `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`. A launcher row is a fixed `launcherRowHeight` tall and ends in its dimmed `⌘n` slot instead of a kind label, and ↩ in the accent colour when selected.
-- **The empty launcher is a grid of `AppTile`s**: a 40pt `appTileIcon` on an `appTile 14`-cornered plate over a one-line `rowTrailing` name. Only the plate takes the row `fill` precedence, and it carries the running dot and, while ⌘ is held, the slot keycaps; the name brightens to primary when selected. `Size.appTile` is the column width the panel is divided by.
-- **The palette result slot is always `Theme.Size.resultRowIcon`, whatever fills it.** A glyph smaller than an app icon — the uninstall list's 16pt checkbox — is centred _inside_ that 26pt slot rather than sizing the slot to itself. Every list then starts its title at the same x, so switching palette modes doesn't jog the column sideways. The slot doubles as the hit target. Settings and compact favorites keep the existing 24pt `rowIcon`.
+- **Launcher results are a grid of `AppTile`s**, empty or typed: a 40pt `appTileIcon` on an `appTile 14`-cornered plate over a one-line `rowTrailing` name. The row `fill` precedence lands on the plate (Icon highlight) or the whole `launcherTileHeight` tile (Full tile), per `LauncherTileStyle`; the plate carries the running dot and, while ⌘ is held, the slot keycaps; the name brightens to primary when selected. `Size.appTile` is the column width the panel is divided by.
+- **The palette result slot is always `Theme.Size.resultRowIcon`, whatever fills it.** A glyph smaller than an app icon — the uninstall list's 16pt checkbox — is centred _inside_ that 26pt slot rather than sizing the slot to itself. Every list then starts its title at the same x, so switching palette modes doesn't jog the column sideways. The slot doubles as the hit target. Settings keeps the existing 24pt `rowIcon`.
 - Background is a `RoundedRectangle(row, .continuous)` filled by `fill`: **selection → hover → clear**, in that precedence. This `fill` computed property is copy-identical across `AppRow` and `UninstallRow` — keep them in sync. The launcher's lead cards don't restate it: `.leadCard(selected:)` (`Features/Launcher/UI/LeadCard.swift`) owns their fill and hover, so a card can't answer a selection differently from its siblings.
 - **Hover state lives on the row**, not the list, so a mouse sweep repaints only the rows entering/leaving (a list-level hover rebuilds every row per move — don't do that).
 - **Hover is armed by pointer movement, not by the pointer's position** (`armedHover`, `Palette/HoverArming.swift`). A palette shown under a resting pointer lights nothing, and keys or a scroll drop the highlight until the pointer moves clear of the slop radius around where it stood — a row must never light up because it *slid under* a still pointer. Two measured facts the rule rests on: SwiftUI fires hover phases for rows arriving under a stationary pointer, but **not** for a lit row that merely shifts, so `PaletteState.hoverDisarmToken` clears what is already lit; and a wheel gesture ends with a mouse-moved event carrying no displacement, so *event type is not evidence the pointer moved*. `Tests/hover-arming-test.swift` pins both halves.

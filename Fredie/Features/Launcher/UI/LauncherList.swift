@@ -6,6 +6,7 @@ struct LauncherList: View {
     let results: [AppEntry]
     let selectedRowID: String?
     let layout: Layout
+    let tileStyle: LauncherTileStyle
     /// Changes only when the list should scroll, so mouse selection never yanks it.
     let scroll: ScrollIntent
     let onActivate: (AppEntry) -> Void
@@ -56,7 +57,8 @@ struct LauncherList: View {
                 ForEach(Array(results.enumerated()), id: \.element.id) { index, app in
                     AppTile(
                         app: app, selected: app.id == selectedRowID,
-                        running: runningApps.isRunning(app), slot: FavoriteSlots.digit(at: index)
+                        running: runningApps.isRunning(app), slot: FavoriteSlots.digit(at: index),
+                        style: tileStyle
                     )
                     .contentShape(RoundedRectangle(cornerRadius: metrics.radius.appTile, style: .continuous))
                     .onRowTap(drag: drag(for: app)) { onActivate(app) }
@@ -107,6 +109,7 @@ private struct AppTile: View {
     let selected: Bool
     let running: Bool
     let slot: Character?
+    let style: LauncherTileStyle
     @Environment(PaletteState.self) private var palette
     @State private var hovered = false
 
@@ -118,15 +121,16 @@ private struct AppTile: View {
 
     private var plate: CGFloat { metrics.size.appTileIcon + metrics.spacing.md * 2 }
 
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: metrics.radius.appTile, style: .continuous)
+    }
+
     var body: some View {
         VStack(spacing: metrics.spacing.xs) {
             AppIconView(app: app, pointSize: metrics.size.appTileIcon)
                 .frame(width: metrics.size.appTileIcon, height: metrics.size.appTileIcon)
                 .frame(width: plate, height: plate)
-                .background(
-                    RoundedRectangle(cornerRadius: metrics.radius.appTile, style: .continuous)
-                        .fill(fill)
-                )
+                .background(shape.fill(style == .iconHighlight ? fill : .clear))
                 .overlay(alignment: .bottom) {
                     RunningDot(running: running).padding(.bottom, metrics.spacing.xxs)
                 }
@@ -151,6 +155,7 @@ private struct AppTile: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: metrics.size.launcherTileHeight)
+        .background(shape.fill(style == .fullTile ? fill : .clear))
         .armedHover($hovered)
     }
 }

@@ -16,6 +16,7 @@ struct LauncherScreen: PaletteScreen {
     let rows: [AppEntry]
     private let pinnedCount: Int
     private let showsGrid: Bool
+    private let showsFavorites: Bool
     private let columns: Int
 
     init(
@@ -38,11 +39,13 @@ struct LauncherScreen: PaletteScreen {
         rows = resolved.results.entries
         pinnedCount = resolved.results.favoriteCount
         showsGrid = resolved.showsGrid
+        showsFavorites = resolved.showsFavorites
     }
 
     struct Resolved {
         let results: AppIndex.Results
         let showsGrid: Bool
+        let showsFavorites: Bool
         let columns: Int
 
         var body: LauncherBody {
@@ -66,7 +69,8 @@ struct LauncherScreen: PaletteScreen {
                 query: vm.query, visibility: visibility, favorites: favorites,
                 fallbackLimit: columns * 2)
         return Resolved(
-            results: results, showsGrid: pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty,
+            results: results, showsGrid: pinned == nil,
+            showsFavorites: pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty,
             columns: columns)
     }
 
@@ -196,7 +200,7 @@ struct LauncherScreen: PaletteScreen {
         guard let app = entry(at: selection), !CommandCatalog.isQueryDriven(app) else { return false }
         let removed = favoriteIndex(of: app)
         favorites.toggle(app)
-        guard showsGrid else { return true }
+        guard showsFavorites else { return true }
         selectFavorite(at: removed.map { $0 - 1 } ?? 0)
         return true
     }
@@ -207,7 +211,9 @@ struct LauncherScreen: PaletteScreen {
         return true
     }
 
-    private var pinnedFavorites: ArraySlice<AppEntry> { showsGrid ? rows.prefix(pinnedCount) : [] }
+    private var pinnedFavorites: ArraySlice<AppEntry> {
+        showsFavorites ? rows.prefix(pinnedCount) : []
+    }
 
     func moveFavorite(_ delta: Int, at selection: Int) -> Bool {
         guard let app = entry(at: selection), let index = favoriteIndex(of: app) else { return false }
@@ -274,18 +280,13 @@ struct LauncherScreen: PaletteScreen {
         return core.runningApps.isRunning(app)
     }
 
-    /// The compact bar's icons: the first five favorites. The "…" that follows them is not one.
-    var compactFavorites: [AppEntry] { Array(pinnedFavorites.prefix(5)) }
-
-    /// Whether the compact bar's "…" has anything to reveal.
-    var hasUnshownFavorites: Bool { pinnedFavorites.count > compactFavorites.count }
-
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
         AnyView(
             LauncherList(
                 results: rows,
                 selectedRowID: entry(at: selection)?.id,
                 layout: showsGrid ? .grid(columns: columns) : .list,
+                tileStyle: core.settings.launcherTileStyle,
                 scroll: scroll,
                 onActivate: launch,
                 onActions: { app in

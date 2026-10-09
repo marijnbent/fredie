@@ -17,7 +17,7 @@ enum SettingsBackupCoverage {
         "calcNumberStyle": .calcNumberStyle,
         "interfaceSize": .interfaceSize,
         "compactMode": .compactMode,
-        "showFavoritesInCompactMode": .showFavoritesInCompactMode,
+        "launcherTileStyle": .launcherTileStyle,
         "searchScopes": .searchScopes,
         "rootSearchSensitivity": .rootSearchSensitivity,
         "openOnCursorScreen": .openOnCursorScreen,
