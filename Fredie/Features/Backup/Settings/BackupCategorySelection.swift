@@ -10,8 +10,8 @@ struct BackupCategorySelection: View {
         repeating: GridItem(.flexible(), spacing: Theme.Spacing.md, alignment: .leading), count: 2)
 
     private var offered: [BackupCategory] {
-        guard let available else { return BackupCategory.allCases }
-        return BackupCategory.allCases.filter { available[$0] != nil }
+        guard let available else { return BackupCategory.available }
+        return BackupCategory.available.filter { available[$0] != nil }
     }
 
     private func included(_ category: BackupCategory) -> Binding<Bool> {

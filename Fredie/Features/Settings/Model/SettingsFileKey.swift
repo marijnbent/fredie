@@ -93,6 +93,10 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case calendarCommands = "calendar.commands"
     case extensionsShowInLauncher = "extensions.showInLauncher"
 
+    static let available = allCases.filter {
+        ["general", "appearance", "hyperKey", "search", "applications", "ai"].contains($0.section)
+    }
+
     /// The top-level object the key sits in.
     var section: String { String(rawValue.prefix { $0 != "." }) }
 

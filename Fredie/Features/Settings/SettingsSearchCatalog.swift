@@ -107,10 +107,7 @@ enum SettingsSearchCatalog {
     // Pane order, then section order within a pane, so this reads as a table of contents.
 
     static let entries: [SettingsSearchEntry] =
-        general + applications + systemSettings + systemActions + commands + quicklinks
-        + appleShortcuts + fallbacks + fileSearch + windowManagement
-        + navigation + notes + calendar + emoji + ai + quickActions + extensions + permissions
-        + backup + about
+        general + applications + ai + permissions + backup + about
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
@@ -163,9 +160,6 @@ enum SettingsSearchCatalog {
             .generalHyperKey, "Include Shift (⇧)",
             keywords: ["modifier", "chord"]),
         .init(
-            .generalCalculator, "Number format",
-            keywords: ["decimal", "comma", "separator", "locale", "region", "thousands"]),
-        .init(
             .generalSearch, "Search sensitivity",
             keywords: ["fuzzy", "strict", "loose", "matching", "typo", "root search"]),
         .init(
@@ -184,86 +178,6 @@ enum SettingsSearchCatalog {
         .init(
             group: .applicationsApplications, "Aliases and shortcuts",
             keywords: ["alias", "hotkey", "per app", "hide"])
-    ]
-
-    private static let systemSettings: [SettingsSearchEntry] = [
-        .init(
-            pane: .systemSettings,
-            keywords: ["panes", "preferences", "macos"]),
-        .init(
-            .systemSettingsSystemSettings, "Enable System Settings",
-            keywords: ["hide panes", "visibility"])
-    ]
-
-    private static let systemActions: [SettingsSearchEntry] = [
-        .init(
-            pane: .systemActions,
-            keywords: ["sleep", "lock", "restart", "shut down", "empty trash"]),
-        .init(
-            .systemActionsSystemActions, "Enable System Actions",
-            keywords: ["hide", "visibility"])
-    ]
-
-    private static let commands: [SettingsSearchEntry] = [
-        .init(
-            pane: .commands,
-            keywords: ["custom", "script", "shell", "terminal"]),
-        .init(
-            .commandsCommands, "Enable Commands",
-            keywords: ["hide", "visibility"]),
-        .init(
-            .commandsCustomCommands, "Enable custom commands",
-            keywords: ["script", "shell"]),
-        .init(
-            .commandsCustomCommands, "Add Custom Command",
-            keywords: ["new", "script", "shell", "shortcut"]),
-        .init(
-            .commandsCustomCommands, "Import Raycast Scripts",
-            keywords: ["raycast", "script", "folder", "directory", "migrate"])
-    ]
-
-    private static let quicklinks: [SettingsSearchEntry] = [
-        .init(pane: .quicklinks, keywords: ["url", "bookmark", "link"]),
-        .init(
-            .quicklinksQuicklinks, "Enable quicklinks",
-            keywords: ["url", "bookmark"]),
-        .init(
-            .quicklinksQuicklinks, "Add Quicklink",
-            keywords: ["new", "url", "bookmark", "alias"]),
-        .init(
-            group: .quicklinksCommands, "Quicklink commands",
-            keywords: ["shortcut", "launcher", "search", "import", "export"]),
-        .init(
-            .quicklinksBehaviour, "Open in a new window",
-            keywords: ["browser", "tab"]),
-        .init(
-            .quicklinksBehaviour, "When there's no selected text",
-            keywords: ["selection", "fallback", "placeholder"]),
-        .init(
-            .quicklinksBehaviour, "Confirm before deleting",
-            keywords: ["ask", "delete", "prompt"]),
-        .init(
-            .quicklinksImportExport, "Import quicklinks",
-            keywords: ["json", "restore"]),
-        .init(
-            .quicklinksImportExport, "Export quicklinks",
-            keywords: ["json", "backup"])
-    ]
-
-    private static let appleShortcuts: [SettingsSearchEntry] = [
-        .init(pane: .appleShortcuts, keywords: ["shortcuts app", "automation", "workflow"]),
-        .init(
-            .appleShortcutsAppleShortcuts, "Enable Apple Shortcuts",
-            keywords: ["shortcuts app", "automation", "workflow"]),
-        .init(
-            group: .appleShortcutsShortcuts, "Aliases and shortcuts",
-            keywords: ["alias", "hotkey", "hide"])
-    ]
-
-    private static let fallbacks: [SettingsSearchEntry] = [
-        .init(
-            pane: .fallbacks,
-            keywords: ["no results", "empty", "search web", "order"])
     ]
 
     private static let ai: [SettingsSearchEntry] = [
@@ -301,243 +215,7 @@ enum SettingsSearchCatalog {
             keywords: ["tools", "model context protocol", "stdio"]),
         .init(
             group: .aiCommands, "AI commands",
-            keywords: ["shortcut", "launcher", "chat"])
-    ]
-
-    private static let quickActions: [SettingsSearchEntry] = [
-        .init(
-            pane: .quickActions,
-            keywords: ["selected text", "rewrite", "translate", "summarize"]),
-        .init(
-            .quickActionsQuickActions, "Enable Quick Actions",
-            keywords: ["selected text", "accessibility"]),
-        .init(
-            group: .quickActionsActions, "Actions",
-            keywords: ["shortcut", "replace", "preview", "customize"]),
-        .init(
-            .quickActionsActions, "Add Quick Action",
-            keywords: ["new", "custom", "prompt", "instructions", "alias"]),
-        .init(
-            .quickActionsModel, "Model",
-            keywords: ["llm", "ai", "default"]),
-        .init(
-            .quickActionsTranslate, "Translate to",
-            keywords: ["language", "locale"])
-    ]
-
-    private static let fileSearch: [SettingsSearchEntry] = [
-        .init(
-            pane: .fileSearch,
-            keywords: ["spotlight", "files", "folders", "find"]),
-        .init(
-            .fileSearchFileSearch, "Enable File Search",
-            keywords: ["spotlight", "index"]),
-        .init(
-            group: .fileSearchCommands, "File search commands",
-            keywords: ["shortcut", "launcher"]),
-        .init(
-            group: .fileSearchSearchScopes, "Search Scopes",
-            keywords: ["folders", "locations", "home", "add folder"]),
-        .init(
-            group: .fileSearchIgnorePatterns, "Ignore Patterns",
-            keywords: ["exclude", "glob", "node_modules", "skip"])
-    ]
-
-    private static let notes: [SettingsSearchEntry] = [
-        .init(pane: .notes, keywords: ["markdown", "scratchpad", "floating"]),
-        .init(
-            .notesNotes, "Enable Notes",
-            keywords: ["markdown", "scratchpad"]),
-        .init(
-            .notesOptions, "Render Markdown",
-            keywords: ["markdown", "formatting", "preview", "raw", "source"]),
-        .init(
-            .notesOptions, "Show Formatting Bar",
-            keywords: ["toolbar", "format bar", "buttons", "bold", "heading", "markdown"]),
-        .init(
-            .notesOptions, "Notes Folder",
-            keywords: ["location", "path", "dotfiles", "files", "markdown"]),
-        .init(
-            group: .notesCommands, "Notes commands",
-            keywords: ["shortcut", "new note", "search notes"])
-    ]
-
-    private static let navigation: [SettingsSearchEntry] = [
-        .init(
-            pane: .navigation,
-            keywords: ["menu bar", "search", "focus"]),
-        .init(
-            .navigationNavigation, "Enable navigation",
-            keywords: ["menu bar", "accessibility"]),
-        .init(
-            group: .navigationMenuSearch, "Menu search commands",
-            keywords: ["shortcut", "hotkey", "alias", "launcher"]),
-        .init(
-            .navigationMenuSearch, "Show Apple menu items",
-            keywords: ["apple menu", "about this mac", "recent items", "sleep", "logo"]),
-        .init(
-            .navigationMenuSearch, "Disabled Applications",
-            keywords: ["exclude", "password manager", "ignore", "privacy", "menu bar"])
-    ]
-
-    private static let windowManagement: [SettingsSearchEntry] = [
-        .init(
-            pane: .windowManagement,
-            keywords: ["tile", "halves", "thirds", "maximize", "snap", "layouts", "arrangement"]),
-        .init(
-            .windowManagementWindowManagement, "Enable window management",
-            keywords: ["tile", "accessibility"]),
-        .init(
-            .windowManagementOptions, "Cycling",
-            keywords: ["repeat", "thirds", "halves", "displays", "monitor", "screens"]),
-        .init(
-            .windowManagementOptions, "Gap between windows",
-            keywords: ["padding", "spacing", "margin", "points"]),
-        .init(
-            .windowManagementOptions, "Shortcut preset",
-            keywords: ["rectangle", "magnet", "spectacle", "defaults", "import", "shortcuts"]),
-        .init(
-            group: .windowManagementOptions, "Window commands",
-            keywords: ["shortcut", "left half", "maximize", "center"]),
-        .init(
-            group: .windowManagementLayoutCommands, "Layout and room commands",
-            keywords: [
-                "shortcut", "launcher", "create layout", "capture", "switch room", "create room"
-            ]),
-        .init(
-            group: .windowManagementLayouts, "Window Layouts",
-            keywords: [
-                "layout", "arrangement", "workspace", "preset", "restore windows",
-                "multi display", "monitor"
-            ]),
-        .init(
-            .windowManagementLayouts, "Show layouts in launcher",
-            keywords: ["hide", "visibility", "search"]),
-        .init(
-            .windowManagementLayouts, "New Layout",
-            keywords: ["add", "create", "arrangement", "preset"]),
-        .init(
-            .windowManagementLayouts, "Create Layout from Current Windows",
-            keywords: ["capture", "snapshot", "current", "save arrangement"]),
-        .init(
-            group: .windowManagementRooms, "Rooms",
-            keywords: [
-                "room", "project", "workspace", "tile", "focus", "columns", "grid", "stack",
-                "hide other apps", "switch project"
-            ]),
-        .init(
-            .windowManagementRooms, "Show rooms in launcher",
-            keywords: ["hide", "visibility", "search"]),
-        .init(
-            .windowManagementRooms, "New Room",
-            keywords: ["add", "create", "project", "windows"]),
-        .init(
-            group: .windowManagementCustomSizes, "Custom Sizes",
-            keywords: ["custom", "size", "resize", "dimensions", "pixels", "points", "percent"]),
-        .init(
-            .windowManagementCustomSizes, "New Custom Size",
-            keywords: ["add", "create", "resize", "window size"])
-    ]
-
-    private static let emoji: [SettingsSearchEntry] = [
-        .init(
-            pane: .emoji,
-            keywords: ["picker", "character", "unicode", "smiley"]),
-        .init(
-            group: .emojiCommands, "Emoji commands",
-            keywords: ["shortcut", "hotkey", "launcher", "picker"]),
-        .init(
-            .emojiAppearance, "Emoji Skin Tone",
-            keywords: ["colour", "color", "fitzpatrick", "default"]),
-        .init(
-            .emojiAppearance, "Column Count",
-            keywords: ["columns", "density", "zoom", "six", "eight", "ten"])
-    ]
-
-    private static let calendar: [SettingsSearchEntry] = [
-        .init(
-            pane: .calendar,
-            keywords: ["meetings", "events", "zoom", "join", "schedule"]),
-        .init(
-            .calendarCalendar, "Join meetings from Fredie",
-            keywords: ["zoom", "meet", "teams", "permission"]),
-        .init(
-            .calendarCalendar, "Upcoming meetings in launcher",
-            keywords: ["count", "limit", "events"]),
-        .init(
-            .calendarJoining, "Show the join card",
-            keywords: ["hud", "timing", "early", "reminder"]),
-        .init(
-            .calendarJoining, "Auto Join Meetings",
-            keywords: ["automatic", "start"]),
-        .init(
-            .calendarJoining, "Only join known meeting services",
-            keywords: ["zoom", "meet", "teams", "links", "placeholder", "skip"]),
-        .init(
-            .calendarJoining, "Confirm before joining",
-            keywords: ["ask", "prompt"]),
-        .init(
-            .calendarJoining, "Camera Preview",
-            keywords: ["webcam", "mirror", "video", "check"]),
-        .init(
-            .calendarJoining, "Open Meeting Links In",
-            keywords: ["browser", "chrome", "safari", "firefox", "meet", "web"]),
-        .init(
-            .calendarMenuBar, "Calendar in Menu Bar",
-            keywords: ["status item", "menubar", "date"]),
-        .init(
-            .calendarMenuBar, "Days to Show",
-            keywords: ["tomorrow", "week", "next 7 days", "range", "agenda", "schedule"]),
-        .init(
-            .calendarMenuBar, "Show Upcoming Events",
-            keywords: ["menubar", "next event", "title"]),
-        .init(
-            .calendarMenuBar, "Only show events with meetings",
-            keywords: ["links", "filter", "menubar"]),
-        .init(
-            .calendarMenuBar, "Hide when there are no upcoming events",
-            keywords: ["empty", "idle", "menubar", "space"]),
-        .init(
-            .calendarMenuBar, "Hide Current Event",
-            keywords: ["started", "time left", "menubar"]),
-        .init(
-            group: .calendarCommands, "Calendar commands",
-            keywords: ["shortcut", "launcher", "join", "schedule", "create event"]),
-        .init(
-            group: .calendarCalendars, "Calendars",
-            keywords: ["accounts", "sources", "choose", "icloud", "google"])
-    ]
-
-    private static let extensions: [SettingsSearchEntry] = [
-        .init(
-            pane: .extensions,
-            keywords: ["raycast", "plugins", "store", "javascript"]),
-        .init(
-            .extensionsExtensions, "Enable extensions",
-            keywords: ["raycast", "third party", "javascript"]),
-        .init(
-            .extensionsInstall, "Search extensions",
-            keywords: ["store", "browse", "install"]),
-        .init(
-            .extensionsInstall, "Install from GitHub",
-            keywords: ["source", "build", "repository", "package manager", "pnpm", "npm", "yarn", "bun"]),
-        .init(
-            .extensionsInstall, "Import from Raycast",
-            keywords: ["migrate", "existing"]),
-        .init(
-            .extensionsInstall, "Add from folder",
-            keywords: ["local", "develop", "sideload"]),
-        .init(
-            group: .extensionsInstalled, "Installed extensions",
-            keywords: [
-                "library", "uninstall", "update", "preferences", "appearance", "alias", "shortcut"
-            ]),
-        .init(
-            group: .extensionsCompatibility, "Compatibility",
-            keywords: ["supported", "unsupported", "raycast api"]),
-        .init(
-            .extensionsStorage, "Leftover files",
-            keywords: ["clean up", "disk", "reclaim", "cache"])
+            keywords: ["shortcut", "chat"])
     ]
 
     private static let permissions: [SettingsSearchEntry] = [
@@ -547,9 +225,6 @@ enum SettingsSearchCatalog {
         .init(
             .permissionsAccessibility, "Accessibility",
             keywords: ["paste", "keystrokes", "privacy", "grant"]),
-        .init(
-            .permissionsCalendars, "Calendars",
-            keywords: ["events", "privacy", "grant", "eventkit"]),
 
     ]
 

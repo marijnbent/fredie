@@ -660,6 +660,11 @@ built the field, so `DialogPanel.focusFirstTextField` lays the content out first
 
 ## Settings
 
+Fredie exposes General, Applications, AI, Permissions, Backup and About. `SettingsTab.available`
+is the navigation boundary; old feature identifiers remain internal command metadata, but cannot
+open a pane or appear in search. AI command rows offer shortcuts only, since root search lists apps.
+Backup offers configuration and launcher learning; the Raycast picker excludes Quicklinks and emoji.
+
 Source: `DesignSystem/SettingsComponents.swift`.
 
 Settings runs in its own resizable `NSWindow` (the SwiftUI `Settings` scene is unreliable for accessory

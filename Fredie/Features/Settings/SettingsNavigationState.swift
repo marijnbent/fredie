@@ -22,6 +22,7 @@ final class SettingsNavigationState {
 
     /// A search result navigates and asks the pane to reveal one section; a sidebar row just navigates.
     func select(_ tab: SettingsTab, revealing target: SettingsTarget? = nil) {
+        guard SettingsTab.available.contains(tab) else { return }
         history.select(tab)
         // Any navigation puts the previous pulse out, so a stale light can't outlive its pane.
         flashing = nil

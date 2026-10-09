@@ -21,6 +21,7 @@ final class SettingsCoordinator {
     /// A fresh window mounts on `tab`; an open one navigates to it, recording the jump in history.
     /// A nil `tab` only reveals the window, so re-opening a minimised one keeps the pane it was on.
     func showSettings(tab: SettingsTab? = nil, revealing target: SettingsTarget? = nil) {
+        guard tab.map({ SettingsTab.available.contains($0) }) ?? true else { return }
         if window.focus() {
             if let tab { navigation?.select(tab, revealing: target) }
             return

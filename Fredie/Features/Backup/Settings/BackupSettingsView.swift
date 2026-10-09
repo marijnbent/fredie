@@ -10,7 +10,7 @@ struct BackupSettingsView: View {
     @State private var status: Status?
     @State private var selection: RaycastImportOptions = .all
     @State private var isRaycastExport = false
-    @State private var exportSelection = BackupCategory.all
+    @State private var exportSelection = Set(BackupCategory.available)
     @State private var importSelection: Set<BackupCategory> = []
     @State private var exporting = false
     @State private var importingBackup = false
@@ -222,7 +222,7 @@ struct BackupSettingsView: View {
                 let (staging, manifest) = try await BackupActions.openBackup(at: url)
                 openedStaging = staging
                 openedManifest = manifest
-                importSelection = manifest.categories
+                importSelection = manifest.categories.intersection(BackupCategory.available)
             } catch {
                 backupStatus = .failure(error.localizedDescription)
             }

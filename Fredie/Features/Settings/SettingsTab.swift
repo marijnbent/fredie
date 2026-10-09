@@ -2,6 +2,8 @@ enum SettingsTab: CaseIterable, Identifiable {
     case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         ai, quickActions, extensions, permissions, backup, about
+    static let available: [Self] = [.general, .applications, .ai, .permissions, .backup, .about]
+
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
@@ -56,36 +58,21 @@ enum SettingsTab: CaseIterable, Identifiable {
     }
 }
 
-/// Declaration order is display order; not `.Section`, which would shadow SwiftUI's `Section`.
 enum SettingsSection: CaseIterable, Identifiable {
-    case general, launcher, features, advanced
-    /// See `SettingsTab.id`: distinct types keep the two namespaces from colliding.
+    case app, advanced
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .general: return "General"
-        case .launcher: return "Launcher"
-        case .features: return "Features"
-        case .advanced: return "Advanced"
+        case .app: "Fredie"
+        case .advanced: "Advanced"
         }
     }
 
     var tabs: [SettingsTab] {
         switch self {
-        case .general: return [.general, .permissions]
-        case .launcher:
-            return [
-                .applications, .systemSettings, .systemActions, .commands, .quicklinks,
-                .appleShortcuts, .fallbacks
-            ]
-        case .features:
-            // Everyday tools first; AI and extensions are opt-in extras.
-            return [
-                .fileSearch, .windowManagement, .navigation, .notes,
-                .calendar, .emoji, .ai, .quickActions, .extensions
-            ]
-        case .advanced: return [.backup, .about]
+        case .app: [.general, .applications, .ai]
+        case .advanced: [.permissions, .backup, .about]
         }
     }
 }

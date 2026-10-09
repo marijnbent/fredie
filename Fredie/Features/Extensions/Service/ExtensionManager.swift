@@ -227,17 +227,6 @@ final class ExtensionManager: ExtensionRuntimeDelegate, ExtensionHostContext {
         await refresh()
     }
 
-    /// Scanned off-main: it reads a manifest per directory, and a full Raycast install is dozens.
-    func raycastImportCandidates() async -> [RaycastImportCandidate] {
-        let candidates = await Task.detached(priority: .userInitiated) {
-            ExtensionCatalog.importableFromRaycast()
-        }.value
-        let have = Set(installed.map(\.manifest.name))
-        return candidates.map {
-            RaycastImportCandidate(installed: $0, isInstalled: have.contains($0.manifest.name))
-        }
-    }
-
     func install(
         _ listing: ExtensionListing,
         onProgress: @Sendable @escaping (ExtensionInstaller.Progress) -> Void

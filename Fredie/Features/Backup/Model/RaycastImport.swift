@@ -13,8 +13,8 @@ struct RaycastImportOptions: OptionSet, Sendable {
     static let aliases = RaycastImportOptions(rawValue: 1 << 9)
     static let quicklinks = RaycastImportOptions(rawValue: 1 << 10)
     static let all: RaycastImportOptions = [
-        .shortcuts, .favorites, .emojiSkinTone, .launchAtLogin, .menuBarVisibility,
-        .popToRoot, .compactMode, .aliases, .quicklinks
+        .shortcuts, .favorites, .launchAtLogin, .menuBarVisibility,
+        .popToRoot, .compactMode, .aliases
     ]
 }
 

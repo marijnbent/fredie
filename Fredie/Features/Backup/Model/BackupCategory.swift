@@ -32,6 +32,8 @@ enum BackupCategory: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    static let available: [Self] = [.configuration, .learning]
+
     static let all = Set(BackupCategory.allCases)
 
     /// Declaration order, so the picker, the manifest and the summary all list the same way.

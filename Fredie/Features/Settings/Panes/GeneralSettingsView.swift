@@ -162,20 +162,6 @@ struct GeneralSettingsView: View {
             }
 
             Section {
-                Picker(selection: $settings.calcNumberStyle) {
-                    ForEach(CalcNumberStyle.allCases) { style in
-                        let sample = core.regionNumberFormat.format(for: style).localized("1,234,567.89")
-                        Text("\(style.title) (\(sample))").tag(style)
-                    }
-                } label: {
-                    SettingsRowTitle(.generalCalculator, "Number format")
-                    Text("With a decimal comma, ; separates arguments.")
-                }
-            } header: {
-                SettingsSectionHeader(.generalCalculator)
-            }
-
-            Section {
                 Picker(selection: $settings.rootSearchSensitivity) {
                     ForEach(SearchSensitivity.allCases) { sensitivity in
                         Text(sensitivity.title).tag(sensitivity)

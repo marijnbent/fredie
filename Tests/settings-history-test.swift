@@ -27,6 +27,7 @@ struct SettingsHistoryTests {
         sidebarIdentityNamespacesAreDisjoint()
         catalogCoversEveryPane()
         catalogIdentitiesAreUnique()
+        unsupportedPanesCannotOpen()
         catalogFindsKnownRows()
         catalogRanksTitlesFirst()
         catalogAnchorsMatchTheirPane()
@@ -37,6 +38,16 @@ struct SettingsHistoryTests {
         if failures > 0 { exit(1) }
     }
 
+    static func unsupportedPanesCannotOpen() {
+        expect(SettingsTab.available == [.general, .applications, .ai, .permissions, .backup, .about],
+            "Settings offers apps, AI and their supporting panes")
+        let navigation = SettingsNavigationState(tab: .general)
+        for tab in SettingsTab.allCases where !SettingsTab.available.contains(tab) {
+            navigation.select(tab)
+            expect(navigation.tab == .general, "unavailable panes cannot enter navigation history")
+        }
+    }
+
     static func startsEmpty() {
         let history = SettingsHistory(current: .general)
         expect(!history.canGoBack, "and has nowhere to go back to")
@@ -45,8 +56,8 @@ struct SettingsHistoryTests {
 
     static func selectingPushes() {
         var history = SettingsHistory(current: .general)
-        history.select(.quicklinks)
-        expect(history.current == .quicklinks, "selecting shows the new pane")
+        history.select(.ai)
+        expect(history.current == .ai, "selecting shows the new pane")
         expect(history.canGoBack, "and leaves the old one behind us")
         expect(!history.canGoForward, "with nothing ahead")
     }
@@ -65,11 +76,11 @@ struct SettingsHistoryTests {
 
     static func roundTrips() {
         var history = SettingsHistory(current: .general)
-        history.select(.notes)
-        history.select(.emoji)
+        history.select(.applications)
+        history.select(.permissions)
 
         history.goBack()
-        expect(history.current == .notes, "Back walks one entry at a time")
+        expect(history.current == .applications, "Back walks one entry at a time")
         expect(history.canGoForward, "and what we left becomes reachable again")
 
         history.goBack()
@@ -77,14 +88,14 @@ struct SettingsHistoryTests {
 
         history.goForward()
         history.goForward()
-        expect(history.current == .emoji, "Forward retraces the same path")
+        expect(history.current == .permissions, "Forward retraces the same path")
         expect(!history.canGoForward, "and stops where we had got to")
     }
 
     static func aNewBranchDiscardsTheOldOne() {
         var history = SettingsHistory(current: .general)
-        history.select(.notes)
-        history.select(.emoji)
+        history.select(.applications)
+        history.select(.permissions)
         history.goBack()
         history.goBack()
 
@@ -114,19 +125,19 @@ struct SettingsHistoryTests {
     static func sidebarCoversEveryPane() {
         let grouped = SettingsSection.allCases.flatMap(\.tabs)
         expect(
-            Set(grouped) == Set(SettingsTab.allCases),
+            Set(grouped) == Set(SettingsTab.available),
             "every pane appears in exactly one sidebar group")
-        expect(grouped.count == SettingsTab.allCases.count, "and none appears twice")
+        expect(grouped.count == SettingsTab.available.count, "and none appears twice")
     }
 
     /// A selectable `List` flattens section and row IDs into one namespace.
     static func sidebarIdentityNamespacesAreDisjoint() {
         let sections = Set(SettingsSection.allCases.map { AnyHashable($0.id) })
-        let tabs = Set(SettingsTab.allCases.map { AnyHashable($0.id) })
+        let tabs = Set(SettingsTab.available.map { AnyHashable($0.id) })
         expect(
             sections.isDisjoint(with: tabs),
             "no sidebar group shares an identity with a pane")
-        expect(tabs.count == SettingsTab.allCases.count, "and every pane's identity is its own")
+        expect(tabs.count == SettingsTab.available.count, "and every pane's identity is its own")
     }
 
     // MARK: - Search catalog
@@ -135,7 +146,7 @@ struct SettingsHistoryTests {
     static func catalogCoversEveryPane() {
         let covered = Set(SettingsSearchCatalog.entries.map(\.tab))
         expect(
-            covered == Set(SettingsTab.allCases),
+            covered == Set(SettingsTab.available),
             "every pane is reachable from Settings search")
     }
 
@@ -152,9 +163,9 @@ struct SettingsHistoryTests {
             ("launch at login", .general),
             ("automatically check for updates", .general),
             ("popup", .general),
-            ("search quicklinks", .quicklinks),
-            ("window manage", .windowManagement),
-            ("skin tone", .emoji),
+            ("tile style", .general),
+            ("search scopes", .applications),
+            ("accessibility", .permissions),
             ("mcp", .ai)
         ]
         for (query, tab) in cases {
@@ -175,8 +186,8 @@ struct SettingsHistoryTests {
 
     /// A term found in the title has to beat the same term found only in a breadcrumb.
     static func catalogRanksTitlesFirst() {
-        let results = SettingsSearchCatalog.results(for: "extensions")
-        expect(results.first?.tab == .extensions, "“extensions” opens on its own pane")
+        let results = SettingsSearchCatalog.results(for: "applications")
+        expect(results.first?.tab == .applications, "“applications” opens on its own pane")
         expect(
             SettingsSearchCatalog.results(for: "nothing here matches at all").isEmpty,
             "and an unmatched query returns nothing")
@@ -189,7 +200,7 @@ struct SettingsHistoryTests {
         let navigation = SettingsNavigationState(tab: .general)
         expect(navigation.scrollRequest == nil, "a fresh window has nothing to reveal")
 
-        navigation.select(.quicklinks)
+        navigation.select(.ai)
         expect(navigation.scrollRequest == nil, "and a plain pane selection asks for no scroll")
 
         navigation.select(.general, revealing: .section(.generalHyperKey))
@@ -210,17 +221,17 @@ struct SettingsHistoryTests {
     /// The pulse outlives the pane that started it, and only its own owner may put it out.
     static func flashOutlivesThePaneThatLitIt() {
         let navigation = SettingsNavigationState(tab: .general)
-        navigation.select(.quicklinks, revealing: .row(.quicklinksBehaviour, "Selection fallback"))
-        navigation.beginFlash(.row(.quicklinksBehaviour, "Selection fallback"))
-        expect(navigation.flashing == .row(.quicklinksBehaviour, "Selection fallback"), "the revealed row is lit")
+        navigation.select(.ai, revealing: .row(.aiSystemPrompt, "System prompt"))
+        navigation.beginFlash(.row(.aiSystemPrompt, "System prompt"))
+        expect(navigation.flashing == .row(.aiSystemPrompt, "System prompt"), "the revealed row is lit")
 
         navigation.endFlash(.section(.generalHyperKey))
         expect(navigation.flashing != nil, "another target can't put it out")
-        navigation.endFlash(.row(.quicklinksBehaviour, "Selection fallback"))
+        navigation.endFlash(.row(.aiSystemPrompt, "System prompt"))
         expect(navigation.flashing == nil, "its own owner can")
 
         // A jump that lands elsewhere must not leave the old light burning behind it.
-        navigation.beginFlash(.row(.quicklinksBehaviour, "Selection fallback"))
+        navigation.beginFlash(.row(.aiSystemPrompt, "System prompt"))
         navigation.select(.general)
         expect(navigation.flashing == nil, "navigating away clears a stale pulse")
     }

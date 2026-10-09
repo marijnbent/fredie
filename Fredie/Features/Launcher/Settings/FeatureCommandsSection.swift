@@ -20,34 +20,17 @@ struct FeatureCommandsSection: View {
     }
 }
 
-/// One command's controls — alias, shortcut, launcher visibility — wherever its pane seats them.
 struct FeatureCommandRow: View {
     let entry: AppEntry
-    @Environment(VisibilityStore.self) private var visibility
 
     var body: some View {
-        SettingsRow(
-            title: entry.name,
-            labelOpacity: visibility.isItemVisible(entry) ? 1 : 0.45
-        ) {
+        SettingsRow(title: entry.name) {
             AppIconView(app: entry)
                 .frame(width: SettingsListMetrics.iconSize, height: SettingsListMetrics.iconSize)
         } trailing: {
-            AliasField(entry: entry)
             if let action = entry.hotKeyAction {
                 ShortcutRecorder(action: action)
             }
-            Toggle("", isOn: visibilityBinding)
-                .labelsHidden()
-                .toggleStyle(.checkbox)
-                .launcherVisibilityHelp()
-                .accessibilityLabel("Show \(entry.name) in launcher")
         }
-    }
-
-    private var visibilityBinding: Binding<Bool> {
-        Binding(
-            get: { visibility.isItemVisible(entry) },
-            set: { visibility.setItemVisible($0, for: entry) })
     }
 }

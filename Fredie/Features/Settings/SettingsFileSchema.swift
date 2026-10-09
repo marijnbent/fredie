@@ -8,7 +8,7 @@ enum SettingsFileSchema {
         shortcuts: HotKeySettingsFile, launcher: LauncherSettingsFile,
         windowManagement: WindowManagementSettingsFile
     ) -> [SettingsFileBinding] {
-        SettingsFileKey.allCases.map { key in
+        SettingsFileKey.available.map { key in
             binding(
                 for: key, settings: settings, ai: ai, quickActions: quickActions,
                 shortcuts: shortcuts, launcher: launcher, windowManagement: windowManagement)
