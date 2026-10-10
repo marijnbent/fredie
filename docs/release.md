@@ -11,6 +11,9 @@ replaces `/Applications/Fredie.app`, and opens the installed app.
 `project.yml` owns version, build number, bundle identifiers, and targets. `release/Release.plist`
 selects the installed Apple Development signing identity. No unsigned or ad-hoc fallback is allowed.
 
+`release/Icon.png` is the 1024px ribbon-F icon master. Its macOS sizes live in
+`Fredie/Assets.xcassets/AppIcon.appiconset`, selected by `project.yml` for both build configurations.
+
 A requested local release also includes committing and pushing the current Fredie repository
 changes on `main`, after verification. The scripts do not perform Git operations.
 

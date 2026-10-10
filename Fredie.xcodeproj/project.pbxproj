@@ -158,7 +158,6 @@
 		37B37C4949128681212AB88E /* ExtensionNameResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F8A820676CA4DC5B764CD0 /* ExtensionNameResolver.swift */; };
 		386EE9B4F0CAB1841FF3A4A9 /* SelectionReveal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15E75E995A750F55A4E2711A /* SelectionReveal.swift */; };
 		38BBD30A05539BA4310136F5 /* ExtensionActionsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3D101363262E1701868680 /* ExtensionActionsPanel.swift */; };
-		390EEB13FCF4E6DD63C85B16 /* fredie.icon in Resources */ = {isa = PBXBuildFile; fileRef = ED52037DAE9C13E38C285CBE /* fredie.icon */; };
 		392F624D235FC4480C2C767F /* ShortcutRecorderPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E62CEB400EB27A79EF25DC /* ShortcutRecorderPopover.swift */; };
 		39636F46021F4304F143540A /* WindowLayoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B70159246AE03B51C7C87AF /* WindowLayoutStore.swift */; };
 		39B7C30F1DBFF3245334A973 /* SettingsFileBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77928F17F54993DA2D1203A3 /* SettingsFileBinding.swift */; };
@@ -1378,7 +1377,6 @@
 		EC780EE0DC13E195E3AC09AB /* CalcPercent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcPercent.swift; sourceTree = "<group>"; };
 		ECCCD07D5116BC3B77F7F2E5 /* MathFormula.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathFormula.swift; sourceTree = "<group>"; };
 		ED1A5D2325164DAC788909EF /* EmojiCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCoordinator.swift; sourceTree = "<group>"; };
-		ED52037DAE9C13E38C285CBE /* fredie.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = fredie.icon; sourceTree = "<group>"; };
 		EDF94B2B4C62C50558BA7802 /* ExtensionMenuBarSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionMenuBarSnapshot.swift; sourceTree = "<group>"; };
 		EE4FCD3F2EA349CA78ADC307 /* CustomWindowSizeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindowSizeCoordinator.swift; sourceTree = "<group>"; };
 		EE7B4712485220980AFBFDC9 /* CameraAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAccess.swift; sourceTree = "<group>"; };
@@ -2703,7 +2701,6 @@
 				D29F032065E80B3FBDA9B792 /* Windows */,
 				B01B846AA11DA965372ECEE4 /* Assets.xcassets */,
 				9DEC32A8A5B39A387F74B3FD /* Fredie.entitlements */,
-				ED52037DAE9C13E38C285CBE /* fredie.icon */,
 				E1B8859F20A0145C5176C0A0 /* Info.plist */,
 			);
 			path = Fredie;
@@ -3189,7 +3186,6 @@
 				027DFEB7FE4BAB2C6B35058F /* EmojiKeywords in Resources */,
 				AE7EC4C8C13387F1D10F4DEC /* NOTICE.md in Resources */,
 				A65B37D3257BDD46F2AC49B9 /* RaycastRuntime.generated.js in Resources */,
-				390EEB13FCF4E6DD63C85B16 /* fredie.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3912,7 +3908,7 @@
 		572B26D8B62A46C673833C4E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = fredie;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Fredie/Fredie.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Fredie/Info.plist;
@@ -3928,7 +3924,7 @@
 		5D5275E3EFDACD3324FA87F1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = fredie;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Fredie/Fredie.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = Fredie/Info.plist;
@@ -3978,7 +3974,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4046,7 +4042,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
