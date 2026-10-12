@@ -8,8 +8,6 @@ struct ClipboardSettingsView: View {
         @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Clipboard history", isOn: $settings.clipboardEnabled)
-                LegacyAppNotice(app: .clipboard)
                 LabeledContent("Shortcut") { ShortcutRecorder(action: .command(.clipboardHistory)) }
                 Picker("Keep history", selection: $settings.clipboardHistoryDays) {
                     ForEach(ClipboardHistoryLimit.allCases, id: \.rawValue) { limit in
@@ -56,8 +54,6 @@ struct SnippetsSettingsView: View {
         @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Expand snippets", isOn: $settings.snippetsEnabled)
-                LegacyAppNotice(app: .clipboard)
                 if settings.snippetsEnabled, !clipboard.snippetsRunning, !clipboard.isRecording, !clipboard.isCapturingShortcut {
                     Button("Grant Accessibility Access…") { Permissions.openAccessibilitySettings() }
                 }

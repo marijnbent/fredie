@@ -1,4 +1,53 @@
-# Ollie verification — 12 October 2026
+# Ollie verification — build 13, 12 October 2026
+
+## Features and standalone-app removal
+
+- Features is the default settings page and contains all ten master switches. Disabled feature
+  settings disappear from the sidebar, search and navigation history. Stale links open Features.
+  Launcher owns Applications and Emoji; launcher-specific General controls also hide when disabled.
+- Per-feature master toggles, standalone-app notices, launch/quit observation, reconciliation polling,
+  coexistence guards, old-app imports and their dead reload helpers were removed.
+- All 90 remaining harnesses passed: the full run passed 89 and found one outdated expected pane
+  list; the corrected settings harness passed again, including visibility, search and stale-route
+  checks. The removed adoption feature's harness was deleted.
+- Signed Debug compiled with no Swift compiler warnings. Xcode emitted its existing AppIntents
+  metadata-skipped notice. Lint and settings-search consistency checks passed with existing style
+  warnings. Model import checks and `git diff --check` passed.
+
+## One-time local settings transfer
+
+The user explicitly requested copying current settings and keys, and closing the original apps.
+A temporary local helper performed the transfer while Ollie was stopped, then independently verified
+exact preference and Keychain values without printing secrets. No runtime migration remains in Ollie.
+
+- 34 settings copied, including dictation provider, prompts, language and microphone choices,
+  shortcuts, clipboard retention, 11 snippets, switcher options, typing sounds and import destinations.
+- Six configured dictation keys and two notification topics verified in seven Ollie Keychain records.
+  New records allow the installed Ollie app and the temporary transfer helper to read them.
+- Fredie's preferences and credentials already use Ollie's stable identity and were retained.
+  Nettie has no persisted feature preferences beyond window/onboarding state to transfer.
+- Feature enable switches were left unchanged. Original preferences, histories and media are intact.
+  Ollie's previous preferences were backed up with owner-only permissions beneath
+  `~/Library/Application Support/nl.bentjes.fredie/SettingsTransferBackup/`.
+- Importie, Ntfy Notifier, Talkie, Nettie, Clippie and Tabbie were gracefully quit. Typie was already
+  stopped. Process verification after installation found none of these standalone apps running.
+  Mailie was excluded.
+
+## Installed artifact and native-check limit
+
+Version 0.1.0, build 13 is installed and running from `/Applications/Ollie.app`.
+The stable identifier is `nl.bentjes.fredie`. Host `codesign --verify --deep --strict` passed using
+`Apple Development: marijnbent@gmail.com (S4ZHLE3A52)`, team `X44F5HTS6P`.
+Installed and release executables match at SHA-256
+`31fa1e275c1d54277f7bbfce266da979afc66dcdac452124286870c3a9ab1072`.
+
+Native control of the newly restarted launcher again rejected Settings navigation with
+`The user changed '/Applications/Ollie.app'` and `noWindowsAvailable`, following a timeout.
+The user has been asked to open stable Settings manually. The new page's live toggle interaction
+and visual check remain pending; passing model tests and a signed build do not prove those checks.
+Earlier native results below apply to build 12, not the new Features page.
+
+## Previous build 12 verification
 
 Version 0.1.0, build 12. Product Ollie; stable identity `nl.bentjes.fredie`.
 

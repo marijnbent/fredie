@@ -33,12 +33,14 @@ struct GeneralSettingsView: View {
     var body: some View {
         @Bindable var settings = settings
         return Form {
+            if settings.launcherEnabled {
             Section {
                 SettingsRow(title: "App Launcher", anchor: .generalGlobalShortcuts) {
                     ShortcutRecorder(action: .togglePalette)
                 }
             } header: {
                 SettingsSectionHeader(.generalGlobalShortcuts)
+            }
             }
 
             Section {
@@ -53,6 +55,7 @@ struct GeneralSettingsView: View {
                     SettingsRowTitle(.generalGeneral, "Automatically check for updates")
                     Text("Check for Updates remains available when off.")
                 }
+                if settings.launcherEnabled {
                 Picker(selection: $settings.popToRootTimeout) {
                     ForEach(PopToRootTimeout.allCases) { timeout in
                         Text(timeout.title).tag(timeout)
@@ -81,6 +84,7 @@ struct GeneralSettingsView: View {
                         Text("While the launcher is open.")
                     }
                 }
+                }
             } header: {
                 SettingsSectionHeader(.generalGeneral)
             }
@@ -93,6 +97,7 @@ struct GeneralSettingsView: View {
                 } label: {
                     SettingsRowTitle(.generalAppearance, "Theme")
                 }
+                if settings.launcherEnabled {
                 InterfaceSizeRow()
                 SettingsRow(title: "Layout", anchor: .generalAppearance) {
                     LauncherPreviewPicker(
@@ -112,6 +117,7 @@ struct GeneralSettingsView: View {
                 Toggle(isOn: $settings.paletteDraggable) {
                     SettingsRowTitle(.generalAppearance, "Drag to reposition")
                     Text("Drag the strip above the search field.")
+                }
                 }
             } header: {
                 SettingsSectionHeader(.generalAppearance)
@@ -161,6 +167,7 @@ struct GeneralSettingsView: View {
                 SettingsSectionHeader(.generalHyperKey)
             }
 
+            if settings.launcherEnabled {
             Section {
                 Picker(selection: $settings.rootSearchSensitivity) {
                     ForEach(SearchSensitivity.allCases) { sensitivity in
@@ -181,6 +188,7 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 SettingsSectionHeader(.generalSearch)
+            }
             }
         }
         .formStyle(.grouped)

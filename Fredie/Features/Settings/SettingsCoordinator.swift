@@ -22,11 +22,12 @@ final class SettingsCoordinator {
     /// A nil `tab` only reveals the window, so re-opening a minimised one keeps the pane it was on.
     func showSettings(tab: SettingsTab? = nil, revealing target: SettingsTarget? = nil) {
         guard tab.map({ SettingsTab.available.contains($0) }) ?? true else { return }
+        navigation?.updateAvailable(Set(core.settings.enabledSettingsTabs))
         if window.focus() {
             if let tab { navigation?.select(tab, revealing: target) }
             return
         }
-        let navigation = SettingsNavigationState(tab: tab ?? .general)
+        let navigation = SettingsNavigationState(tab: tab ?? .features, available: Set(core.settings.enabledSettingsTabs))
         navigation.select(navigation.tab, revealing: target)
         let editorPresenter = SettingsEditorPresenter(core: core, navigation: navigation)
         self.navigation = navigation

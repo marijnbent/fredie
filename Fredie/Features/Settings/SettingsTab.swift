@@ -1,14 +1,15 @@
 enum SettingsTab: CaseIterable, Identifiable {
-    case shortcuts, dictation, windowSwitcher, clipboard, snippets, mediaImport, notifications, network, typingSounds, general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
+    case features, shortcuts, dictation, windowSwitcher, clipboard, snippets, mediaImport, notifications, network, typingSounds, general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         ai, quickActions, extensions, permissions, backup, about
-    static let available: [Self] = [.general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about]
+    static let available: [Self] = [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about]
 
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .features: return "Features"
         case .shortcuts: return "Shortcuts"
         case .dictation: return "Dictation"
         case .windowSwitcher: return "Window Switcher"
@@ -43,6 +44,7 @@ enum SettingsTab: CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .features: return "square.grid.2x2"
         case .shortcuts: return "keyboard"
         case .dictation: return "mic"
         case .windowSwitcher: return "rectangle.on.rectangle"
@@ -89,8 +91,43 @@ enum SettingsSection: CaseIterable, Identifiable {
 
     var tabs: [SettingsTab] {
         switch self {
-        case .app: [.general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport]
+        case .app: [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport]
         case .advanced: [.permissions, .backup, .about]
         }
+    }
+}
+
+
+enum OllieFeature: CaseIterable, Identifiable {
+    case launcher, clipboard, snippets, dictation, windowSwitcher, ai, typingSounds, network, notifications, mediaImport
+
+    var id: Self { self }
+
+    var settingsTab: SettingsTab {
+        switch self {
+        case .launcher: .applications
+        case .clipboard: .clipboard
+        case .snippets: .snippets
+        case .dictation: .dictation
+        case .windowSwitcher: .windowSwitcher
+        case .ai: .ai
+        case .typingSounds: .typingSounds
+        case .network: .network
+        case .notifications: .notifications
+        case .mediaImport: .mediaImport
+        }
+    }
+
+    var title: String { self == .launcher ? "Launcher" : settingsTab.title }
+}
+
+extension SettingsTab {
+    var feature: OllieFeature? {
+        if self == .emoji { return .launcher }
+        return OllieFeature.allCases.first { $0.settingsTab == self }
+    }
+
+    static func visible(for enabled: Set<OllieFeature>) -> [Self] {
+        available.filter { $0.feature.map(enabled.contains) ?? true }
     }
 }

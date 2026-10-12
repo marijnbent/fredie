@@ -8,8 +8,6 @@ struct WindowSwitcherSettingsView: View {
         @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Window Switcher", isOn: $settings.windowSwitcherEnabled)
-                LegacyAppNotice(app: .windowSwitcher)
                 if let conflict = switcher.conflict {
                     Text("Shortcut already used by \(conflict)").foregroundStyle(.orange)
                 }

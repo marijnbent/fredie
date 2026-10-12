@@ -4,12 +4,13 @@ import SwiftUI
 struct SettingsDetailView: View {
     @Environment(SettingsNavigationState.self) private var navigation
 
-    @Environment(LegacyDataCoordinator.self) private var adoption
+    @Environment(AppSettings.self) private var settings
 
     var body: some View {
         // Not a `TabView`: `NSTabView` re-hosts on selection and breaks the recorder.
         Group {
-            switch navigation.tab {
+            switch settings.enabledSettingsTabs.contains(navigation.tab) ? navigation.tab : .features {
+            case .features: FeaturesSettingsView()
             case .shortcuts: OllieShortcutsSettingsView()
             case .dictation: DictationSettingsView()
             case .windowSwitcher: WindowSwitcherSettingsView()
@@ -29,7 +30,6 @@ struct SettingsDetailView: View {
             default: EmptyView()
             }
         }
-        .disabled(adoption.active != nil)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // One host for every pane, above their scroll views so a callout is never clipped.
         .shortcutRecorderPopoverHost()

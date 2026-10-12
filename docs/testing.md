@@ -662,8 +662,8 @@ tccutil reset Accessibility nl.bentjes.fredie.dev 2>/dev/null || true
 ## Ollie integration
 
 The `ollie-*-test` harnesses exercise imported services, clipboard storage, serialized AX work,
-recording cancellation and reconnect, verified paste restoration, and staged data adoption with
-synthetic files and fake providers. No live transcription API key is needed.
+recording cancellation and reconnect, and verified paste restoration with synthetic files and fake
+providers. Settings history tests cover feature visibility, filtered search and disabled-pane routing. No live transcription API key is needed.
 
 A Debug-only offscreen view harness requires the dedicated bundle identity
 `nl.bentjes.ollie.verification` and the `--verify-ollie-ui` argument. It mounts every available native

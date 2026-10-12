@@ -17,6 +17,7 @@ struct SettingsHistoryTests {
     }
 
     static func main() {
+        featureVisibility()
         startsEmpty()
         selectingPushes()
         reselectingIsNotANavigation()
@@ -39,13 +40,41 @@ struct SettingsHistoryTests {
     }
 
     static func unsupportedPanesCannotOpen() {
-        expect(SettingsTab.available == [.general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about],
+        expect(SettingsTab.available == [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about],
             "Settings offers every integrated Ollie feature and supporting panes")
         let navigation = SettingsNavigationState(tab: .general)
         for tab in SettingsTab.allCases where !SettingsTab.available.contains(tab) {
             navigation.select(tab)
             expect(navigation.tab == .general, "unavailable panes cannot enter navigation history")
         }
+    }
+
+    static func featureVisibility() {
+        let off = Set(SettingsTab.visible(for: []))
+        expect(off == Set([.features, .general, .shortcuts, .permissions, .backup, .about]), "disabled feature panes are hidden")
+        for feature in OllieFeature.allCases {
+            let visible = Set(SettingsTab.visible(for: [feature]))
+            expect(visible.contains(feature.settingsTab), "enabling a feature reveals its pane")
+            expect(visible.subtracting(off) == Set(feature == .launcher ? [.applications, .emoji] : [feature.settingsTab]), "unrelated panes stay hidden")
+        }
+        let disabledSearch = SettingsSearchCatalog.results(for: "dictation", available: off)
+        expect(disabledSearch.map(\.tab) == [.features], "search offers enablement without exposing disabled settings")
+        expect(SettingsSearchCatalog.results(for: "dictation").contains { $0.tab == .dictation }, "enabled dictation settings are searchable")
+        expect(SettingsSearchCatalog.results(for: "Layout", available: off).isEmpty, "launcher settings inside General are hidden too")
+        let navigation = SettingsNavigationState(tab: .dictation)
+        navigation.select(.clipboard)
+        navigation.select(.network)
+        navigation.goBack()
+        navigation.updateAvailable(off)
+        expect(navigation.tab == .features, "disabling the selected feature returns to Features")
+        expect(!navigation.canGoBack && !navigation.canGoForward, "history drops disabled panes")
+        navigation.select(.dictation)
+        expect(navigation.tab == .features, "a stale link opens Features")
+        navigation.updateAvailable(Set(SettingsTab.visible(for: [.dictation])))
+        navigation.select(.dictation)
+        expect(navigation.tab == .dictation, "re-enabled settings can open")
+        let hidden = SettingsNavigationState(tab: .clipboard, available: off)
+        expect(hidden.tab == .features, "new windows cannot open disabled features")
     }
 
     static func startsEmpty() {

@@ -8,7 +8,6 @@ final class TypingSoundsCoordinator: HealthCheckable {
     @ObservationIgnored private let monitor = KeystrokeMonitor()
     @ObservationIgnored private var engine: SoundEngine?
     @ObservationIgnored private let ticker: HealthTicker
-    var canRun: () -> Bool = { true }
     private(set) var isRunning = false
     var isRecording = false {
         didSet { apply() }
@@ -27,7 +26,7 @@ final class TypingSoundsCoordinator: HealthCheckable {
     }
 
     func apply() {
-        guard settings.typingSoundsEnabled, canRun() else {
+        guard settings.typingSoundsEnabled else {
             stop()
             return
         }

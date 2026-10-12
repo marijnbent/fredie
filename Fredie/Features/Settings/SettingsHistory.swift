@@ -18,6 +18,12 @@ struct SettingsHistory {
         current = tab
     }
 
+    mutating func retain(_ available: Set<SettingsTab>) {
+        back.removeAll { !available.contains($0) }
+        forward.removeAll { !available.contains($0) }
+        if !available.contains(current) { current = .features }
+    }
+
     mutating func goBack() {
         guard let previous = back.popLast() else { return }
         forward.append(current)

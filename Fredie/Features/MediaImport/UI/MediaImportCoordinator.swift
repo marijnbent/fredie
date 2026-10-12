@@ -24,7 +24,7 @@ final class MediaImportCoordinator {
     }
 
     func apply() {
-        guard core.settings.mediaImportEnabled, !core.legacyApps.isRunning(.mediaImport), core.adoption.active != .mediaImport else {
+        guard core.settings.mediaImportEnabled else {
             stop()
             return
         }
@@ -42,7 +42,7 @@ final class MediaImportCoordinator {
     }
 
     func show() {
-        guard core.settings.mediaImportEnabled, !core.legacyApps.isRunning(.mediaImport), core.adoption.active != .mediaImport else {
+        guard core.settings.mediaImportEnabled else {
             core.settingsCoordinator.showSettings(tab: .mediaImport)
             return
         }

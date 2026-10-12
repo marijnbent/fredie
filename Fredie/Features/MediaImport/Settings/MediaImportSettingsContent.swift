@@ -10,11 +10,8 @@ struct MediaImportSettingsContent: View {
     let onError: (String) -> Void
 
     var body: some View {
-        @Bindable var appSettings = appSettings
         Form {
             Section {
-                Toggle("Media Import", isOn: $appSettings.mediaImportEnabled)
-                LegacyAppNotice(app: .mediaImport)
                 Button("Open Importer") { mediaImport.show() }
                     .disabled(!appSettings.mediaImportEnabled)
             }

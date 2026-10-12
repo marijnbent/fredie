@@ -2,12 +2,13 @@ import SwiftUI
 
 struct SettingsSidebarView: View {
     @Environment(SettingsNavigationState.self) private var navigation
+    @Environment(AppSettings.self) private var settings
     @Environment(\.appearsActive) private var appearsActive
     @State private var query = ""
     @State private var highlighted: SettingsSearchEntry.ID?
     @State private var searching = false
 
-    private var results: [SettingsSearchEntry] { SettingsSearchCatalog.results(for: query) }
+    private var results: [SettingsSearchEntry] { SettingsSearchCatalog.results(for: query, available: Set(settings.enabledSettingsTabs)) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,7 +27,7 @@ struct SettingsSidebarView: View {
         List(selection: selection) {
             ForEach(SettingsSection.allCases) { section in
                 Section(section.title) {
-                    ForEach(section.tabs) { tab in
+                    ForEach(section.tabs.filter { settings.enabledSettingsTabs.contains($0) }) { tab in
                         Label {
                             Text(tab.title)
                         } icon: {

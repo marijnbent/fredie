@@ -10,15 +10,9 @@ struct AISettingsView: View {
     @State private var providersPresented = false
 
     var body: some View {
-        @Bindable var appSettings = appSettings
         @Bindable var settings = settings
         return Form {
             Section {
-                Toggle(isOn: $appSettings.aiEnabled) {
-                    SettingsFeatureToggleLabel(
-                        anchor: .aiAI, title: "Enable AI",
-                        subtitle: "Nothing is loaded or sent while it is off.")
-                }
                 SettingsRow(
                     title: "Providers", subtitle: providerSummary, anchor: .aiProviders
                 ) {

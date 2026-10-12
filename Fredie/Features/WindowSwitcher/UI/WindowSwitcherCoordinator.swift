@@ -68,8 +68,8 @@ final class WindowSwitcherCoordinator: HealthCheckable {
         conflict = reservedBindings.compactMap {
             core.hotKeys.conflictOwner(of: $0, includeReservations: false)
         }.first
-        guard core.settings.windowSwitcherEnabled, !core.legacyApps.isRunning(.windowSwitcher),
-              !isCapturingShortcut, core.adoption.active == nil, conflict == nil else { stop(); return }
+        guard core.settings.windowSwitcherEnabled,
+              !isCapturingShortcut, conflict == nil else { stop(); return }
         ticker.subscribe(self)
         guard AXIsProcessTrusted(), CGPreflightListenEventAccess() else {
             stopRuntime()

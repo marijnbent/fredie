@@ -1,13 +1,8 @@
 import SwiftUI
 
 struct ApplicationsSettingsView: View {
-    @Environment(AppSettings.self) private var settings
     var body: some View {
-        @Bindable var settings = settings
         Form {
-            Section {
-                Toggle("Launcher", isOn: $settings.launcherEnabled)
-            }
             LauncherCategorySwitchSection(
                 kind: .application, anchor: .applicationsApplications)
 

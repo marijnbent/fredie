@@ -7,8 +7,18 @@ final class SettingsNavigationState {
     private var history: SettingsHistory
     private var requests = 0
 
-    init(tab: SettingsTab) {
-        history = SettingsHistory(current: tab)
+    private var available: Set<SettingsTab>
+
+    init(tab: SettingsTab, available: Set<SettingsTab> = Set(SettingsTab.available)) {
+        self.available = available
+        history = SettingsHistory(current: available.contains(tab) ? tab : .features)
+    }
+
+    func updateAvailable(_ tabs: Set<SettingsTab>) {
+        available = tabs
+        history.retain(tabs)
+        if let request = scrollRequest, !tabs.contains(request.target.tab) { scrollRequest = nil }
+        if let target = flashing, !tabs.contains(target.tab) { flashing = nil }
     }
 
     var tab: SettingsTab { history.current }
@@ -23,6 +33,10 @@ final class SettingsNavigationState {
     /// A search result navigates and asks the pane to reveal one section; a sidebar row just navigates.
     func select(_ tab: SettingsTab, revealing target: SettingsTarget? = nil) {
         guard SettingsTab.available.contains(tab) else { return }
+        guard available.contains(tab) else {
+            select(.features)
+            return
+        }
         history.select(tab)
         // Any navigation puts the previous pulse out, so a stale light can't outlive its pane.
         flashing = nil

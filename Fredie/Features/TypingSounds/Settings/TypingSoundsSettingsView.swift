@@ -8,8 +8,6 @@ struct TypingSoundsSettingsView: View {
         @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Typing Sounds", isOn: $settings.typingSoundsEnabled)
-                LegacyAppNotice(app: .typingSounds)
                 if settings.typingSoundsEnabled, !sounds.isRunning, !sounds.isQuiet {
                     LabeledContent("Input Monitoring", value: "Not granted")
                     Button("Grant Access…") { sounds.requestAccess() }

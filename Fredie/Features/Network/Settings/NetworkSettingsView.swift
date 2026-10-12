@@ -11,8 +11,6 @@ struct NetworkSettingsView: View {
         @Bindable var network = network
         Form {
             Section {
-                Toggle("Network monitoring", isOn: $settings.networkEnabled)
-                LegacyAppNotice(app: .network)
                 if settings.networkEnabled {
                     LabeledContent("Status", value: network.status)
                 }

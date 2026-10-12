@@ -9,7 +9,6 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
         var messages: [NtfyMessage]
         var unread: Int
     }
-    var canRun: () -> Bool = { true }
     private(set) var topics: [String] = []
     private(set) var messages: [NtfyMessage] = []
     private(set) var unread = 0
@@ -57,7 +56,7 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
         connected = false
         transition = Task { [weak self] in
             await previous?.stop()
-            guard !Task.isCancelled, let self, revision == generation, settings.notificationsEnabled, canRun() else { return }
+            guard !Task.isCancelled, let self, revision == generation, settings.notificationsEnabled else { return }
             load()
             guard loaded, !topics.isEmpty else { return }
             UNUserNotificationCenter.current().delegate = self
@@ -94,18 +93,6 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
 
     func remove(_ topic: String) {
         save(topics.filter { $0 != topic })
-    }
-
-    func adopt() {
-        load()
-        guard loaded else { return }
-        let legacy = UserDefaults.standard.persistentDomain(forName: "nl.bentjes.ntfy-notifier")
-        let existing = legacy?["subscribedTopics"] as? [String] ?? []
-        guard !existing.isEmpty else {
-            error = "No saved topics found. Add your topic above."
-            return
-        }
-        save(Array(Set(topics + existing)).sorted())
     }
 
     func requestPermission() async {

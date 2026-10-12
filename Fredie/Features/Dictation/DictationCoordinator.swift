@@ -96,7 +96,7 @@ final class DictationCoordinator: HealthCheckable {
         generation += 1
         let revision = generation
         conflict = reservedBindings.compactMap { core.hotKeys.conflictOwner(of: $0, includeReservations: false) }.first
-        guard core.settings.dictationEnabled, !core.legacyApps.isRunning(.dictation), core.adoption.active != .dictation, !isCapturingShortcut, conflict == nil else {
+        guard core.settings.dictationEnabled, !isCapturingShortcut, conflict == nil else {
             stop()
             return
         }
@@ -150,13 +150,6 @@ final class DictationCoordinator: HealthCheckable {
         runtime.stop()
         escape.stop()
         isRunning = false
-    }
-
-    func reloadAdoptedData() async {
-        await loadTask?.value
-        historyLoaded = false
-        loadHistory()
-        await loadTask?.value
     }
 
     func prepareForTermination() async -> Bool {

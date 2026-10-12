@@ -412,7 +412,6 @@ extension View {
             .environment(core.notifications)
             .environment(core.network)
             .environment(core.mediaImport)
-            .environment(core.adoption)
             .environment(core.dictation)
             .environment(core.windowSwitcher)
             .environment(core.clipboard)

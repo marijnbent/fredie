@@ -6,11 +6,8 @@ struct NotificationsSettingsView: View {
     @State private var topic = ""
 
     var body: some View {
-        @Bindable var settings = settings
         Form {
             Section {
-                Toggle("Notifications", isOn: $settings.notificationsEnabled)
-                LegacyAppNotice(app: .notifications)
                 if settings.notificationsEnabled {
                     LabeledContent("Status", value: notifications.connected ? "Connected" : "Disconnected")
                 }
@@ -31,7 +28,6 @@ struct NotificationsSettingsView: View {
                         Button("Remove") { notifications.remove(value) }
                     }
                 }
-                Button("Import saved topics from Ntfy Notifier") { notifications.adopt() }
                 if let error = notifications.error { Text(error).foregroundStyle(.red) }
             }
             Section("Recent") {

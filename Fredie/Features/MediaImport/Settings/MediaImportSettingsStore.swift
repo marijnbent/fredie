@@ -67,12 +67,6 @@ final class MediaImportSettingsStore {
         }
     }
 
-    func adoptLocations(_ locations: [PreferredLocation]) {
-        preferredLocations = locations
-        saveLocations()
-        refreshLocationAvailability()
-    }
-
     func addPreferredLocation(_ url: URL) throws {
         if let existingIndex = preferredLocations.firstIndex(where: { $0.resolvedURL() == url }) {
             moveLocation(from: existingIndex, to: 0)

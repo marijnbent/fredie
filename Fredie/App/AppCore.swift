@@ -25,7 +25,6 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var clipboard = ClipboardCoordinator(core: self, ticker: healthTicker)
     @ObservationIgnored private(set) lazy var windowSwitcher = WindowSwitcherCoordinator(core: self, ticker: healthTicker)
     @ObservationIgnored private(set) lazy var dictation = DictationCoordinator(core: self, ticker: healthTicker)
-    @ObservationIgnored private(set) lazy var legacyApps = LegacyApps(ticker: healthTicker)
     let network = NetworkCoordinator()
     let hotKeys = HotKeyManager()
     let hyperKeyTap = HyperKeyTap()
@@ -247,9 +246,6 @@ final class AppCore {
             settings.launchAtLogin = LaunchAtLogin.isEnabled
             applyAppearance()
             compactMenu.applyVisibility()
-            legacyApps.start()
-            typingSounds.canRun = { [weak self] in self?.legacyApps.isRunning(.typingSounds) == false }
-            notifications.canRun = { [weak self] in self?.legacyApps.isRunning(.notifications) == false }
             clipboard.apply()
             typingSounds.apply()
             mediaImport.apply()
@@ -384,8 +380,7 @@ final class AppCore {
                 guard let self, visibility.allowsHotKey(action) else { return false }
                 if action == .togglePalette { return settings.launcherEnabled }
                 if action == .command(.clipboardHistory) {
-                    return (settings.clipboardEnabled || settings.snippetsEnabled)
-                        && !legacyApps.isRunning(.clipboard) && adoption.active != .clipboard
+                    return settings.clipboardEnabled || settings.snippetsEnabled
                 }
                 // A disabled feature drops its commands from the launcher; their shortcuts go too.
                 guard case .command(let id) = action else { return true }
@@ -485,7 +480,6 @@ final class AppCore {
     }
 
     func flushNotesForTermination() async -> Bool {
-        await adoption.finish()
         let dictationSaved = await dictation.prepareForTermination()
         let clipboardSaved = await clipboard.prepareForTermination()
         await notifications.stop()
@@ -508,7 +502,6 @@ final class AppCore {
         typingSounds.stop()
         mediaImport.stop()
         network.stop()
-        legacyApps.stop()
         launcherRefreshTask?.cancel()
         currencyRates.stop()
         settingsFile?.flush()
@@ -578,7 +571,7 @@ final class AppCore {
     // MARK: - Feature switches
 
     private func applyNetworkEnabled() {
-        if settings.networkEnabled && !legacyApps.isRunning(.network) && adoption.active != .network { network.start() } else { network.stop() }
+        if settings.networkEnabled { network.start() } else { network.stop() }
     }
 
     private func applyLauncherEnabled() {
@@ -596,16 +589,6 @@ final class AppCore {
     }
 
     private func observeFeatureSwitches() {
-        track(legacyApps, { _ = $0.running }, reproject: {
-            $0.dictation.apply()
-            $0.windowSwitcher.apply()
-            $0.clipboard.apply()
-            $0.typingSounds.apply()
-            $0.applyNetworkEnabled()
-            $0.notifications.apply()
-            $0.mediaImport.apply()
-            $0.hotKeys.refreshRegistrations()
-        })
         track({ _ = $0.dictationEnabled }, reproject: { $0.dictation.apply() })
         track(dictation.settings, { _ = $0.shortcuts; _ = $0.historyLimit; _ = $0.deepgramLanguage }, reproject: { $0.dictation.applySettings() })
         track(dictation.session, { _ = $0.recordingPhase }, reproject: {
@@ -803,7 +786,6 @@ final class AppCore {
     // MARK: - Settings file
 
     /// Mirrors settings into settings.json from now on; `importing` applies the file's own first.
-    @ObservationIgnored private(set) lazy var adoption = LegacyDataCoordinator(core: self)
 
     func startSettingsFile(importing: Bool) {
         guard settingsFile == nil else { return }
@@ -851,7 +833,7 @@ final class AppCore {
             isRecordingHotKey: hotKeys.recordingAction != nil,
             isShowingDialog: isShowingDialog,
             isPaletteVisible: paletteCoordinator.isVisible,
-            isImporting: mediaImport.state.isImporting || adoption.active != nil, isRecording: dictation.isBusy)
+            isImporting: mediaImport.state.isImporting, isRecording: dictation.isBusy)
     }
 
     /// Whether a window may take focus without interrupting something the user started.

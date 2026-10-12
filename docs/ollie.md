@@ -9,15 +9,17 @@ Mailie is excluded.
 
 `AppCore` owns ClipboardCoordinator, DictationCoordinator, WindowSwitcherCoordinator,
 TypingSoundsCoordinator, MediaImportCoordinator, NotificationsCoordinator, NetworkCoordinator,
-LegacyApps, LegacyDataCoordinator, and CompactMenuController. The existing launcher and AI remain.
+and CompactMenuController. The existing launcher and AI remain.
 New capture and monitoring capabilities start disabled and cannot be enabled by a settings import.
 Each switch controls its service lifecycle; the shared HealthTicker recovers input monitors after
 permissions change. Synthetic input carries the host Paster marker so it cannot trigger sounds or
 another input handler. Dictation temporarily silences typing sounds and snippet expansion.
 
 The original shells, status items, app delegates, and settings windows were not imported. Native
-settings use the feature coordinator environments. Clipboard and media import retain their larger
-task windows; dictation retains its recording overlay. The compact menu has icon actions, live
+settings use the feature coordinator environments. Features is the default settings page and owns
+all master switches. Disabled feature panes and their search results are hidden; navigation history
+drops them and stale links return to Features. Launcher owns the Applications and Emoji panes.
+Clipboard and media import retain their larger task windows; dictation retains its recording overlay. The compact menu has icon actions, live
 recording/import state, notifications, network usage, and settings. Shortcut information lives in
 settings and tooltips, with no menu row dedicated to displaying a shortcut.
 
@@ -31,18 +33,19 @@ New files live beneath the bundle-specific Application Support directory: Clipbo
 MediaImport, Network, and the notification inbox. Dictation credentials and private notification
 topics live in bundle-specific Keychain services. Transcription requests use private ephemeral
 sessions with no URL cache. Retention and history operations keep recordings inside Ollie’s managed
-directory. History payloads and adopted data are written with owner-only permissions.
+directory. History payloads are written with owner-only permissions.
 
-Backup settings offer explicit per-app imports. Both the original app and its Ollie feature must
-be stopped. Imports stage and validate data before committing; existing nonempty history or orphan
-payloads are refused. Originals remain untouched. Clipboard content paths reject traversal and
-symlinks. Dictation copies recordings and rewrites their references. Network uses SQLite’s backup
-API so uncheckpointed WAL content is retained. Notification settings separately import saved topics.
+There is no standalone-app detection, coexistence gating, or old-app import UI. The requested local
+settings transfer was performed once outside the product, preserving original app preferences and
+backing up Ollie's previous preferences. It verified 34 settings, six dictation credentials and two
+notification topics. Settings and private topic names stay in Ollie's own stores; the old apps are
+not consulted during startup or operation. Original histories and media files were not moved.
+Clipboard content paths reject traversal and symlinks.
 Access flags, login-item registration, and provider credentials are not carried by settings.json.
 
 Dictation clipboard restoration requires both successful insertion verification and an unchanged
 clipboard change token. Starting another operation or disabling dictation cancels pending restoration.
-Shutdown waits for capture cancellation, queued history writes and active adoption. Failed history
+Shutdown waits for capture cancellation, queued history writes. Failed history
 flushes keep the app open instead of silently losing pending history.
 
 ## Scope and release

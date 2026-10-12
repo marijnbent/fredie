@@ -34,6 +34,15 @@ struct SettingsSearchEntry: Identifiable, Hashable, Sendable {
         self.keywords = keywords
     }
 
+    var feature: OllieFeature? {
+        if tab == .general {
+            if anchor == .generalGlobalShortcuts || anchor == .generalSearch { return .launcher }
+            let launcherRows: Set<String> = ["Pop to Root Search", "Escape Key Behavior", "Auto-switch input source", "Interface size", "Layout", "Tile style", "Follow the cursor across displays", "Drag to reposition"]
+            if launcherRows.contains(title) { return .launcher }
+        }
+        return tab.feature
+    }
+
     var anchor: SettingsAnchor? { target?.anchor }
 
     var id: String { "\(tab.title)/\(anchor?.title ?? "")/\(title)" }
@@ -60,7 +69,7 @@ enum SettingsSearchCatalog {
         var isEmpty: Bool { terms.isEmpty }
     }
 
-    static func results(for raw: String, limit: Int = 50) -> [SettingsSearchEntry] {
+    static func results(for raw: String, limit: Int = 50, available: Set<SettingsTab> = Set(SettingsTab.available)) -> [SettingsSearchEntry] {
         let query = Query(raw)
         guard !query.isEmpty else { return [] }
         // Catalog order is the tie-break, so results don't reshuffle between equal-scoring rows.
@@ -68,7 +77,9 @@ enum SettingsSearchCatalog {
             entries
             .enumerated()
             .compactMap { item -> (entry: SettingsSearchEntry, score: Int, rank: Int)? in
-                guard let score = score(query, item.element) else { return nil }
+                guard available.contains(item.element.tab),
+                      item.element.feature.map({ available.contains($0.settingsTab) }) ?? true,
+                      let score = score(query, item.element) else { return nil }
                 return (item.element, score, item.offset)
             }
             .sorted { $0.score != $1.score ? $0.score > $1.score : $0.rank < $1.rank }
@@ -108,7 +119,8 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + emoji + ai + permissions + backup + about
-        + [.init(pane: .shortcuts, keywords: ["keyboard", "hotkeys", "bindings"]),
+        + [.init(pane: .features, keywords: ["enable", "disable", "launcher", "clipboard", "snippets", "dictation", "window switcher", "AI", "typing sounds", "network", "notifications", "media import"]),
+           .init(pane: .shortcuts, keywords: ["keyboard", "hotkeys", "bindings"]),
            .init(pane: .dictation, keywords: ["talkie", "speech", "microphone", "transcription"]),
            .init(pane: .windowSwitcher, keywords: ["tabbie", "command tab", "windows"])]
         + [.init(pane: .clipboard, keywords: ["clippie", "history", "paste", "copy"]), .init(pane: .snippets, keywords: ["expand", "trigger", "text"]) ]
@@ -206,7 +218,6 @@ enum SettingsSearchCatalog {
     private static let ai: [SettingsSearchEntry] = [
         .init(
             pane: .ai, keywords: ["chat", "quick ai", "llm", "model", "openai", "anthropic"]),
-        .init(.aiAI, "Enable AI", keywords: ["chat", "llm"]),
         .init(
             .aiProviders, "Providers",
             keywords: [

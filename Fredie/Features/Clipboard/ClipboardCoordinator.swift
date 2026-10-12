@@ -28,12 +28,12 @@ final class ClipboardCoordinator: HealthCheckable {
         core.appIndex.setCommandsVisible([.clipboardHistory], core.settings.clipboardEnabled || core.settings.snippetsEnabled)
         store.historyLimit = ClipboardHistoryLimit(rawValue: core.settings.clipboardHistoryDays) ?? .defaultValue
         applyExpansion()
-        guard core.settings.clipboardEnabled, !core.legacyApps.isRunning(.clipboard), core.adoption.active != .clipboard else {
+        guard core.settings.clipboardEnabled else {
             watcher.stopWatching()
             return
         }
         load { [weak self] in
-            guard let self, core.settings.clipboardEnabled, !core.legacyApps.isRunning(.clipboard), core.adoption.active != .clipboard, store.isLoaded else { return }
+            guard let self, core.settings.clipboardEnabled, store.isLoaded else { return }
             watcher.startWatching()
         }
     }
@@ -53,10 +53,6 @@ final class ClipboardCoordinator: HealthCheckable {
 
     func show() {
         guard core.settings.clipboardEnabled || core.settings.snippetsEnabled else { return }
-        guard !core.legacyApps.isRunning(.clipboard), core.adoption.active != .clipboard else {
-            core.settingsCoordinator.showSettings(tab: .clipboard)
-            return
-        }
         if window?.window?.isVisible == true { window?.close(); return }
         if window == nil {
             window = HistoryWindowController(store: store, snippets: snippets) { [weak self] error in
@@ -68,8 +64,7 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     private func applyExpansion() {
-        guard core.settings.snippetsEnabled, !isCapturingShortcut, !isRecording,
-              !core.legacyApps.isRunning(.clipboard), core.adoption.active != .clipboard else {
+        guard core.settings.snippetsEnabled, !isCapturingShortcut, !isRecording else {
             expansion.stop()
             ticker.unsubscribe(self)
             snippetsRunning = false
@@ -97,11 +92,6 @@ final class ClipboardCoordinator: HealthCheckable {
         await watcher.finishPendingProcessing()
         guard store.isLoaded else { return true }
         return await store.flush()
-    }
-
-    func reloadAdoptedData() async {
-        await store.load()
-        snippets.load()
     }
 
     func clearHistory(largeFilesOnly: Bool = false) async {

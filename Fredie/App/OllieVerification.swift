@@ -23,6 +23,7 @@ import SwiftUI
         core.settings.snippetsEnabled = true
         core.settings.dictationEnabled = true
         core.settings.windowSwitcherEnabled = true
+        core.settings.typingSoundsEnabled = true
         core.settings.aiEnabled = true
         core.settings.mediaImportEnabled = true
         core.settings.networkEnabled = true

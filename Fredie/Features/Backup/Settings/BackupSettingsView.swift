@@ -45,7 +45,6 @@ struct BackupSettingsView: View {
 
     var body: some View {
         Form {
-            LegacyDataSection()
             Section {
                 LabeledContent {
                     if exporting {
