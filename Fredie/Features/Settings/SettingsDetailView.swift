@@ -10,6 +10,7 @@ struct SettingsDetailView: View {
             switch navigation.tab {
             case .general: GeneralSettingsView()
             case .applications: ApplicationsSettingsView()
+            case .emoji: EmojiSettingsView()
             case .ai: AISettingsView()
             case .permissions: PermissionsSettingsView()
             case .backup: BackupSettingsView()

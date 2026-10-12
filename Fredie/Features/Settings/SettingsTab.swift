@@ -2,7 +2,7 @@ enum SettingsTab: CaseIterable, Identifiable {
     case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         ai, quickActions, extensions, permissions, backup, about
-    static let available: [Self] = [.general, .applications, .ai, .permissions, .backup, .about]
+    static let available: [Self] = [.general, .applications, .emoji, .ai, .permissions, .backup, .about]
 
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
@@ -71,7 +71,7 @@ enum SettingsSection: CaseIterable, Identifiable {
 
     var tabs: [SettingsTab] {
         switch self {
-        case .app: [.general, .applications, .ai]
+        case .app: [.general, .applications, .emoji, .ai]
         case .advanced: [.permissions, .backup, .about]
         }
     }

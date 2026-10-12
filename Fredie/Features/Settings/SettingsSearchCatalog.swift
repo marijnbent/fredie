@@ -107,7 +107,7 @@ enum SettingsSearchCatalog {
     // Pane order, then section order within a pane, so this reads as a table of contents.
 
     static let entries: [SettingsSearchEntry] =
-        general + applications + ai + permissions + backup + about
+        general + applications + emoji + ai + permissions + backup + about
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
@@ -178,6 +178,21 @@ enum SettingsSearchCatalog {
         .init(
             group: .applicationsApplications, "Aliases and shortcuts",
             keywords: ["alias", "hotkey", "per app", "hide"])
+    ]
+
+    private static let emoji: [SettingsSearchEntry] = [
+        .init(
+            pane: .emoji,
+            keywords: ["picker", "character", "unicode", "smiley"]),
+        .init(
+            group: .emojiCommands, "Emoji commands",
+            keywords: ["shortcut", "hotkey", "launcher", "picker"]),
+        .init(
+            .emojiAppearance, "Emoji Skin Tone",
+            keywords: ["colour", "color", "fitzpatrick", "default"]),
+        .init(
+            .emojiAppearance, "Column Count",
+            keywords: ["columns", "density", "zoom", "six", "eight", "ten"])
     ]
 
     private static let ai: [SettingsSearchEntry] = [

@@ -39,8 +39,8 @@ struct SettingsHistoryTests {
     }
 
     static func unsupportedPanesCannotOpen() {
-        expect(SettingsTab.available == [.general, .applications, .ai, .permissions, .backup, .about],
-            "Settings offers apps, AI and their supporting panes")
+        expect(SettingsTab.available == [.general, .applications, .emoji, .ai, .permissions, .backup, .about],
+            "Settings offers apps, emoji, AI and their supporting panes")
         let navigation = SettingsNavigationState(tab: .general)
         for tab in SettingsTab.allCases where !SettingsTab.available.contains(tab) {
             navigation.select(tab)
@@ -166,6 +166,9 @@ struct SettingsHistoryTests {
             ("tile style", .general),
             ("search scopes", .applications),
             ("accessibility", .permissions),
+            ("emoji", .emoji),
+            ("skin tone", .emoji),
+            ("column count", .emoji),
             ("mcp", .ai)
         ]
         for (query, tab) in cases {

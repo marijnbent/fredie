@@ -1,6 +1,9 @@
 # Emoji picker
 
-A palette sub-screen (reached like Clipboard / Calculator History) presenting a searchable emoji grid.
+A palette sub-screen presenting a searchable emoji grid. Search for “emoji” or “symbols” in the
+compact launcher and open Search Emoji & Symbols, or assign its shortcut in Settings → Emoji & Symbols.
+The command can be pinned in the launcher. Its Settings pane also controls its alias, launcher visibility,
+default skin tone and grid density.
 
 ## Invariants
 

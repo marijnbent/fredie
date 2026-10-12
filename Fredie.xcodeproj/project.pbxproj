@@ -426,6 +426,7 @@
 		99F37070F479A8530165E711 /* Zlib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C9200082298E2402FA0895 /* Zlib.swift */; };
 		99FD2C677737BD4380393FBD /* NotificationToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC7C9D7C8B0465271252AF5 /* NotificationToken.swift */; };
 		9A50A926995D501762C077C9 /* CalcNumberFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7B290BFCBE919ADFBCDDAC /* CalcNumberFormat.swift */; };
+		9AB21D28C76BD49835804ED2 /* EmojiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176D3665F611FF36C2FE03E9 /* EmojiSettingsView.swift */; };
 		9AD45249C2AF8087A95F85FF /* ProcessExit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AD8A81C323482990396F0C /* ProcessExit.swift */; };
 		9AFF89779DF62BB513E0B032 /* ExtensionManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A9B2963FDCD633AAA0ECC1 /* ExtensionManifest.swift */; };
 		9B3A7A2BD0B84140718F81C7 /* BackupCategorySelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED77C084EBF11B19B90E1CB /* BackupCategorySelection.swift */; };
@@ -780,6 +781,7 @@
 		15E75E995A750F55A4E2711A /* SelectionReveal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionReveal.swift; sourceTree = "<group>"; };
 		16BEE67F3DB86C3D8EE810D9 /* ExtensionHostBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionHostBridge.swift; sourceTree = "<group>"; };
 		16C65505CC5306E3DD070307 /* DictionaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryService.swift; sourceTree = "<group>"; };
+		176D3665F611FF36C2FE03E9 /* EmojiSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiSettingsView.swift; sourceTree = "<group>"; };
 		18A1050D0FE72E9A168B52C1 /* QuickActionPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionPrompt.swift; sourceTree = "<group>"; };
 		18EB5021989C0F1012E4157F /* UninstallScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UninstallScanner.swift; sourceTree = "<group>"; };
 		18FA7CB43FC7CFE83514A229 /* InjectableTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjectableTextView.swift; sourceTree = "<group>"; };
@@ -1880,6 +1882,7 @@
 			children = (
 				4C36AC8D0024E6517884A6C9 /* Model */,
 				4A794371DADD7287150F9757 /* Service */,
+				CE834CDDB8A466828E92194E /* Settings */,
 				F7F9CFDB239E3C175ECAB675 /* UI */,
 			);
 			path = Emoji;
@@ -2706,6 +2709,14 @@
 			path = Fredie;
 			sourceTree = "<group>";
 		};
+		CE834CDDB8A466828E92194E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				176D3665F611FF36C2FE03E9 /* EmojiSettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		D176E162D99CD96BF2293B6E /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
@@ -3403,6 +3414,7 @@
 				AE618E70E2F3774BB93F0A42 /* EmojiGridView.swift in Sources */,
 				E33638C4578443A22CDFAB66 /* EmojiIndex.swift in Sources */,
 				C8F9A25D6C9FC6A7BD31B64A /* EmojiScreen.swift in Sources */,
+				9AB21D28C76BD49835804ED2 /* EmojiSettingsView.swift in Sources */,
 				E3860694A131EA42316BEC36 /* EmptyResults.swift in Sources */,
 				548CDE2D23C0E6457C320865 /* EntryIconView.swift in Sources */,
 				8DE03BB5C2E47A5EAB510C7A /* EntryNaming.swift in Sources */,
@@ -3974,7 +3986,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4042,7 +4054,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

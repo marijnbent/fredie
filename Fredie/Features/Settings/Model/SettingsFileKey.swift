@@ -94,7 +94,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case extensionsShowInLauncher = "extensions.showInLauncher"
 
     static let available = allCases.filter {
-        ["general", "appearance", "hyperKey", "search", "applications", "ai"].contains($0.section)
+        ["general", "appearance", "hyperKey", "search", "applications", "emoji", "ai"].contains($0.section)
     }
 
     /// The top-level object the key sits in.

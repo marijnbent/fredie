@@ -1,6 +1,6 @@
 # Settings file
 
-Fredie syncs only General, Appearance, Hyper Key, Search, Applications and AI settings.
+Fredie syncs only General, Appearance, Hyper Key, Search, Applications, Emoji and AI settings.
 Legacy feature keys are no longer bound, exported or applied by the live settings-file schema.
 
 An opt-in mirror of Fredie's preferences, the launcher's items and all of window management in

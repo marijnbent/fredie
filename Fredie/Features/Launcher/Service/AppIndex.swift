@@ -660,7 +660,8 @@ final class AppIndex {
             minute: Int(usage.now.timeIntervalSince1970 / 60))
         return appResultsMemo.value(for: key) {
             let isIncluded = { (entry: AppEntry) in
-                entry.kind == .application && visibility.isVisible(entry)
+                (entry.kind == .application || CommandCatalog.command(for: entry) == .searchEmoji)
+                    && visibility.isVisible(entry)
             }
             let signals = { (entry: AppEntry) in self.signals(for: entry, usage: usage) }
             guard q.isEmpty else {

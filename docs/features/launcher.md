@@ -8,10 +8,11 @@ earliest scope wins; within one folder, the newest `CFBundleShortVersionString` 
 - **`AppEntry.Kind` is the only thing that says what an entry is.** One case per launcher section, per
   `VisibilityStore` category and per Settings pane — never re-derive a category by sniffing an entry ID.
   A new category means a new case and a slice in `AppIndex.publishEntries()`, in that order.
-- **Root search lists applications only, filtered before the limit.** `AppIndex.appResults` hands
-  `LauncherAppResults` only visible, deduplicated `.application` entries, and ranking applies its
-  limit after that, so no other kind can push a matching app off the list. `launcher-apps-test`
-  covers it, along with the pinned order, the most-used fallback and the grid's arrow keys.
+- **Root search lists applications and Search Emoji & Symbols, filtered before the limit.**
+  `AppIndex.appResults` hands `LauncherAppResults` visible, deduplicated applications and the emoji
+  command. Both participate in search, pins and the most-used fallback; other commands stay excluded.
+  `launcher-apps-test` covers filtering before the limit, pinned order, the most-used fallback and
+  the grid's arrow keys.
 - **A category's switch is a master switch, not a list filter.** `VisibilityStore.isKindEnabled` gates
   `appResults` *and* `HotKeyManager.perform`, so `Enable Applications` off stops the per-app chords
   as well as the rows. Its Settings switch stays available while the application
@@ -252,7 +253,7 @@ by the title's own score, then by name. The subtitle does not name the entry, so
 
 ### Category search
 
-**Root search does not offer this today**: it lists applications only (see
+**Root search does not offer this today**: it lists applications and the emoji picker command (see
 [The empty list](#the-empty-list)). `categoryListing` remains available to Settings search; the mixed launcher result path is removed.
 
 A query that *equals* a category's own name lists that whole category under its section header, in the
@@ -269,7 +270,7 @@ listing, so the app appears under Applications above the panes. Since slice orde
 does, and the sectioned view stays 1:1 with the flat selection. Visibility still applies downstream,
 and no `limit` does, matching the empty query.
 
-The root app-only list does not use category listings or section headers.
+The root launcher grid does not use category listings or section headers.
 
 ### Contextual commands
 

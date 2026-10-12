@@ -17,6 +17,9 @@ extension SettingsAnchor {
     static let applicationsSearchScopes = Self(tab: .applications, title: "Search Scopes")
     static let applicationsApplications = Self(tab: .applications, title: "Applications")
 
+    static let emojiCommands = Self(tab: .emoji, title: "Commands")
+    static let emojiAppearance = Self(tab: .emoji, title: "Appearance")
+
     static let aiAI = Self(tab: .ai, title: "AI")
     static let aiProviders = Self(tab: .ai, title: "Providers")
     static let aiDefault = Self(tab: .ai, title: "Default")

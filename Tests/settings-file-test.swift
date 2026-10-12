@@ -33,6 +33,9 @@ struct SettingsFileTest {
                 || key.section.isEmpty || key.name.isEmpty
         }
         check("every key is one section and one name", malformed.isEmpty)
+        check(
+            "emoji preferences and command controls are mirrored",
+            Set(SettingsFileKey.available).isSuperset(of: [.emojiSkinTone, .emojiGridColumns, .emojiCommands]))
 
         var closed: Set<String> = []
         var current: String?
