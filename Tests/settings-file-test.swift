@@ -49,17 +49,18 @@ struct SettingsFileTest {
         check(
             "sections follow the Settings sidebar",
             SettingsFileKey.sections == [
-                "general", "appearance", "hyperKey", "calculator", "search", "applications",
+                "dictation", "mediaImport", "windowSwitcher", "clipboard", "general", "appearance", "hyperKey", "calculator", "search", "applications",
                 "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts", "ai",
                 "quickActions", "fileSearch", "notes", "navigation",
-                "windowManagement", "emoji", "calendar", "extensions"
+                "windowManagement", "emoji", "calendar", "extensions", "sounds"
             ])
 
         // A file that could switch one of these on would grant what only the app may ask for.
         let grantPaths = [
             "extensions.enabled", "calendar.enabled",
             "calendar.autoJoinMeetings", "calendar.cameraPreview", "quickActions.enabled",
-            "ai.mcpEnabled", "mcp.enabled"
+            "ai.mcpEnabled", "mcp.enabled", "sounds.typingSoundsEnabled", "network.enabled",
+            "notifications.enabled", "mediaImport.enabled"
         ]
         check(
             "no capability grant has a settings.json key",

@@ -3,6 +3,33 @@ import Foundation
 /// Every key settings.json holds, in the order the file lists them; the raw value is its path.
 enum SettingsFileKey: String, CaseIterable, Sendable {
     // Spelled out, so renaming a case can never rename a key in someone's file.
+    case dictationTranscriptionProvider = "dictation.transcriptionProvider"
+    case dictationShortcuts = "dictation.shortcuts"
+    case dictationPrompts = "dictation.prompts"
+    case dictationEscToCancelRecording = "dictation.escToCancelRecording"
+    case dictationPlaySoundEffects = "dictation.playSoundEffects"
+    case dictationMuteMediaDuringRecording = "dictation.muteMediaDuringRecording"
+    case dictationRestoreClipboardAfterPaste = "dictation.restoreClipboardAfterPaste"
+    case dictationShowLanguageInRecorderWidget = "dictation.showLanguageInRecorderWidget"
+    case dictationShowLiveTranscriptInRecorderWidget = "dictation.showLiveTranscriptInRecorderWidget"
+    case dictationOverlayPosition = "dictation.overlayPosition"
+    case dictationDeepgramLanguage = "dictation.deepgramLanguage"
+    case dictationAutomaticLanguageCandidates = "dictation.automaticLanguageCandidates"
+    case dictationStarredDeepgramLanguages = "dictation.starredDeepgramLanguages"
+    case dictationHistoryLimit = "dictation.historyLimit"
+    case dictationAppTranscriptionLanguageOverrides = "dictation.appTranscriptionLanguageOverrides"
+    case dictationAudioInput = "dictation.audioInput"
+    case mediaImportOpenOnDetection = "mediaImport.openOnDetection"
+    case switcherCommandTab = "windowSwitcher.commandTab"
+    case switcherCommandBacktick = "windowSwitcher.commandBacktick"
+    case switcherWindowSource = "windowSwitcher.windowSource"
+    case switcherMinimizedMode = "windowSwitcher.minimized"
+    case switcherHiddenMode = "windowSwitcher.hidden"
+    case switcherAppsWithoutWindowsMode = "windowSwitcher.appsWithoutWindows"
+    case switcherImmediatePreview = "windowSwitcher.immediatePreview"
+    case switcherDiagnostics = "windowSwitcher.diagnostics"
+    case clipboardHistoryDays = "clipboard.historyDays"
+    case launcherEnabled = "general.launcherEnabled"
     case launcherShortcut = "general.launcherShortcut"
     case showInMenuBar = "general.showInMenuBar"
     case automaticallyCheckForUpdates = "general.automaticallyCheckForUpdates"
@@ -93,8 +120,15 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case calendarCommands = "calendar.commands"
     case extensionsShowInLauncher = "extensions.showInLauncher"
 
+    case typingSoundProfile = "sounds.typingSoundProfile"
+    case typingSoundVolume = "sounds.typingSoundVolume"
+    case typingSoundDownVolume = "sounds.typingSoundDownVolume"
+    case typingSoundUpVolume = "sounds.typingSoundUpVolume"
+    case typingMouseEnabled = "sounds.typingMouseEnabled"
+    case typingMouseVolume = "sounds.typingMouseVolume"
+
     static let available = allCases.filter {
-        ["general", "appearance", "hyperKey", "search", "applications", "emoji", "ai"].contains($0.section)
+        ["mediaImport", "dictation", "clipboard", "windowSwitcher", "sounds", "general", "appearance", "hyperKey", "search", "applications", "emoji", "ai"].contains($0.section)
     }
 
     /// The top-level object the key sits in.

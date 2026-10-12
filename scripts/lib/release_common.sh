@@ -2,8 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-APP_BUNDLE="$ROOT_DIR/build/Release/Fredie.app"
-INSTALLED_BUNDLE="/Applications/Fredie.app"
+APP_BUNDLE="$ROOT_DIR/build/Release/Ollie.app"
+INSTALLED_BUNDLE="/Applications/Ollie.app"
+LEGACY_BUNDLE="/Applications/Fredie.app"
 SIGNING_IDENTITY="$(/usr/libexec/PlistBuddy -c 'Print :SigningIdentity' "$ROOT_DIR/release/Release.plist")"
 
 release::fail() {
@@ -12,16 +13,18 @@ release::fail() {
 }
 
 release::quit_running_app() {
-    local path attempt
-    for path in "$INSTALLED_BUNDLE" "$APP_BUNDLE"; do
-        if pgrep -f "^$path/Contents/MacOS/Fredie( |$)" >/dev/null; then
+    local path attempt executable
+    for path in "$INSTALLED_BUNDLE" "$APP_BUNDLE" "$LEGACY_BUNDLE"; do
+        [[ -d "$path" ]] || continue
+        executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$path/Contents/Info.plist")"
+        if pgrep -f "^$path/Contents/MacOS/$executable( |$)" >/dev/null; then
             osascript -e "tell application \"$path\" to quit" || release::fail "Could not quit $path"
             for attempt in {1..20}; do
-                pgrep -f "^$path/Contents/MacOS/Fredie( |$)" >/dev/null || break
+                pgrep -f "^$path/Contents/MacOS/$executable( |$)" >/dev/null || break
                 sleep 0.25
             done
-            if pgrep -f "^$path/Contents/MacOS/Fredie( |$)" >/dev/null; then
-                release::fail "Fredie is still open. Close its dialogs and quit before installing."
+            if pgrep -f "^$path/Contents/MacOS/$executable( |$)" >/dev/null; then
+                release::fail "The app is still open. Close its dialogs and quit before installing."
             fi
         fi
     done
@@ -56,18 +59,30 @@ release::install_bundle() {
     release::verify_bundle "$APP_BUNDLE"
     stage="$(mktemp -d /Applications/.fredie-install.XXXXXX)"
     trap 'rm -rf "$stage"' RETURN
-    ditto "$APP_BUNDLE" "$stage/Fredie.app"
-    release::verify_bundle "$stage/Fredie.app"
+    ditto "$APP_BUNDLE" "$stage/Ollie.app"
+    release::verify_bundle "$stage/Ollie.app"
     release::quit_running_app
     if [[ -e "$INSTALLED_BUNDLE" ]]; then
         mv "$INSTALLED_BUNDLE" "$stage/Previous.app"
     fi
-    if ! mv "$stage/Fredie.app" "$INSTALLED_BUNDLE"; then
+    if ! mv "$stage/Ollie.app" "$INSTALLED_BUNDLE"; then
         if [[ -d "$stage/Previous.app" ]]; then
             mv "$stage/Previous.app" "$INSTALLED_BUNDLE"
         fi
-        release::fail "Could not install Fredie."
+        release::fail "Could not install Ollie."
     fi
-    open "$INSTALLED_BUNDLE"
+    if [[ -e "$LEGACY_BUNDLE" ]]; then
+        mv "$LEGACY_BUNDLE" "$stage/PreviousFredie.app"
+    fi
+    if ! open "$INSTALLED_BUNDLE"; then
+        mv "$INSTALLED_BUNDLE" "$stage/FailedOllie.app"
+        if [[ -d "$stage/Previous.app" ]]; then
+            mv "$stage/Previous.app" "$INSTALLED_BUNDLE"
+        fi
+        if [[ -d "$stage/PreviousFredie.app" ]]; then
+            mv "$stage/PreviousFredie.app" "$LEGACY_BUNDLE"
+        fi
+        release::fail "Ollie could not open; restored the previous installation."
+    fi
     printf '[release] Installed and opened %s\n' "$INSTALLED_BUNDLE"
 }

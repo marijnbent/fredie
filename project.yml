@@ -9,7 +9,7 @@ options:
 settings:
   base:
     MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "9"
+    CURRENT_PROJECT_VERSION: "10"
     SWIFT_VERSION: "6.0"
     DEVELOPMENT_TEAM: "X44F5HTS6P"
     CODE_SIGN_STYLE: Manual
@@ -44,6 +44,7 @@ targets:
         buildPhase: resources
     settings:
       base:
+        PRODUCT_NAME: Ollie
         PRODUCT_BUNDLE_IDENTIFIER: "$(FREDIE_BUNDLE_IDENTIFIER)"
         INFOPLIST_FILE: Fredie/Info.plist
         CODE_SIGN_ENTITLEMENTS: Fredie/Fredie.entitlements
@@ -54,4 +55,4 @@ targets:
           - "@executable_path/../Frameworks"
       configs:
         Debug:
-          PRODUCT_NAME: Fredie Dev
+          PRODUCT_NAME: Ollie Dev

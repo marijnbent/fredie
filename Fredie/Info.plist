@@ -39,7 +39,7 @@
 			<key>UTTypeIdentifier</key>
 			<string>nl.bentjes.fredie.backup</string>
 			<key>UTTypeDescription</key>
-			<string>Fredie Backup</string>
+			<string>Ollie Backup</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.data</string>
@@ -61,16 +61,26 @@
 	<key>NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Fredie uses automation to perform system actions you explicitly run.</string>
+	<string>Ollie uses automation to perform system actions you explicitly run.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Fredie shows a camera preview so you can check yourself, and take a photo to the clipboard.</string>
+	<string>Ollie previews your camera and imports media from connected cameras.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Fredie reads today's and tomorrow's events so you can join a meeting from the palette.</string>
+	<string>Ollie reads today's and tomorrow's events so you can join a meeting from the palette.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>Fredie lets extensions you run read and edit your reminders.</string>
+	<string>Ollie lets extensions you run read and edit your reminders.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Fredie uses Bluetooth access only when you run the Toggle Bluetooth action.</string>
+	<string>Ollie uses Bluetooth access only when you run the Toggle Bluetooth action.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Fredie</string>
+	<string>Ollie</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ollie records your voice for dictation.</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>Ollie imports media from memory cards and removable drives.</string>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>Ollie uses keyboard input for shortcuts, window switching and typing sounds.</string>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>Ollie switches windows, expands snippets and pastes dictated text.</string>
+	<key>OllieUnifiedApp</key>
+	<true/>
 </dict>
 </plist>

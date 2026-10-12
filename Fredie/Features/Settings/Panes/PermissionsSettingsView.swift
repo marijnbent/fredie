@@ -1,9 +1,11 @@
-import Combine
+import AppKit
 import SwiftUI
 
 struct PermissionsSettingsView: View {
     @State private var accessibilityTrusted = Permissions.isAccessibilityTrusted()
-    private let refreshTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @Environment(DictationCoordinator.self) private var dictation
+    @State private var inputMonitoring = CGPreflightListenEventAccess()
+    @State private var screenRecording = CGPreflightScreenCaptureAccess()
 
     var body: some View {
         Form {
@@ -29,7 +31,7 @@ struct PermissionsSettingsView: View {
                         )
                         VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                             SettingsRowTitle(.permissionsAccessibility, "Accessibility")
-                            Text("Enables Hyper Key and pasting AI responses.")
+                            Text("Window switching, snippet expansion, Hyper Key, and pasting.")
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -38,11 +40,34 @@ struct PermissionsSettingsView: View {
                 SettingsSectionHeader(.permissionsAccessibility)
             }
 
+            Section("Microphone") {
+                LabeledContent("Dictation", value: dictation.permissions.microphonePermission.rawValue)
+                Button("Grant Access…") { dictation.permissions.requestMicrophonePermission() }
+            }
+            Section("Input Monitoring") {
+                LabeledContent("Typing sounds and window switching", value: inputMonitoring ? "Granted" : "Not granted")
+                Button("Open Settings…") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") { NSWorkspace.shared.open(url) }
+                }
+            }
+            Section("Screen Recording") {
+                LabeledContent("Window previews", value: screenRecording ? "Granted" : "Not granted")
+                Button("Open Settings…") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") { NSWorkspace.shared.open(url) }
+                }
+            }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.permissions)
-        .onAppear(perform: refresh)
-        .onReceive(refreshTimer) { _ in refresh() }
+        .task {
+            while !Task.isCancelled {
+                refresh()
+                dictation.permissions.refreshPermissions()
+                inputMonitoring = CGPreflightListenEventAccess()
+                screenRecording = CGPreflightScreenCaptureAccess()
+                do { try await Task.sleep(for: .seconds(2)) } catch { return }
+            }
+        }
     }
 
     private var accessibilityStatus: (title: String, symbol: String, tint: Color) {

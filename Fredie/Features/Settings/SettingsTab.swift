@@ -1,14 +1,23 @@
 enum SettingsTab: CaseIterable, Identifiable {
-    case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
+    case shortcuts, dictation, windowSwitcher, clipboard, snippets, mediaImport, notifications, network, typingSounds, general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         ai, quickActions, extensions, permissions, backup, about
-    static let available: [Self] = [.general, .applications, .emoji, .ai, .permissions, .backup, .about]
+    static let available: [Self] = [.general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about]
 
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .shortcuts: return "Shortcuts"
+        case .dictation: return "Dictation"
+        case .windowSwitcher: return "Window Switcher"
+        case .clipboard: return "Clipboard"
+        case .snippets: return "Snippets"
+        case .mediaImport: return "Media Import"
+        case .notifications: return "Notifications"
+        case .network: return "Network"
+        case .typingSounds: return "Typing Sounds"
         case .general: return "General"
         case .applications: return "Applications"
         case .systemSettings: return "System Settings"
@@ -34,6 +43,15 @@ enum SettingsTab: CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .shortcuts: return "keyboard"
+        case .dictation: return "mic"
+        case .windowSwitcher: return "rectangle.on.rectangle"
+        case .clipboard: return "clipboard"
+        case .snippets: return "text.badge.plus"
+        case .mediaImport: return "externaldrive.badge.plus"
+        case .notifications: return "bell"
+        case .network: return "network"
+        case .typingSounds: return "speaker.wave.2"
         case .general: return "switch.2"
         case .applications: return "square.grid.2x2"
         case .systemSettings: return "gearshape"
@@ -64,14 +82,14 @@ enum SettingsSection: CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .app: "Fredie"
+        case .app: "Ollie"
         case .advanced: "Advanced"
         }
     }
 
     var tabs: [SettingsTab] {
         switch self {
-        case .app: [.general, .applications, .emoji, .ai]
+        case .app: [.general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport]
         case .advanced: [.permissions, .backup, .about]
         }
     }

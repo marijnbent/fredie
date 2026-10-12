@@ -18,17 +18,17 @@ enum UpdateFailure: LocalizedError, Equatable {
         case .extractFailed(let detail):
             return "The downloaded archive could not be expanded. \(detail)"
         case .noAppInArchive:
-            return "The downloaded archive does not contain Fredie."
+            return "The downloaded archive does not contain Ollie."
         case .quarantined:
-            return "macOS quarantined the downloaded app and Fredie could not clear the flag."
+            return "macOS quarantined the downloaded app and Ollie could not clear the flag."
         case .bundleMismatch:
-            return "The downloaded app is not this build of Fredie."
+            return "The downloaded app is not this build of Ollie."
         case .identityMismatch:
             return "The downloaded app is not signed by the identity this copy was signed with."
         case .versionMismatch(let expected, let found):
             return "The downloaded app is version \(found), not \(expected)."
         case .replaceFailed(let detail):
-            return "Fredie could not be replaced. \(detail)"
+            return "Ollie could not be replaced. \(detail)"
         }
     }
 

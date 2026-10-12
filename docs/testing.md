@@ -1,6 +1,6 @@
 # Testing and verification
 
-How to check that a change holds up. Fredie has no XCTest target and no UI tests: the automated half
+How to check that a change holds up. Ollie has no XCTest target: the automated half
 is a set of standalone harnesses, and the manual half is the sweep at the bottom of this file.
 
 ## Definition of done
@@ -658,3 +658,18 @@ tccutil reset Accessibility nl.bentjes.fredie.dev 2>/dev/null || true
 - Quit and relaunch: everything created above persisted
 - Nothing was written outside `nl.bentjes.fredie.dev/`. Channel isolation is not negotiable — a Dev build
   writing into the stable app's directory is a defect even though the data is disposable
+
+## Ollie integration
+
+The `ollie-*-test` harnesses exercise imported services, clipboard storage, serialized AX work,
+recording cancellation and reconnect, verified paste restoration, and staged data adoption with
+synthetic files and fake providers. No live transcription API key is needed.
+
+A Debug-only offscreen view harness requires the dedicated bundle identity
+`nl.bentjes.ollie.verification` and the `--verify-ollie-ui` argument. It mounts every available native
+settings pane and captures the compact menu in both appearances to `/tmp/ollie-native-verify`.
+Native Form controls are composited separately and do not appear reliably in offscreen PNGs; those
+images prove mounting, not settings visual quality. Build it with
+`PRODUCT_BUNDLE_IDENTIFIER=nl.bentjes.ollie.verification PRODUCT_NAME='Ollie Verification'`.
+It does not start capture services or use the installed app’s data. These layout renders do not
+replace testing permission prompts, real microphone capture, or actual cross-app input.

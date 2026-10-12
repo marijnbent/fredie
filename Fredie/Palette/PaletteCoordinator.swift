@@ -84,6 +84,7 @@ final class PaletteCoordinator {
     func showPalette(
         mode: PaletteMode, restoreAnyMode: Bool = false, seeding query: String? = nil
     ) {
+        guard mode != .launcher || settings.launcherEnabled else { return }
         let preserved = windowController.consumePreservedState()
         let restoring = preserved && (restoreAnyMode || palette.mode == mode)
         // Resetting a screen the pop to root already reset would only re-render the whole palette.

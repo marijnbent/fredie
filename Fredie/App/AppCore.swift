@@ -18,6 +18,15 @@ final class AppCore {
         fileURL: AppPaths.applicationSupport().appendingPathComponent("room-parking.json"))
     let roomSession = RoomSession()
     let textInjector: TextInjector
+    @ObservationIgnored private(set) lazy var compactMenu = CompactMenuController(core: self)
+    @ObservationIgnored private(set) lazy var typingSounds = TypingSoundsCoordinator(settings: settings, ticker: healthTicker)
+    @ObservationIgnored private(set) lazy var notifications = NotificationsCoordinator(settings: settings)
+    @ObservationIgnored private(set) lazy var mediaImport = MediaImportCoordinator(core: self)
+    @ObservationIgnored private(set) lazy var clipboard = ClipboardCoordinator(core: self, ticker: healthTicker)
+    @ObservationIgnored private(set) lazy var windowSwitcher = WindowSwitcherCoordinator(core: self, ticker: healthTicker)
+    @ObservationIgnored private(set) lazy var dictation = DictationCoordinator(core: self, ticker: healthTicker)
+    let legacyApps = LegacyApps()
+    let network = NetworkCoordinator()
     let hotKeys = HotKeyManager()
     let hyperKeyTap = HyperKeyTap()
     let windowMover = WindowMover()
@@ -206,6 +215,7 @@ final class AppCore {
             isShowingDialog = isPresenting
         })
     private let healthTicker = HealthTicker()
+    @ObservationIgnored private var launcherRefreshTask: Task<Void, Never>?
 
     private init() {
         let launcherRanking = LauncherRankingStore()
@@ -233,7 +243,18 @@ final class AppCore {
             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
             NSApp.setActivationPolicy(.accessory)
+            if let error = LaunchAtLogin.refreshRegistrationAfterMove() { showMessage(error, tone: .danger) }
+            settings.launchAtLogin = LaunchAtLogin.isEnabled
             applyAppearance()
+            compactMenu.applyVisibility()
+            legacyApps.start()
+            typingSounds.canRun = { [weak self] in self?.legacyApps.isRunning(.typingSounds) == false }
+            notifications.canRun = { [weak self] in self?.legacyApps.isRunning(.notifications) == false }
+            clipboard.apply()
+            typingSounds.apply()
+            mediaImport.apply()
+            notifications.apply()
+            applyNetworkEnabled()
             observeEffectiveAppearance()
             pinnedEmoji.onPersistenceFailure = { [weak self] in
                 self?.showMessage("Couldn't save Emoji & Symbols pins", tone: .danger)
@@ -299,9 +320,7 @@ final class AppCore {
             }
             updateCoordinator.applyEnabled()
             calendarCoordinator.applyEnabled()
-            Task { await appIndex.refresh() }
             Task { await emojiIndex.load(languages: Locale.preferredLanguages) }
-            currencyRates.start()
             updateChecker.onUpdateAvailable = { [weak self] release in
                 self?.updateCoordinator.presentIfAvailable(release) ?? true
             }
@@ -355,9 +374,19 @@ final class AppCore {
                     reportSettingsFileIssues(launcherSettingsFile.applyInstalled())
                 }
             }
+            hotKeys.reservedBindingOwner = { [weak self] binding in
+                guard let self else { return nil }
+                if dictation.reservedBindings.contains(where: { $0.conflicts(with: binding) }) { return "Dictation" }
+                return windowSwitcher.reservedBindings.contains(where: { $0.conflicts(with: binding) }) ? "Window Switcher" : nil
+            }
             hotKeys.displayName = { [weak self] action in self?.hotKeyDisplayName(for: action) }
             hotKeys.allowsAction = { [weak self] action in
                 guard let self, visibility.allowsHotKey(action) else { return false }
+                if action == .togglePalette { return settings.launcherEnabled }
+                if action == .command(.clipboardHistory) {
+                    return (settings.clipboardEnabled || settings.snippetsEnabled)
+                        && !legacyApps.isRunning(.clipboard) && adoption.active != .clipboard
+                }
                 // A disabled feature drops its commands from the launcher; their shortcuts go too.
                 guard case .command(let id) = action else { return true }
                 return appIndex.isCommandEnabled(id)
@@ -378,6 +407,9 @@ final class AppCore {
                 quickActionIDs: Set(customQuickActions.actions.map(\.id)))
             // Keeps running while Carbon pauses: the recorder needs its rewritten flags.
             hyperKeyTap.start(settings: settings)
+            applyLauncherEnabled()
+            windowSwitcher.apply()
+            dictation.apply()
 
             observeFeatureSwitches()
 
@@ -397,7 +429,11 @@ final class AppCore {
         if updateCoordinator.focusExisting() { return }
         if supportCoordinator.focusExisting() { return }
         if customCommandCoordinator.focusOutputWindow() { return }
-        paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
+        if settings.launcherEnabled {
+            paletteCoordinator.showPalette(mode: .launcher, restoreAnyMode: true)
+        } else {
+            settingsCoordinator.showSettings()
+        }
     }
 
     func handleOpenURL(_ url: URL) {
@@ -448,11 +484,33 @@ final class AppCore {
         }
     }
 
-    func flushNotesForTermination() async {
+    func flushNotesForTermination() async -> Bool {
+        await adoption.finish()
+        let dictationSaved = await dictation.prepareForTermination()
+        let clipboardSaved = await clipboard.prepareForTermination()
+        await notifications.stop()
         await notesCoordinator.prepareForTermination()
+        guard dictationSaved && clipboardSaved else {
+            dictation.apply()
+            clipboard.apply()
+            notifications.apply()
+            await showNotice(title: "History could not be saved", message: "Ollie is still open. Free up disk space or check folder permissions, then try quitting again.", symbol: "exclamationmark.triangle", tone: .danger)
+            return false
+        }
+        return true
     }
 
     func prepareForTermination() {
+        compactMenu.stop()
+        dictation.stop()
+        windowSwitcher.stop()
+        clipboard.stop()
+        typingSounds.stop()
+        mediaImport.stop()
+        network.stop()
+        legacyApps.stop()
+        launcherRefreshTask?.cancel()
+        currencyRates.stop()
         settingsFile?.flush()
         // Caps Lock first: its remap is the one teardown that outlives the process.
         hyperKeyTap.prepareForTermination()
@@ -519,7 +577,66 @@ final class AppCore {
 
     // MARK: - Feature switches
 
+    private func applyNetworkEnabled() {
+        if settings.networkEnabled && !legacyApps.isRunning(.network) && adoption.active != .network { network.start() } else { network.stop() }
+    }
+
+    private func applyLauncherEnabled() {
+        launcherRefreshTask?.cancel()
+        compactMenu.applyVisibility()
+        hotKeys.refreshRegistrations()
+        guard settings.launcherEnabled else {
+            currencyRates.stop()
+            if palette.mode == .launcher { paletteCoordinator.hidePalette() }
+            appIndex.clearDiscoveredApps()
+            return
+        }
+        currencyRates.start()
+        launcherRefreshTask = Task { [weak self] in await self?.appIndex.refresh() }
+    }
+
     private func observeFeatureSwitches() {
+        track(legacyApps, { _ = $0.running }, reproject: {
+            $0.dictation.apply()
+            $0.windowSwitcher.apply()
+            $0.clipboard.apply()
+            $0.typingSounds.apply()
+            $0.applyNetworkEnabled()
+            $0.notifications.apply()
+            $0.mediaImport.apply()
+            $0.hotKeys.refreshRegistrations()
+        })
+        track({ _ = $0.dictationEnabled }, reproject: { $0.dictation.apply() })
+        track(dictation.settings, { _ = $0.shortcuts; _ = $0.historyLimit; _ = $0.deepgramLanguage }, reproject: { $0.dictation.applySettings() })
+        track(dictation.session, { _ = $0.recordingPhase }, reproject: {
+            $0.typingSounds.isRecording = $0.dictation.session.recordingPhase != .idle
+            $0.clipboard.isRecording = $0.dictation.session.recordingPhase != .idle
+        })
+        track({ _ = $0.windowSwitcherEnabled; _ = $0.switcherCommandTab; _ = $0.switcherCommandBacktick; _ = $0.switcherWindowSource; _ = $0.switcherMinimizedMode; _ = $0.switcherHiddenMode; _ = $0.switcherAppsWithoutWindowsMode; _ = $0.switcherImmediatePreview; _ = $0.switcherDiagnostics }, reproject: { $0.windowSwitcher.apply() })
+        track(hotKeys, { _ = $0.revision }, reproject: { $0.windowSwitcher.apply(); $0.dictation.apply() })
+        track({ _ = $0.clipboardEnabled; _ = $0.snippetsEnabled; _ = $0.clipboardHistoryDays }, reproject: { $0.clipboard.apply(); $0.hotKeys.refreshRegistrations() })
+        track({ _ = $0.launcherEnabled }, reproject: { $0.applyLauncherEnabled() })
+        track({ _ = $0.mediaImportEnabled }, reproject: { $0.mediaImport.apply() })
+        track({ _ = $0.notificationsEnabled }, reproject: { $0.notifications.apply() })
+        track({ _ = $0.networkEnabled }, reproject: {
+            $0.applyNetworkEnabled()
+        })
+        track({ _ = $0.showInMenuBar }, reproject: { $0.compactMenu.applyVisibility() })
+        track({
+            _ = $0.typingSoundsEnabled
+            _ = $0.typingSoundProfile
+            _ = $0.typingSoundVolume
+            _ = $0.typingSoundDownVolume
+            _ = $0.typingSoundUpVolume
+            _ = $0.typingMouseEnabled
+            _ = $0.typingMouseVolume
+        }, reproject: { $0.typingSounds.apply() })
+        track(hotKeys, { _ = $0.recordingAction }, reproject: {
+            $0.dictation.isCapturingShortcut = $0.hotKeys.recordingAction != nil
+            $0.windowSwitcher.isCapturingShortcut = $0.hotKeys.recordingAction != nil
+            $0.clipboard.isCapturingShortcut = $0.hotKeys.recordingAction != nil
+            $0.typingSounds.isCapturingShortcut = $0.hotKeys.recordingAction != nil
+        })
         track(
             { _ = $0.automaticallyCheckForUpdates },
             reproject: { $0.updateCoordinator.applyAutomaticChecking() })
@@ -686,6 +803,8 @@ final class AppCore {
     // MARK: - Settings file
 
     /// Mirrors settings into settings.json from now on; `importing` applies the file's own first.
+    @ObservationIgnored private(set) lazy var adoption = LegacyDataCoordinator(core: self)
+
     func startSettingsFile(importing: Bool) {
         guard settingsFile == nil else { return }
         let shortcuts = HotKeySettingsFile(hotKeys: hotKeys)
@@ -694,7 +813,8 @@ final class AppCore {
         let file = SettingsFileRepository(
             fileURL: AppPaths.settingsFile(),
             bindings: SettingsFileSchema.bindings(
-                settings: settings, ai: aiSettings, quickActions: quickActionSettings,
+                settings: settings, ai: aiSettings, dictation: dictation.settings,
+                mediaImport: mediaImport.state.settingsStore, quickActions: quickActionSettings,
                 shortcuts: shortcuts, launcher: launcher,
                 windowManagement: WindowManagementSettingsFile(
                     sizes: customWindowSizes, layouts: windowLayouts, rooms: rooms, aliases: aliases,
@@ -730,7 +850,8 @@ final class AppCore {
             isUninstalling: uninstall.isTrashing,
             isRecordingHotKey: hotKeys.recordingAction != nil,
             isShowingDialog: isShowingDialog,
-            isPaletteVisible: paletteCoordinator.isVisible)
+            isPaletteVisible: paletteCoordinator.isVisible,
+            isImporting: mediaImport.state.isImporting || adoption.active != nil, isRecording: dictation.isBusy)
     }
 
     /// Whether a window may take focus without interrupting something the user started.

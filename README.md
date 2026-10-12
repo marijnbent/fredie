@@ -1,8 +1,17 @@
-# Fredie
+# Ollie
 
-A native macOS menu-bar launcher, forked from [Tinycast](https://github.com/abue-ammar/tinycast).
-SwiftUI and AppKit, with app search, hotkeys, quicklinks, window
-management, and native Raycast extension support.
+A native macOS utility combining Fredie’s launcher, clipboard history and snippets, dictation,
+window switching, typing sounds, camera imports, ntfy notifications, and network usage.
+Mailie stays separate. The name Ollie is temporary; the existing Fredie repository and bundle
+identity remain in use. The launcher is forked from [Tinycast](https://github.com/abue-ammar/tinycast).
+
+The menu is a compact strip of actions with live activity above it. Native grouped settings hold
+independent feature switches, a shared shortcuts page, permissions, and explicit imports from the
+original apps. Network provides monitoring; it does not claim to block connections.
+
+Open Settings from the menu strip. New capture features start off. To bring over an existing app,
+quit that app, import it under Settings → Backup, then enable the corresponding feature. Notification
+topics import from the Notifications pane. Existing Fredie preferences stay in place.
 
 Requires macOS 26+, Xcode 26, and XcodeGen (`brew install xcodegen`).
 
@@ -12,8 +21,8 @@ Requires macOS 26+, Xcode 26, and XcodeGen (`brew install xcodegen`).
 ./scripts/release-local.sh
 ```
 
-Quits Fredie if it is running, builds a signed Release bundle, verifies the bundle,
-installs `/Applications/Fredie.app`, and opens it. Signing uses the existing Apple Development
+Quits Ollie or the previous Fredie if it is running, builds a signed Release bundle, verifies the bundle,
+installs `/Applications/Ollie.app`, and opens it. Signing uses the existing Apple Development
 identity recorded in `release/Release.plist`. A missing identity or signing failure stops the
 release; there is no unsigned fallback.
 
@@ -24,7 +33,7 @@ Separate steps:
 ./scripts/install-release.sh
 ```
 
-The build is at `build/Release/Fredie.app`. Version and build number live in `project.yml`.
+The build is at `build/Release/Ollie.app`. Version and build number live in `project.yml`.
 For a signed disk image, run `./scripts/build-dmg.sh`.
 
 ## Development
@@ -36,11 +45,11 @@ xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug build
 ./scripts/lint.sh
 ```
 
-Release uses `nl.bentjes.fredie`; Debug uses `nl.bentjes.fredie.dev` and is named `Fredie Dev`.
+Release uses `nl.bentjes.fredie`; Debug uses `nl.bentjes.fredie.dev` and is named `Ollie Dev`.
 Preferences, files, permissions, URL scheme (`fredie://`), and backups are separate from Tinycast.
 Update checks use only `marijnbent/fredie`. No Fredie GitHub release has been published yet.
 
-See [development](docs/development.md), [release](docs/release.md), and [testing](docs/testing.md).
+See [unified app](docs/ollie.md), [development](docs/development.md), [release](docs/release.md), and [testing](docs/testing.md).
 The inherited `website/` is upstream material, not a published Fredie website; its deployment
 workflows remain restricted to the upstream repository.
 

@@ -9,6 +9,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if OllieVerification.runIfRequested() { return }
+        #endif
         AppCore.shared.start()
     }
 
@@ -33,10 +36,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !terminationRequestInFlight else { return .terminateLater }
         terminationRequestInFlight = true
         Task { @MainActor [weak self] in
-            // A 300 ms-debounced draft still has to reach disk, but it can no longer veto the quit.
-            await AppCore.shared.flushNotesForTermination()
+            let canQuit = await AppCore.shared.flushNotesForTermination()
             self?.terminationRequestInFlight = false
-            sender.reply(toApplicationShouldTerminate: true)
+            sender.reply(toApplicationShouldTerminate: canQuit)
         }
         return .terminateLater
     }

@@ -50,8 +50,13 @@ final class CurrencyRateStore {
         }
     }
 
+    func stop() {
+        pump?.cancel()
+        pump = nil
+    }
+
     private func fetchAndStore() async -> Bool {
-        guard let result = await Self.fetch() else { return false }
+        guard let result = await Self.fetch(), !Task.isCancelled else { return false }
         rates = result.rates
         // Never persist a coin-less run: `pricesCoins` reads the cache as whole by definition.
         guard result.complete, let data = try? JSONEncoder().encode(result.rates) else { return false }

@@ -5,15 +5,18 @@ enum ExtensionIconCache {
     /// Below `IconCache.appIconExtent`; change it only against a rendered strip of icons.
     static let extent: CGFloat = 0.76
 
-    /// `NSCache` is thread-safe but not `Sendable`, so assert the guarantee once here.
-    private final class Cache: NSCache<NSString, NSImage>, @unchecked Sendable {}
+    private final class Cache: @unchecked Sendable {
+        private let storage = NSCache<NSString, NSImage>()
+
+        init(costLimit: Int) { storage.totalCostLimit = costLimit }
+        func object(forKey key: NSString) -> NSImage? { storage.object(forKey: key) }
+        func setObject(_ value: NSImage, forKey key: NSString, cost: Int) {
+            storage.setObject(value, forKey: key, cost: cost)
+        }
+    }
 
     /// Its own budget: Detail markdown caches images far larger than a row icon.
-    private static let cache: Cache = {
-        let cache = Cache()
-        cache.totalCostLimit = 16 * 1024 * 1024
-        return cache
-    }()
+    private static let cache = Cache(costLimit: 16 * 1024 * 1024)
 
     /// A freshly-decoded, thereafter-immutable `NSImage` is safe to move across the actor boundary.
     private struct Decoded: @unchecked Sendable {

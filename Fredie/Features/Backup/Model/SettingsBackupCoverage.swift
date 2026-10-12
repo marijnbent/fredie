@@ -67,6 +67,31 @@ enum SettingsBackupCoverage {
 
     /// Keys kept out of a backup on purpose, each with the reason it has to stay out.
     static let deliberatelyExcluded: [String: String] = [
+        AppSettingsKey.dictationEnabled.rawValue: "Dictation requires consent on this Mac.",
+        AppSettingsKey.windowSwitcherEnabled.rawValue: "Window switching requires consent on this Mac.",
+        AppSettingsKey.switcherCommandTab.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherCommandBacktick.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherWindowSource.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherMinimizedMode.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherHiddenMode.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherAppsWithoutWindowsMode.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherImmediatePreview.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.switcherDiagnostics.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.clipboardEnabled.rawValue: "Clipboard monitoring requires consent on this Mac.",
+        AppSettingsKey.snippetsEnabled.rawValue: "Text expansion requires consent on this Mac.",
+        AppSettingsKey.clipboardHistoryDays.rawValue: "Carried by settings.json in the clipboard section.",
+        AppSettingsKey.launcherEnabled.rawValue: "Carried by settings.json in the general section.",
+        AppSettingsKey.mediaImportEnabled.rawValue: "Watching removable devices requires consent on this Mac.",
+        AppSettingsKey.notificationsEnabled.rawValue: "Subscribing requires consent on this Mac.",
+        AppSettingsKey.networkEnabled.rawValue: "Monitoring requires consent on this Mac.",
+        AppSettingsKey.typingSoundsEnabled.rawValue: "Enables input monitoring; import must not grant access.",
+        AppSettingsKey.typingSoundProfile.rawValue: "Carried by settings.json in the sounds section.",
+        AppSettingsKey.typingSoundVolume.rawValue: "Carried by settings.json in the sounds section.",
+        AppSettingsKey.typingSoundDownVolume.rawValue: "Carried by settings.json in the sounds section.",
+        AppSettingsKey.typingSoundUpVolume.rawValue: "Carried by settings.json in the sounds section.",
+        AppSettingsKey.typingMouseEnabled.rawValue: "Carried by settings.json in the sounds section.",
+        AppSettingsKey.typingMouseVolume.rawValue: "Carried by settings.json in the sounds section.",
+
         AppSettingsKey.extensionPackageManager.rawValue:
             "Names a tool on this Mac; the machine a backup lands on may not have it.",
         AppSettingsKey.extensionCustomSearchPaths.rawValue:

@@ -1,8 +1,9 @@
-# Fredie
+# Ollie
 
-A native macOS menu-bar launcher: fuzzy app launcher, global and per-app hotkeys, an inline
-calculator, a floating note, quicklinks, window management
-and an emoji picker. It also **runs Raycast extensions** natively, in JavaScriptCore.
+A unified native macOS menu-bar app: launcher, clipboard and snippets, dictation, window switcher,
+typing sounds, media import, notifications and network monitoring. The launcher includes hotkeys,
+calculator, notes, quicklinks, window management, emoji and Raycast extensions in JavaScriptCore.
+Mailie is excluded.
 SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 
@@ -117,7 +118,7 @@ feature's doc, under its own `## Invariants`.
   constant or type instead. Cap 100 characters, delete rather than update, and never comment a change
   you just made. Nothing lints this; get it right the first time.
   Full rules: [standards.md#comments](docs/standards.md#comments).
-- **Debug builds are their own channel** — `Fredie Dev.app` / `nl.bentjes.fredie.dev` — so a local run
+- **Debug builds are their own channel** — `Ollie Dev.app` / `nl.bentjes.fredie.dev` — so a local run
   never shares prefs, caches, TCC grants or the login item with an installed copy. Anything newly
   persisted must stay keyed by `Bundle.main.bundleIdentifier`.
 - **XcodeGen owns the project.** `Fredie.xcodeproj` is committed but generated from `project.yml`;
@@ -135,6 +136,6 @@ Each item is explained in [testing.md](docs/testing.md#definition-of-done).
 
 ## Local release
 
-Use `./scripts/release-local.sh` to build, sign, install, and launch Fredie. Follow the workspace
+Use `./scripts/release-local.sh` to build, sign, install, and launch Ollie. Follow the workspace
 release rules: stay on `main`, then commit and push this repository after a requested release.
 Signing configuration is in `release/Release.plist`; never fall back to unsigned or ad-hoc builds.

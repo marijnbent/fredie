@@ -567,6 +567,33 @@ run slow ext-test          -parse-as-library \
                            Fredie/Platform/Compression/Zlib.swift \
                            Fredie/Features/Calculator/Model/ColorValue.swift \
                            Fredie/Features/Calculator/Model/ColorSpaces.swift
+run ollie-adoption-test -parse-as-library Fredie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Fredie/Platform/AppPaths.swift Fredie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Fredie/Features/Dictation/Service/AudioCaptureController.swift Fredie/Features/Dictation/Service/AudioBufferConverter.swift Fredie/Features/Dictation/Service/AudioInputSelection.swift Fredie/Features/Dictation/Service/DeepgramLanguage.swift Fredie/Features/Dictation/Service/TranscriptionProvider.swift Fredie/Features/Dictation/Service/EnhancementProvider.swift Fredie/Features/Dictation/Service/ShortcutConfig.swift Fredie/Features/Dictation/Service/Hotkey.swift Fredie/Features/Dictation/Service/RecordingOwnership.swift Fredie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Fredie/Features/Dictation/Service/StatusModel.swift Fredie/Features/Dictation/Service/LogEntry.swift Fredie/Features/Dictation/Service/DictationSessionState.swift Fredie/Features/Dictation/Service/DictationPreferences.swift Fredie/Features/Dictation/Service/TranscriptHistoryStore.swift Fredie/Features/Dictation/Service/RawRecordingStore.swift Fredie/Features/Dictation/Service/SystemMuteController.swift Fredie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Fredie/Features/Dictation/Service/String+Trim.swift Fredie/Features/Clipboard/Model/*.swift Fredie/Features/Clipboard/Service/ClipboardStorage.swift Fredie/Features/Backup/Service/LegacyDataCopy.swift Fredie/Features/Clipboard/Service/{ClipboardImageCache,ClipboardDiagnostics,PasteController}.swift
+run ollie-dictation-test -parse-as-library Fredie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Tests/Dictation/*.swift Fredie/Platform/AppPaths.swift Fredie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Fredie/Features/Dictation/Service/AudioCaptureController.swift Fredie/Features/Dictation/Service/AudioBufferConverter.swift Fredie/Features/Dictation/Service/AudioInputSelection.swift Fredie/Features/Dictation/Service/DeepgramLanguage.swift Fredie/Features/Dictation/Service/TranscriptionProvider.swift Fredie/Features/Dictation/Service/EnhancementProvider.swift Fredie/Features/Dictation/Service/ShortcutConfig.swift Fredie/Features/Dictation/Service/Hotkey.swift Fredie/Features/Dictation/Service/RecordingOwnership.swift Fredie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Fredie/Features/Dictation/Service/StatusModel.swift Fredie/Features/Dictation/Service/LogEntry.swift Fredie/Features/Dictation/Service/DictationSessionState.swift Fredie/Features/Dictation/Service/DictationPreferences.swift Fredie/Features/Dictation/Service/TranscriptHistoryStore.swift Fredie/Features/Dictation/Service/RawRecordingStore.swift Fredie/Features/Dictation/Service/SystemMuteController.swift Fredie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Fredie/Features/Dictation/Service/String+Trim.swift
+run ollie-switcher-test -parse-as-library Fredie/Features/WindowSwitcher/Service/*.swift
+run ollie-clipboard-test -parse-as-library \
+    Fredie/Features/Clipboard/Model/*.swift \
+    Fredie/Features/Clipboard/Service/ClipboardStore.swift \
+    Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
+    Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \
+    Fredie/Features/Clipboard/Service/ClipboardImageCache.swift \
+    Fredie/Features/Clipboard/Service/ClipboardDiagnostics.swift \
+    Fredie/Features/Clipboard/Service/SnippetStore.swift \
+    Fredie/Features/Clipboard/Service/PasteController.swift \
+    Fredie/Platform/NotificationToken.swift
+run ollie-services-test -parse-as-library \
+    Fredie/Features/TypingSounds/Model/*.swift \
+    Fredie/Features/TypingSounds/Service/SoundEngine.swift \
+    Fredie/Features/TypingSounds/Service/SoundSamples.swift \
+    Fredie/Features/Network/Model/*.swift \
+    Fredie/Features/Network/Service/NetTopMonitor.swift \
+    Fredie/Features/Network/Service/UsageStore.swift \
+    Fredie/Features/Notifications/Model/*.swift \
+    Fredie/Features/MediaImport/Service/MediaModels.swift \
+    Fredie/Features/MediaImport/Service/ImportSupport.swift \
+    Fredie/Features/MediaImport/Service/FFmpegService.swift \
+    Fredie/Features/Updates/Model/UpdateReadiness.swift \
+    Fredie/Platform/ProcessExit.swift \
+    Fredie/Platform/AppPaths.swift
 run settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
                            Fredie/Features/Settings/SettingsHistory.swift \
                            Fredie/Features/Settings/SettingsAnchor.swift \

@@ -14,7 +14,7 @@ struct UpdateInstaller: Sendable {
                 return "Downloading… \(Self.size(received)) of \(Self.size(expected))"
             case .extracting: return "Expanding…"
             case .verifying: return "Verifying…"
-            case .replacing: return "Replacing Fredie…"
+            case .replacing: return "Replacing Ollie…"
             }
         }
 
@@ -87,7 +87,8 @@ struct UpdateInstaller: Sendable {
         guard !Quarantine.isSet(on: staged) else { throw UpdateFailure.quarantined }
 
         let info = Self.info(at: staged)
-        guard info?["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier else {
+        guard info?["CFBundleIdentifier"] as? String == Bundle.main.bundleIdentifier,
+              info?["OllieUnifiedApp"] as? Bool == true else {
             throw UpdateFailure.bundleMismatch
         }
         let found = info?["CFBundleShortVersionString"] as? String

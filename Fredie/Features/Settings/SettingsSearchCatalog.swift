@@ -108,6 +108,14 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + emoji + ai + permissions + backup + about
+        + [.init(pane: .shortcuts, keywords: ["keyboard", "hotkeys", "bindings"]),
+           .init(pane: .dictation, keywords: ["talkie", "speech", "microphone", "transcription"]),
+           .init(pane: .windowSwitcher, keywords: ["tabbie", "command tab", "windows"])]
+        + [.init(pane: .clipboard, keywords: ["clippie", "history", "paste", "copy"]), .init(pane: .snippets, keywords: ["expand", "trigger", "text"]) ]
+        + [.init(pane: .mediaImport, keywords: ["camera", "card", "video", "importie", "ffmpeg"])]
+        + [.init(pane: .notifications, keywords: ["ntfy", "topics", "notifications"])]
+        + [.init(pane: .network, keywords: ["traffic", "usage", "nettie", "bandwidth"])]
+        + [.init(pane: .typingSounds, keywords: ["keyboard", "sound", "typie", "volume", "mouse"])]
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),

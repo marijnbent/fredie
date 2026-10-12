@@ -2,9 +2,9 @@
 
 Run `./scripts/release-local.sh` from the repository root. It quits the installed or locally
 built Fredie, builds with XcodeGen and Xcode, verifies the app bundle,
-replaces `/Applications/Fredie.app`, and opens the installed app.
+replaces `/Applications/Ollie.app`, and opens the installed app.
 
-- `./scripts/build-release.sh`: signed bundle at `build/Release/Fredie.app`.
+- `./scripts/build-release.sh`: signed bundle at `build/Release/Ollie.app`.
 - `./scripts/install-release.sh`: verify, install, and open the existing bundle.
 - `./scripts/build-dmg.sh`: signed build packaged as `build/Fredie-<version>.dmg`.
 

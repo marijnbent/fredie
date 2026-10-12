@@ -72,8 +72,16 @@ struct IconSize: Hashable, Sendable {
 
 /// App icons by path, downsampled and byte-bounded, so rows don't re-hit `NSWorkspace`.
 enum IconCache {
-    /// `NSCache` is thread-safe but not `Sendable`, so assert the guarantee once here.
-    private final class Cache: NSCache<NSString, NSImage>, @unchecked Sendable {}
+    private final class Cache<Value: AnyObject>: @unchecked Sendable {
+        private let storage = NSCache<NSString, Value>()
+
+        init(costLimit: Int) { storage.totalCostLimit = costLimit }
+        func object(forKey key: NSString) -> Value? { storage.object(forKey: key) }
+        func setObject(_ value: Value, forKey key: NSString, cost: Int) {
+            storage.setObject(value, forKey: key, cost: cost)
+        }
+        func removeAllObjects() { storage.removeAllObjects() }
+    }
 
     /// Carries the size so a lookup can reject a bitmap the interface has since resized past.
     private final class RowImage {
@@ -86,29 +94,15 @@ enum IconCache {
         }
     }
 
-    private final class RowCache: NSCache<NSString, RowImage>, @unchecked Sendable {}
-
     // One entry per file, not per file and size: resizing must replace rows, never accumulate them.
-    private static let rowCache: RowCache = {
-        let cache = RowCache()
-        cache.totalCostLimit = 8 * 1024 * 1024
-        return cache
-    }()
+    private static let rowCache = Cache<RowImage>(costLimit: 8 * 1024 * 1024)
 
     private static let displayPixel: CGFloat = 48
 
-    private static let cache: Cache = {
-        let cache = Cache()
-        cache.totalCostLimit = 32 * 1024 * 1024
-        return cache
-    }()
+    private static let cache = Cache<NSImage>(costLimit: 32 * 1024 * 1024)
 
     // One 200-row result set fits; unlike launcher icons, these are discarded with the list.
-    private static let fittedCache: Cache = {
-        let cache = Cache()
-        cache.totalCostLimit = 8 * 1024 * 1024
-        return cache
-    }()
+    private static let fittedCache = Cache<NSImage>(costLimit: 8 * 1024 * 1024)
     private static let fittedGeneration = Mutex(IconCacheGeneration())
 
     /// Cache-only lookups (never decode) so a row can paint an already-warm icon on the same frame.

@@ -4,19 +4,20 @@ import Foundation
 @MainActor
 enum SettingsFileSchema {
     static func bindings(
-        settings: AppSettings, ai: AISettingsStore, quickActions: QuickActionSettingsStore,
+        settings: AppSettings, ai: AISettingsStore, dictation: DictationSettingsStore, mediaImport: MediaImportSettingsStore, quickActions: QuickActionSettingsStore,
         shortcuts: HotKeySettingsFile, launcher: LauncherSettingsFile,
         windowManagement: WindowManagementSettingsFile
     ) -> [SettingsFileBinding] {
         SettingsFileKey.available.map { key in
             binding(
-                for: key, settings: settings, ai: ai, quickActions: quickActions,
+                for: key, settings: settings, ai: ai, dictation: dictation, mediaImport: mediaImport, quickActions: quickActions,
                 shortcuts: shortcuts, launcher: launcher, windowManagement: windowManagement)
         }
     }
 
     private static func binding(
         for key: SettingsFileKey, settings: AppSettings, ai: AISettingsStore,
+        dictation: DictationSettingsStore, mediaImport: MediaImportSettingsStore,
         quickActions: QuickActionSettingsStore, shortcuts: HotKeySettingsFile,
         launcher: LauncherSettingsFile, windowManagement: WindowManagementSettingsFile
     ) -> SettingsFileBinding {
@@ -28,6 +29,43 @@ enum SettingsFileSchema {
         }
 
         switch key {
+        case .dictationTranscriptionProvider: return .codable(key, dictation, \.transcriptionProvider)
+        case .dictationShortcuts: return .codable(key, dictation, \.shortcuts) {
+            Set($0.map(\.id)).count == $0.count && Set($0.map(\.key)).count == $0.count
+        }
+        case .dictationPrompts: return .codable(key, dictation, \.prompts) { Set($0.map(\.id)).count == $0.count }
+        case .dictationEscToCancelRecording: return .codable(key, dictation, \.escToCancelRecording)
+        case .dictationPlaySoundEffects: return .codable(key, dictation, \.playSoundEffects)
+        case .dictationMuteMediaDuringRecording: return .codable(key, dictation, \.muteMediaDuringRecording)
+        case .dictationRestoreClipboardAfterPaste: return .codable(key, dictation, \.restoreClipboardAfterPaste)
+        case .dictationShowLanguageInRecorderWidget: return .codable(key, dictation, \.showLanguageInRecorderWidget)
+        case .dictationShowLiveTranscriptInRecorderWidget: return .codable(key, dictation, \.showLiveTranscriptInRecorderWidget)
+        case .dictationOverlayPosition: return .codable(key, dictation, \.overlayPosition)
+        case .dictationDeepgramLanguage: return .codable(key, dictation, \.deepgramLanguage)
+        case .dictationAutomaticLanguageCandidates: return .codable(key, dictation, \.automaticLanguageCandidates)
+        case .dictationStarredDeepgramLanguages: return .codable(key, dictation, \.starredDeepgramLanguages)
+        case .dictationHistoryLimit: return .codable(key, dictation, \.historyLimit)
+        case .dictationAppTranscriptionLanguageOverrides: return .codable(key, dictation, \.appTranscriptionLanguageOverrides)
+        case .dictationAudioInput: return bind(dictation, \.audioInputStoredValue)
+        case .mediaImportOpenOnDetection: return bind(mediaImport, \.openOnDetection)
+
+        case .switcherCommandTab: return bind(settings, \.switcherCommandTab)
+        case .switcherCommandBacktick: return bind(settings, \.switcherCommandBacktick)
+        case .switcherWindowSource: return bind(settings, \.switcherWindowSource) { ["allSpaces", "visibleAndFullScreenSpaces", "visibleSpaces"].contains($0) ? $0 : nil }
+        case .switcherMinimizedMode: return bind(settings, \.switcherMinimizedMode) { ["show", "showAtBottom", "doNotShow"].contains($0) ? $0 : nil }
+        case .switcherHiddenMode: return bind(settings, \.switcherHiddenMode) { ["show", "showAtBottom", "doNotShow"].contains($0) ? $0 : nil }
+        case .switcherAppsWithoutWindowsMode: return bind(settings, \.switcherAppsWithoutWindowsMode) { ["show", "showAtBottom", "doNotShow"].contains($0) ? $0 : nil }
+        case .switcherImmediatePreview: return bind(settings, \.switcherImmediatePreview)
+        case .switcherDiagnostics: return bind(settings, \.switcherDiagnostics)
+        case .clipboardHistoryDays: return bind(settings, \.clipboardHistoryDays) { [1, 7, 30, 180].contains($0) ? $0 : nil }
+        case .launcherEnabled: return bind(settings, \.launcherEnabled)
+        case .typingSoundProfile: return bind(settings, \.typingSoundProfile) { SoundProfile(rawValue: $0) == nil ? nil : $0 }
+        case .typingSoundVolume: return bind(settings, \.typingSoundVolume) { (0...100).contains($0) ? $0 : nil }
+        case .typingSoundDownVolume: return bind(settings, \.typingSoundDownVolume) { (0...100).contains($0) ? $0 : nil }
+        case .typingSoundUpVolume: return bind(settings, \.typingSoundUpVolume) { (0...100).contains($0) ? $0 : nil }
+        case .typingMouseEnabled: return bind(settings, \.typingMouseEnabled)
+        case .typingMouseVolume: return bind(settings, \.typingMouseVolume) { (0...100).contains($0) ? $0 : nil }
+
         case .launcherShortcut:
             return shortcuts.binding(for: key, action: .togglePalette, name: "App Launcher")
         case .showInMenuBar: return bind(settings, \.showInMenuBar)

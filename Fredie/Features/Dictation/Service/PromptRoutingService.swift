@@ -1,0 +1,176 @@
+import Foundation
+
+@MainActor
+final class PromptRoutingService {
+    struct ResolvedPromptSelection {
+        let prompt: PromptConfig
+        let isForActiveApp: Bool
+    }
+
+    func promptContent(
+        forShortcutID shortcutID: UUID,
+        settings: DictationSettingsStore,
+        activeAppBundleIdentifier: String? = nil
+    ) -> String? {
+        resolvedPromptSelection(
+            forShortcutID: shortcutID,
+            settings: settings,
+            activeAppBundleIdentifier: activeAppBundleIdentifier
+        )?.prompt.content
+    }
+
+    func resolvedPrompt(
+        forShortcutID shortcutID: UUID,
+        settings: DictationSettingsStore,
+        activeAppBundleIdentifier: String? = nil
+    ) -> PromptConfig? {
+        resolvedPromptSelection(
+            forShortcutID: shortcutID,
+            settings: settings,
+            activeAppBundleIdentifier: activeAppBundleIdentifier
+        )?.prompt
+    }
+
+    func resolvedEnhancementPrompt(
+        forShortcutID shortcutID: UUID,
+        settings: DictationSettingsStore,
+        activeAppBundleIdentifier: String? = nil
+    ) -> EnhancementPromptContext? {
+        guard let selection = resolvedPromptSelection(
+            forShortcutID: shortcutID,
+            settings: settings,
+            activeAppBundleIdentifier: activeAppBundleIdentifier
+        ) else {
+            return nil
+        }
+
+        return EnhancementPromptContext(
+            name: selection.prompt.displayName,
+            content: selection.prompt.content,
+            isForActiveApp: selection.isForActiveApp,
+            provider: selection.prompt.provider,
+            model: selection.prompt.model.trimmed
+        )
+    }
+
+    func resolvedPromptSelection(
+        forShortcutID shortcutID: UUID,
+        settings: DictationSettingsStore,
+        activeAppBundleIdentifier: String? = nil
+    ) -> ResolvedPromptSelection? {
+        guard let shortcut = settings.shortcuts.first(where: { $0.id == shortcutID }) else {
+            return nil
+        }
+
+        if let normalizedBundleIdentifier = AppPromptOverride.normalizeBundleIdentifier(activeAppBundleIdentifier),
+           let overridePromptID = shortcut.appPromptOverrides.first(where: {
+               $0.normalizedAppBundleIdentifier == normalizedBundleIdentifier
+           })?.promptID,
+           let prompt = settings.prompts.first(where: { $0.id == overridePromptID }) {
+            return ResolvedPromptSelection(prompt: prompt, isForActiveApp: true)
+        }
+
+        if let promptID = shortcut.promptID,
+           let prompt = settings.prompts.first(where: { $0.id == promptID }) {
+            return ResolvedPromptSelection(prompt: prompt, isForActiveApp: false)
+        }
+
+        return nil
+    }
+
+    func deletePrompt(id: UUID, settings: DictationSettingsStore) {
+        settings.prompts.removeAll { $0.id == id }
+        for index in settings.shortcuts.indices where settings.shortcuts[index].promptID == id {
+            settings.shortcuts[index].promptID = nil
+        }
+        for index in settings.shortcuts.indices {
+            settings.shortcuts[index].appPromptOverrides.removeAll { $0.promptID == id }
+        }
+    }
+
+    func upsertAppPromptOverride(
+        shortcutID: UUID,
+        appBundleIdentifier: String,
+        appDisplayName: String,
+        promptID: UUID? = nil,
+        settings: DictationSettingsStore
+    ) {
+        guard let normalizedBundleIdentifier = AppPromptOverride.normalizeBundleIdentifier(appBundleIdentifier),
+              let shortcutIndex = settings.shortcuts.firstIndex(where: { $0.id == shortcutID }) else {
+            return
+        }
+
+        let resolvedPromptID = promptID ?? settings.shortcuts[shortcutIndex].promptID ?? settings.prompts.first?.id
+        guard let resolvedPromptID else { return }
+
+        let displayName = AppOverrideSupport.cleanedDisplayName(
+            appDisplayName,
+            fallback: appBundleIdentifier
+        )
+
+        if let overrideIndex = settings.shortcuts[shortcutIndex].appPromptOverrides.firstIndex(where: {
+            $0.normalizedAppBundleIdentifier == normalizedBundleIdentifier
+        }) {
+            settings.shortcuts[shortcutIndex].appPromptOverrides[overrideIndex].appBundleIdentifier = normalizedBundleIdentifier
+            settings.shortcuts[shortcutIndex].appPromptOverrides[overrideIndex].appDisplayName = displayName
+            settings.shortcuts[shortcutIndex].appPromptOverrides[overrideIndex].promptID = resolvedPromptID
+        } else {
+            settings.shortcuts[shortcutIndex].appPromptOverrides.append(
+                AppPromptOverride(
+                    appBundleIdentifier: normalizedBundleIdentifier,
+                    appDisplayName: displayName,
+                    promptID: resolvedPromptID
+                )
+            )
+        }
+
+        AppOverrideSupport.sortByDisplayNameAndBundleIdentifier(
+            &settings.shortcuts[shortcutIndex].appPromptOverrides,
+            displayName: \.appDisplayName,
+            bundleIdentifier: \.appBundleIdentifier
+        )
+    }
+
+    static func migrateLegacyEnhancementPromptsIfNeeded(
+        defaults: UserDefaults,
+        shortcuts: inout [ShortcutConfig],
+        prompts: inout [PromptConfig],
+        provider: EnhancementProvider,
+        model: String
+    ) {
+        guard let data = defaults.data(forKey: DictationSettingsStore.legacyEnhancementPromptsKey),
+              let legacyPrompts = try? JSONDecoder().decode([String: String].self, from: data),
+              !legacyPrompts.isEmpty else {
+            return
+        }
+
+        var migratedPrompts: [PromptConfig] = []
+        var promptIDByShortcutID: [UUID: UUID] = [:]
+        for (shortcutIDRaw, content) in legacyPrompts.sorted(by: { $0.key < $1.key }) {
+            guard let shortcutID = UUID(uuidString: shortcutIDRaw) else { continue }
+            let trimmed = content.trimmed
+            guard !trimmed.isEmpty else { continue }
+
+            let prompt = PromptConfig(
+                id: UUID(),
+                name: "Migrated Prompt",
+                content: trimmed,
+                provider: provider,
+                model: model
+            )
+            migratedPrompts.append(prompt)
+            promptIDByShortcutID[shortcutID] = prompt.id
+        }
+
+        prompts = migratedPrompts
+        if !promptIDByShortcutID.isEmpty {
+            for index in shortcuts.indices {
+                if let promptID = promptIDByShortcutID[shortcuts[index].id] {
+                    shortcuts[index].promptID = promptID
+                }
+            }
+        }
+
+        defaults.removeObject(forKey: DictationSettingsStore.legacyEnhancementPromptsKey)
+    }
+}

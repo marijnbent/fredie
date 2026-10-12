@@ -529,7 +529,15 @@ final class AppIndex {
     }
 
     /// Re-scan on every open; reopens collapse, and an unchanged set does no UI work.
+    func clearDiscoveredApps() {
+        discoveredEntries = []
+        nameCache = BundleNameCache()
+        paneCache = nil
+        publishEntries()
+    }
+
     func refresh() async {
+        guard settings?.launcherEnabled != false, !Task.isCancelled else { return }
         guard !isRefreshing else {
             refreshPending = true
             return
@@ -546,6 +554,7 @@ final class AppIndex {
                 AppIndex.scan(
                     scopes: scopes, languages: languages, cache: reusing, paneCache: reusingPanes)
             }.value
+            guard settings?.launcherEnabled != false, !Task.isCancelled else { return }
             nameCache = cache
             paneCache = panes
             guard found != discoveredEntries else { continue }

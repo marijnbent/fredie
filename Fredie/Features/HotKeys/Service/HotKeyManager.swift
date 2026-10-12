@@ -21,6 +21,7 @@ final class HotKeyManager {
     var displayName: ((HotKeyAction) -> String?)?
     /// Whether the action's launcher category is switched on. Set in `AppCore.start()`.
     var allowsAction: ((HotKeyAction) -> Bool)?
+    var reservedBindingOwner: ((HotKeyBinding) -> String?)?
 
     /// The recorder currently capturing, which also pauses both engines.
     var recordingAction: HotKeyAction? {
@@ -205,7 +206,8 @@ final class HotKeyManager {
     }
 
     /// A hold reserves its physical modifier across both tap gestures.
-    func conflictOwner(of binding: HotKeyBinding, excluding action: HotKeyAction) -> String? {
+    func conflictOwner(of binding: HotKeyBinding, excluding action: HotKeyAction? = nil, includeReservations: Bool = true) -> String? {
+        if includeReservations, let owner = reservedBindingOwner?(binding) { return owner }
         for candidate in candidateActions where candidate != action {
             guard let other = self.binding(for: candidate) else { continue }
             if binding.conflicts(with: other) {
@@ -235,7 +237,13 @@ final class HotKeyManager {
         return actions
     }
 
-    private func displayName(of action: HotKeyAction) -> String {
+    var assignedActions: [HotKeyAction] {
+        _ = revision
+        return candidateActions.filter { binding(for: $0) != nil }
+            .sorted { displayName(of: $0).localizedStandardCompare(displayName(of: $1)) == .orderedAscending }
+    }
+
+    func displayName(of action: HotKeyAction) -> String {
         switch action {
         case .togglePalette:
             return "App Launcher"
@@ -267,7 +275,16 @@ final class HotKeyManager {
     }
 
     /// Hands a combo to Carbon; a modifier-only binding has no per-action registration.
+    func refreshRegistrations() {
+        for action in candidateActions {
+            center.unregister(id: action.defaultsKey)
+            register(action)
+        }
+        syncModifierTaps()
+    }
+
     private func register(_ action: HotKeyAction) {
+        guard (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true) else { return }
         guard let shortcut = binding(for: action)?.shortcut else { return }
         center.register(
             id: action.defaultsKey, shortcut: shortcut,
@@ -278,6 +295,7 @@ final class HotKeyManager {
     private func syncModifierTaps() {
         modifierTaps = [:]
         for action in candidateActions {
+            guard (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true) else { continue }
             guard let binding = binding(for: action), binding.usesModifierTapMonitor else { continue }
             modifierTaps[binding] = action
         }

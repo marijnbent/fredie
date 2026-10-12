@@ -8,6 +8,8 @@ struct UpdateActivity: Sendable {
     var isRecordingHotKey = false
     var isShowingDialog = false
     var isPaletteVisible = false
+    var isImporting = false
+    var isRecording = false
 }
 
 /// Whether it is safe to interrupt the user and swap the app out from under them.
@@ -19,6 +21,8 @@ enum UpdateReadiness {
         case recordingHotKey
         case dialogOpen
         case paletteOpen
+        case importing
+        case recording
 
         var message: String {
             switch self {
@@ -27,13 +31,17 @@ enum UpdateReadiness {
             case .uninstalling: return "Waiting for the uninstaller to finish."
             case .recordingHotKey: return "Finish recording the shortcut first."
             case .dialogOpen: return "Close the open dialog first."
-            case .paletteOpen: return "Close Fredie's window first."
+            case .paletteOpen: return "Close Ollie's window first."
+            case .importing: return "Wait for the media import to finish."
+            case .recording: return "Finish recording first."
             }
         }
     }
 
     /// Ordered by consequence: an interrupted install loses work, an open panel does not.
     static func evaluate(_ activity: UpdateActivity) -> Blocker? {
+        if activity.isImporting { return .importing }
+        if activity.isRecording { return .recording }
         if activity.isDeliveringText { return .deliveringText }
         if activity.isRunningExtension { return .runningExtension }
         if activity.isUninstalling { return .uninstalling }

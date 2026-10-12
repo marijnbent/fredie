@@ -1,0 +1,61 @@
+# Ollie integration
+
+Ollie is the temporary product name for the unified native app. The Xcode project, target, scheme,
+repository, stable bundle identifier (`nl.bentjes.fredie`), existing defaults, and URL scheme remain
+Fredie’s. Debug and the rendering harness have separate bundle identifiers and data directories.
+Mailie is excluded.
+
+## Features and ownership
+
+`AppCore` owns ClipboardCoordinator, DictationCoordinator, WindowSwitcherCoordinator,
+TypingSoundsCoordinator, MediaImportCoordinator, NotificationsCoordinator, NetworkCoordinator,
+LegacyApps, LegacyDataCoordinator, and CompactMenuController. The existing launcher and AI remain.
+New capture and monitoring capabilities start disabled and cannot be enabled by a settings import.
+Each switch controls its service lifecycle; the shared HealthTicker recovers input monitors after
+permissions change. Synthetic input carries the host Paster marker so it cannot trigger sounds or
+another input handler. Dictation temporarily silences typing sounds and snippet expansion.
+
+The original shells, status items, app delegates, and settings windows were not imported. Native
+settings use the feature coordinator environments. Clipboard and media import retain their larger
+task windows; dictation retains its recording overlay. The compact menu has icon actions, live
+recording/import state, notifications, network usage, and settings. Shortcut information lives in
+settings and tooltips, with no menu row dedicated to displaying a shortcut.
+
+The copied speech transports and audio capture keep serial queues at callback boundaries to retain
+FIFO PCM delivery and websocket ordering. App lifecycle, history writing, UI scheduling and shutdown
+use Swift concurrency. There is no extra actor or ObservableObject state model.
+
+## Data and privacy
+
+New files live beneath the bundle-specific Application Support directory: Clipboard, Dictation,
+MediaImport, Network, and the notification inbox. Dictation credentials and private notification
+topics live in bundle-specific Keychain services. Transcription requests use private ephemeral
+sessions with no URL cache. Retention and history operations keep recordings inside Ollie’s managed
+directory. History payloads and adopted data are written with owner-only permissions.
+
+Backup settings offer explicit per-app imports. Both the original app and its Ollie feature must
+be stopped. Imports stage and validate data before committing; existing nonempty history or orphan
+payloads are refused. Originals remain untouched. Clipboard content paths reject traversal and
+symlinks. Dictation copies recordings and rewrites their references. Network uses SQLite’s backup
+API so uncheckpointed WAL content is retained. Notification settings separately import saved topics.
+Access flags, login-item registration, and provider credentials are not carried by settings.json.
+
+Dictation clipboard restoration requires both successful insertion verification and an unchanged
+clipboard change token. Starting another operation or disabling dictation cancels pending restoration.
+Shutdown waits for capture cancellation, queued history writes and active adoption. Failed history
+flushes keep the app open instead of silently losing pending history.
+
+## Scope and release
+
+Network includes Nettie’s existing process traffic monitor, per-app usage, and saved daily totals.
+It does not enforce network rules. The configured Personal Team cannot provision the required Network
+Extension capability; settings accurately show monitoring and inactive protection.
+
+The signed local release installs `/Applications/Ollie.app` and removes the previous Fredie bundle
+only after verifying the replacement. A failed open restores the previous installation. An enabled
+login item is re-registered after a bundle move. The updater checks the existing repository, signing
+identity and bundle identifier, plus the unified-app marker, so an old launcher-only build cannot
+replace Ollie.
+
+Opus round 1 supplied the integration review in `ollie-opus-consult-r1.md`. Rounds 2 and 3 returned
+Claude API rate-limit errors and provided no review. The primary agent implemented and tested the code.

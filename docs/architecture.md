@@ -49,7 +49,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ published through
 ┌─ OBSERVABLE STATE ───────────────▼─────────────────────────────────────────┐
-│ 39 @MainActor @Observable stores, sessions, indices and State types       │
+│ @MainActor @Observable stores, sessions, indices and State types       │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ rendered by
 ┌─ VIEW ───────────────────────────▼─────────────────────────────────────────┐
@@ -112,10 +112,11 @@ New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a c
 
 ## Entry points and windows
 
-`FredieApp` (`@main`) declares only two `MenuBarExtra` scenes — Fredie's own item and the
-calendar's, each inserted by one preference and independent of the other; everything else visible is
-driven imperatively from AppKit. Extension menu extras are dynamic `NSStatusItem`s owned entirely by
-`Features/Extensions/`, through `ExtensionManager`, with no scene or lifecycle wiring in the core.
+`FredieApp` (`@main`) owns the application commands and the optional calendar `MenuBarExtra`.
+`CompactMenuController`, owned by `AppCore`, owns Ollie’s primary status item and its nonactivating
+SwiftUI-backed AppKit panel. The status item stays available when the launcher is disabled.
+The unified feature coordinators also belong to `AppCore`; see [Ollie](ollie.md).
+Extension menu extras remain owned by `ExtensionManager`.
 
 - **Command palette** — a borderless floating `NSPanel` (`Palette/PalettePanel.swift`) hosting SwiftUI
   via `NSHostingView`, managed by `PaletteWindowController`. It toggles between a compact bar and the
@@ -164,7 +165,7 @@ macOS by itself. Nothing else in the app sets an appearance.
 
 ## Observation
 
-39 types are `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
+Observable state uses `@MainActor @Observable`. Nothing uses `ObservableObject` or `@Published`, and views read
 state through `@Environment` rather than `@EnvironmentObject`.
 
 Three things about this model are easy to get wrong:

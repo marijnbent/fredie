@@ -1,0 +1,100 @@
+import Observation
+import AppKit
+import Foundation
+
+struct RunningApplicationSnapshotEntry {
+    var bundleIdentifier: String?
+    var displayName: String?
+    var bundleURL: URL?
+}
+
+struct RunningApplicationOption: Identifiable, Equatable {
+    let bundleIdentifier: String
+    let displayName: String
+    let bundleURL: URL?
+
+    var id: String { bundleIdentifier }
+}
+
+enum RunningAppPickerDataSource {
+    static func normalizedOptions(
+        from entries: [RunningApplicationSnapshotEntry],
+        excludingBundleIdentifier: String?
+    ) -> [RunningApplicationOption] {
+        let excludedBundleIdentifier = AppOverrideSupport.normalizeBundleIdentifier(excludingBundleIdentifier)
+        var uniqueOptions: [String: RunningApplicationOption] = [:]
+
+        for entry in entries {
+            guard let normalizedBundleIdentifier = AppOverrideSupport.normalizeBundleIdentifier(entry.bundleIdentifier) else {
+                continue
+            }
+            guard normalizedBundleIdentifier != excludedBundleIdentifier else { continue }
+
+            let displayName = AppOverrideSupport.cleanedDisplayName(
+                entry.displayName,
+                fallback: normalizedBundleIdentifier
+            )
+            guard !displayName.isEmpty else { continue }
+
+            if uniqueOptions[normalizedBundleIdentifier] == nil {
+                uniqueOptions[normalizedBundleIdentifier] = RunningApplicationOption(
+                    bundleIdentifier: normalizedBundleIdentifier,
+                    displayName: displayName,
+                    bundleURL: entry.bundleURL
+                )
+            }
+        }
+
+        var options = Array(uniqueOptions.values)
+        AppOverrideSupport.sortByDisplayNameAndBundleIdentifier(
+            &options,
+            displayName: \.displayName,
+            bundleIdentifier: \.bundleIdentifier
+        )
+        return options
+    }
+}
+
+@MainActor
+@Observable
+final class DictationAppPickerState {
+    var searchText = ""
+    private(set) var apps: [RunningApplicationOption] = []
+    private(set) var hasLoadedSnapshot = false
+
+    func prepareForPresentation() {
+        Task { @MainActor [weak self] in
+            self?.reload()
+        }
+    }
+
+    func reload() {
+        apps = Self.makeSnapshot()
+        hasLoadedSnapshot = true
+    }
+
+    var filteredApps: [RunningApplicationOption] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return apps }
+
+        return apps.filter {
+            $0.displayName.localizedCaseInsensitiveContains(query)
+                || $0.bundleIdentifier.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private static func makeSnapshot() -> [RunningApplicationOption] {
+        let entries = NSWorkspace.shared.runningApplications.map { app in
+            RunningApplicationSnapshotEntry(
+                bundleIdentifier: app.bundleIdentifier,
+                displayName: app.localizedName,
+                bundleURL: app.bundleURL
+            )
+        }
+
+        return RunningAppPickerDataSource.normalizedOptions(
+            from: entries,
+            excludingBundleIdentifier: Bundle.main.bundleIdentifier
+        )
+    }
+}

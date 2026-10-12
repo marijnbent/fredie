@@ -9,30 +9,14 @@ struct FredieApp: App {
 
     /// Two independent items: one preference each, no state either can read off the other.
     var body: some Scene {
-        MenuBarExtra(isInserted: menuBarInsertion) {
-            MenuBarMenu(appName: appName)
-        } label: {
-            MenuBarLabel(appName: appName)
-        }
-        .commands { menuBarCommands }
+        Settings { EmptyView() }
+            .commands { menuBarCommands }
 
         MenuBarExtra(isInserted: calendarMenuBarInsertion) {
             CalendarMenuBarMenu()
         } label: {
             CalendarMenuBarLabel(appName: appName)
         }
-    }
-
-    /// Read in `body` for Observation; SwiftUI echoes the binding back, so only a change writes.
-    private var menuBarInsertion: Binding<Bool> {
-        let settings = AppCore.shared.settings
-        let isInserted = settings.showInMenuBar
-        return Binding(
-            get: { isInserted },
-            set: { inserted in
-                guard inserted != settings.showInMenuBar else { return }
-                settings.showInMenuBar = inserted
-            })
     }
 
     /// Writes through `AppSettings`: dragging the item out must stop the clock and move the picker.

@@ -535,7 +535,125 @@ final class AppSettings {
         didSet { defaults.set(settingsFileEnabled, forKey: Key.settingsFileEnabled.rawValue) }
     }
 
+    var dictationEnabled: Bool {
+        didSet { defaults.set(dictationEnabled, forKey: Key.dictationEnabled.rawValue) }
+    }
+    var windowSwitcherEnabled: Bool {
+        didSet { defaults.set(windowSwitcherEnabled, forKey: Key.windowSwitcherEnabled.rawValue) }
+    }
+    var switcherCommandTab: Bool {
+        didSet { defaults.set(switcherCommandTab, forKey: Key.switcherCommandTab.rawValue) }
+    }
+    var switcherCommandBacktick: Bool {
+        didSet { defaults.set(switcherCommandBacktick, forKey: Key.switcherCommandBacktick.rawValue) }
+    }
+    var switcherWindowSource: String {
+        didSet { defaults.set(switcherWindowSource, forKey: Key.switcherWindowSource.rawValue) }
+    }
+    var switcherMinimizedMode: String {
+        didSet { defaults.set(switcherMinimizedMode, forKey: Key.switcherMinimizedMode.rawValue) }
+    }
+    var switcherHiddenMode: String {
+        didSet { defaults.set(switcherHiddenMode, forKey: Key.switcherHiddenMode.rawValue) }
+    }
+    var switcherAppsWithoutWindowsMode: String {
+        didSet { defaults.set(switcherAppsWithoutWindowsMode, forKey: Key.switcherAppsWithoutWindowsMode.rawValue) }
+    }
+    var switcherImmediatePreview: Bool {
+        didSet { defaults.set(switcherImmediatePreview, forKey: Key.switcherImmediatePreview.rawValue) }
+    }
+    var switcherDiagnostics: Bool {
+        didSet { defaults.set(switcherDiagnostics, forKey: Key.switcherDiagnostics.rawValue) }
+    }
+
+    var clipboardEnabled: Bool {
+        didSet { defaults.set(clipboardEnabled, forKey: Key.clipboardEnabled.rawValue) }
+    }
+    var snippetsEnabled: Bool {
+        didSet { defaults.set(snippetsEnabled, forKey: Key.snippetsEnabled.rawValue) }
+    }
+    var clipboardHistoryDays: Int {
+        didSet { defaults.set(clipboardHistoryDays, forKey: Key.clipboardHistoryDays.rawValue) }
+    }
+
+    var launcherEnabled: Bool {
+        didSet { defaults.set(launcherEnabled, forKey: Key.launcherEnabled.rawValue) }
+    }
+
+    var mediaImportEnabled: Bool {
+        didSet { defaults.set(mediaImportEnabled, forKey: Key.mediaImportEnabled.rawValue) }
+    }
+
+    var notificationsEnabled: Bool {
+        didSet { defaults.set(notificationsEnabled, forKey: Key.notificationsEnabled.rawValue) }
+    }
+
+    var networkEnabled: Bool {
+        didSet { defaults.set(networkEnabled, forKey: Key.networkEnabled.rawValue) }
+    }
+
+    var typingSoundsEnabled: Bool {
+        didSet { defaults.set(typingSoundsEnabled, forKey: Key.typingSoundsEnabled.rawValue) }
+    }
+
+    var typingSoundProfile: String {
+        didSet { defaults.set(typingSoundProfile, forKey: Key.typingSoundProfile.rawValue) }
+    }
+
+    var typingSoundVolume: Int {
+        didSet { defaults.set(typingSoundVolume, forKey: Key.typingSoundVolume.rawValue) }
+    }
+
+    var typingSoundDownVolume: Int {
+        didSet { defaults.set(typingSoundDownVolume, forKey: Key.typingSoundDownVolume.rawValue) }
+    }
+
+    var typingSoundUpVolume: Int {
+        didSet { defaults.set(typingSoundUpVolume, forKey: Key.typingSoundUpVolume.rawValue) }
+    }
+
+    var typingMouseEnabled: Bool {
+        didSet { defaults.set(typingMouseEnabled, forKey: Key.typingMouseEnabled.rawValue) }
+    }
+
+    var typingMouseVolume: Int {
+        didSet { defaults.set(typingMouseVolume, forKey: Key.typingMouseVolume.rawValue) }
+    }
+
     init() {
+        dictationEnabled = defaults.bool(forKey: Key.dictationEnabled.rawValue)
+        windowSwitcherEnabled = defaults.object(forKey: Key.windowSwitcherEnabled.rawValue) == nil ? false : defaults.bool(forKey: Key.windowSwitcherEnabled.rawValue)
+        switcherCommandTab = defaults.object(forKey: Key.switcherCommandTab.rawValue) == nil ? true : defaults.bool(forKey: Key.switcherCommandTab.rawValue)
+        switcherCommandBacktick = defaults.object(forKey: Key.switcherCommandBacktick.rawValue) == nil ? true : defaults.bool(forKey: Key.switcherCommandBacktick.rawValue)
+        switcherWindowSource = defaults.string(forKey: Key.switcherWindowSource.rawValue) ?? "allSpaces"
+        switcherMinimizedMode = defaults.string(forKey: Key.switcherMinimizedMode.rawValue) ?? "doNotShow"
+        switcherHiddenMode = defaults.string(forKey: Key.switcherHiddenMode.rawValue) ?? "doNotShow"
+        switcherAppsWithoutWindowsMode = defaults.string(forKey: Key.switcherAppsWithoutWindowsMode.rawValue) ?? "showAtBottom"
+        switcherImmediatePreview = defaults.object(forKey: Key.switcherImmediatePreview.rawValue) == nil ? false : defaults.bool(forKey: Key.switcherImmediatePreview.rawValue)
+        switcherDiagnostics = defaults.object(forKey: Key.switcherDiagnostics.rawValue) == nil ? false : defaults.bool(forKey: Key.switcherDiagnostics.rawValue)
+        clipboardEnabled = defaults.bool(forKey: Key.clipboardEnabled.rawValue)
+        snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
+        let savedHistoryDays = defaults.integer(forKey: Key.clipboardHistoryDays.rawValue)
+        clipboardHistoryDays = [1, 7, 30, 180].contains(savedHistoryDays) ? savedHistoryDays : 7
+        launcherEnabled = defaults.object(forKey: Key.launcherEnabled.rawValue) == nil
+            || defaults.bool(forKey: Key.launcherEnabled.rawValue)
+        mediaImportEnabled = defaults.bool(forKey: Key.mediaImportEnabled.rawValue)
+        notificationsEnabled = defaults.bool(forKey: Key.notificationsEnabled.rawValue)
+        networkEnabled = defaults.bool(forKey: Key.networkEnabled.rawValue)
+        typingSoundsEnabled = defaults.object(forKey: Key.typingSoundsEnabled.rawValue) == nil ? false
+            : defaults.bool(forKey: Key.typingSoundsEnabled.rawValue)
+        typingSoundProfile = defaults.object(forKey: Key.typingSoundProfile.rawValue) == nil ? "creamyLinear"
+            : defaults.string(forKey: Key.typingSoundProfile.rawValue) ?? "creamyLinear"
+        typingSoundVolume = defaults.object(forKey: Key.typingSoundVolume.rawValue) == nil ? 65
+            : defaults.integer(forKey: Key.typingSoundVolume.rawValue)
+        typingSoundDownVolume = defaults.object(forKey: Key.typingSoundDownVolume.rawValue) == nil ? 100
+            : defaults.integer(forKey: Key.typingSoundDownVolume.rawValue)
+        typingSoundUpVolume = defaults.object(forKey: Key.typingSoundUpVolume.rawValue) == nil ? 32
+            : defaults.integer(forKey: Key.typingSoundUpVolume.rawValue)
+        typingMouseEnabled = defaults.object(forKey: Key.typingMouseEnabled.rawValue) == nil ? false
+            : defaults.bool(forKey: Key.typingMouseEnabled.rawValue)
+        typingMouseVolume = defaults.object(forKey: Key.typingMouseVolume.rawValue) == nil ? 45
+            : defaults.integer(forKey: Key.typingMouseVolume.rawValue)
         launchAtLogin = LaunchAtLogin.isEnabled
         showInMenuBar =
             defaults.object(forKey: Key.showInMenuBar.rawValue) == nil
