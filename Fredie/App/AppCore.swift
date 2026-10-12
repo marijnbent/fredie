@@ -25,7 +25,7 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var clipboard = ClipboardCoordinator(core: self, ticker: healthTicker)
     @ObservationIgnored private(set) lazy var windowSwitcher = WindowSwitcherCoordinator(core: self, ticker: healthTicker)
     @ObservationIgnored private(set) lazy var dictation = DictationCoordinator(core: self, ticker: healthTicker)
-    let legacyApps = LegacyApps()
+    @ObservationIgnored private(set) lazy var legacyApps = LegacyApps(ticker: healthTicker)
     let network = NetworkCoordinator()
     let hotKeys = HotKeyManager()
     let hyperKeyTap = HyperKeyTap()

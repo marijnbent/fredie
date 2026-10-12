@@ -1,10 +1,11 @@
 # Ollie verification — 12 October 2026
 
-Version 0.1.0, build 10. Product Ollie; stable identity `nl.bentjes.fredie`.
+Version 0.1.0, build 12. Product Ollie; stable identity `nl.bentjes.fredie`.
 
 ## Automated checks
 
-- All 91 repository harnesses passed in 136 seconds, including five new Ollie harnesses.
+- All 91 repository harnesses passed again in 157 seconds after the native lifecycle fix,
+  including five new Ollie harnesses.
 - The dictation harness compiles the shipping runtime and tests recording start/stop cancellation,
   reconnect, finalization, late callbacks, provider failure, shutdown, verified paste restoration,
   preserving a newer clipboard copy, and persistence failure/retry.
@@ -36,10 +37,35 @@ The isolated, signed `nl.bentjes.ollie.verification` Debug app mounts all 16 ava
 in both appearances and exits successfully. It does not start capture services or access the installed
 app’s data. The compact menu renders correctly in light and dark, including its icon action strip.
 
-Offscreen PNG capture does not reliably capture native Form controls. Settings mounting is verified;
-full settings visual quality is not. Live microphone/provider transcription, permission prompts,
-cross-app paste/snippet expansion, and real desktop window switching remain unverified in this round.
-Native Computer Use permission was requested but had not been granted at the time of testing.
+Offscreen PNG capture does not reliably capture native Form controls. This check proves settings
+mounting, not full settings visual quality.
+
+With the user's native testing permission, the installed app was exercised through Computer Use:
+
+- Native Clipboard, Dictation, Permissions, Network and Notifications settings were visually inspected.
+  Dictation's Recording, Shortcuts and empty History panes responded correctly. No audio was recorded
+  or transmitted, and no OS permission was changed.
+- Testing found that standalone-app launch/quit notifications could leave stale ownership state.
+  Build 12 reconciles the running-app set through the existing shared one-second health ticker and
+  excludes terminated applications. On build 12, Quit Clippie terminated its process and removed
+  the notice; reopening Clippie through Finder restored the notice without restarting Ollie.
+- With Clippie stopped, enabling clipboard history captured the synthetic text
+  `Ollie native clipboard test 2026-10-12`. Saved items changed from zero to one; Open History showed
+  the complete text in the list and preview. Clipboard history was returned to off afterward.
+- Quit Tabbie removed its process and notice. Enabling Window Switcher reached its active state;
+  reopening Tabbie restored the notice. The automated Command-Tab press produced no observable
+  result, so actual desktop window selection remains unverified.
+- Clipboard history, Window Switcher and menu-bar visibility were restored to their original off
+  settings. Clippie, Tabbie and Talkie were verified running. Finder was returned to Desktop and
+  Ollie's Clipboard Settings was left open. One synthetic clipboard test entry remains; no history
+  was cleared or imported.
+
+The native control tool intermittently rejected actions on the transient launcher with
+`The user changed '/Applications/Ollie.app'`; stable Settings worked, and launcher-to-Settings
+navigation worked after installing build 12. The compact status-menu button was not exposed in the
+available native accessibility tree, so its live click interactions remain unverified. Live
+microphone/provider transcription, permission prompts and cross-app paste/snippet expansion also
+remain unverified. The automated harness coverage above does not replace those live checks.
 
 ## Consultation and scope
 
@@ -51,11 +77,12 @@ The existing future protection plan is not a claim of shipped filtering. Mailie 
 ## Installed release
 
 The final signed Release build succeeded and installed/opened `/Applications/Ollie.app`.
-`codesign --verify --deep --strict` passes. The bundle reports version 0.1.0, build 10,
+`codesign --verify --deep --strict` passes with host access to the trust store. The bundle reports
+version 0.1.0, build 12,
 identifier `nl.bentjes.fredie`, and the unified-app marker. The signing authority is
 `Apple Development: marijnbent@gmail.com (S4ZHLE3A52)`, team `X44F5HTS6P`.
 The installed executable matches the release output exactly:
-`cd4f64d854216b61ffeff839a923487040d04416b314f626177377cf0c005506` (SHA-256).
+`e3f184da2564ffca53ab16866647770b9c681db037379deedee4d6368ad858d7` (SHA-256).
 The process was verified running from `/Applications/Ollie.app/Contents/MacOS/Ollie`.
 The old `/Applications/Fredie.app` bundle was replaced. Original sibling app repositories remain clean;
 no sibling app data was adopted automatically, and Mailie was not modified.

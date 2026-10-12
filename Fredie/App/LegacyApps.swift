@@ -25,12 +25,16 @@ enum LegacyApp: String, CaseIterable, Sendable {
 
 @MainActor
 @Observable
-final class LegacyApps {
+final class LegacyApps: HealthCheckable {
     private(set) var running: Set<LegacyApp> = []
     @ObservationIgnored private var observers: [NotificationToken] = []
+    private let ticker: HealthTicker
+
+    init(ticker: HealthTicker) { self.ticker = ticker }
 
     func start() {
         refresh()
+        ticker.subscribe(self)
         guard observers.isEmpty else { return }
         let center = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
@@ -40,7 +44,12 @@ final class LegacyApps {
         }
     }
 
-    func stop() { observers.removeAll() }
+    func stop() {
+        observers.removeAll()
+        ticker.unsubscribe(self)
+    }
+
+    func healthCheck() { refresh() }
 
     func isRunning(_ app: LegacyApp) -> Bool { running.contains(app) }
 
@@ -51,8 +60,10 @@ final class LegacyApps {
     }
 
     private func refresh() {
-        running = Set(NSWorkspace.shared.runningApplications.compactMap {
-            $0.bundleIdentifier.flatMap(LegacyApp.init(rawValue:))
+        let next = Set(NSWorkspace.shared.runningApplications.compactMap { application -> LegacyApp? in
+            guard !application.isTerminated, let identifier = application.bundleIdentifier else { return nil }
+            return LegacyApp(rawValue: identifier)
         })
+        if next != running { running = next }
     }
 }
