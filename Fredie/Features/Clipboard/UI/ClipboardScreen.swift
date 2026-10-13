@@ -56,9 +56,14 @@ struct ClipboardScreen: PaletteScreen {
                 items.append(PopoverMenuItem(title: "Enlarge Image", systemImage: "arrow.up.left.and.arrow.down.right", shortcut: "⌘Y") {
                     coordinator.expandedImage = item
                 })
-                items.append(PopoverMenuItem(title: "Copy Text from Image", systemImage: "text.viewfinder") {
-                    coordinator.copyImageText(item)
+                items.append(PopoverMenuItem(title: item.ocrText == nil ? "Run OCR" : "Refresh OCR", systemImage: "text.viewfinder") {
+                    coordinator.runOCR(item)
                 })
+                if let text = item.ocrText, !text.isEmpty, text != "No text found in this image." {
+                    items.append(PopoverMenuItem(title: "Copy Extracted Text", systemImage: "doc.on.doc") {
+                        coordinator.copyImageText(item)
+                    })
+                }
             }
         case .snippet:
             items.append(PopoverMenuItem(title: "Edit Snippet…", systemImage: "pencil") {
@@ -174,23 +179,50 @@ private struct ClipboardPalettePreview: View {
                 HStack {
                     Text(title(result)).foregroundStyle(.secondary)
                     Spacer()
-                    if coordinator.extractingText { ProgressView().controlSize(.mini) }
-                    Button(action: openActions) { Image(systemName: "ellipsis") }
+                    if case .item(let item) = result, item.type == .image {
+                        if coordinator.extractingItemID == item.id { ProgressView().controlSize(.mini) }
+                        Button { coordinator.runOCR(item) } label: {
+                            Label(item.ocrText == nil ? "OCR" : "Refresh OCR", systemImage: "text.viewfinder")
+                        }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Actions")
+                        .disabled(coordinator.extractingItemID != nil)
+                    }
                 }
                 .font(.system(size: metrics.scaled(11)))
                 .padding(metrics.scaled(12))
                 if case .item(let item) = result, item.type == .image {
-                    if let image {
-                        Image(nsImage: image).resizable().interpolation(.high).scaledToFit()
-                            .padding(metrics.scaled(12))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .onTapGesture { coordinator.expandedImage = item }
-                    } else {
-                        Text(error ?? "Loading image…").foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: metrics.scaled(12)) {
+                            if let image {
+                                Image(nsImage: image).resizable().interpolation(.high).scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .onTapGesture { coordinator.expandedImage = item }
+                            } else {
+                                Text(error ?? "Loading image…").foregroundStyle(.secondary)
+                            }
+                            if let text = item.ocrText {
+                                Divider()
+                                HStack(alignment: .top, spacing: metrics.scaled(8)) {
+                                    Text(text.isEmpty ? "No text found in this image." : text)
+                                        .textSelection(.enabled)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    if !text.isEmpty, text != "No text found in this image." {
+                                        Button { coordinator.copyImageText(item) } label: {
+                                            Image(systemName: "doc.on.doc")
+                                        }
+                                        .buttonStyle(.plain)
+                                        .help("Copy extracted text")
+                                        .accessibilityLabel("Copy extracted text")
+                                    }
+                                }
+                                .font(.system(size: metrics.scaled(12)))
+                            }
+                        }
+                        .padding(.horizontal, metrics.scaled(12))
+                        .padding(.bottom, metrics.scaled(12))
                     }
+                    .hideNativeScrollers()
+                    .thinScrollbar()
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: metrics.scaled(12)) {
@@ -217,6 +249,9 @@ private struct ClipboardPalettePreview: View {
                     .thinScrollbar()
                 }
                 HStack {
+                    Button(action: openActions) { Label("Actions", systemImage: "ellipsis") }
+                        .buttonStyle(.plain)
+                        .help("Actions (⌘K)")
                     Spacer()
                     Button(primaryTitle) { coordinator.activate(result) }
                         .buttonStyle(.plain)

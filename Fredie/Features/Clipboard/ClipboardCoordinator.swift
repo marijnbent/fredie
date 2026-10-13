@@ -14,7 +14,8 @@ final class ClipboardCoordinator: HealthCheckable {
     let searchSession = ClipboardSearchSession()
     var expandedImage: ClipboardItem?
     var snippetEditor: SnippetEditorTarget?
-    private(set) var extractingText = false
+    private(set) var extractingItemID: UUID?
+    @ObservationIgnored private var ocrTask: Task<Void, Never>?
     @ObservationIgnored private var pendingActivation: String?
     @ObservationIgnored private var snippetQuery: String?
     @ObservationIgnored private var snippetResults: [ClipboardResult] = []
@@ -195,26 +196,23 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     func copyImageText(_ item: ClipboardItem) {
-        if let text = item.ocrText {
-            if text.isEmpty || text == "No text found in this image." { core.showMessage("No text found in this image", tone: .neutral) }
-            else { PasteController.copyTextToClipboard(text) }
-            return
-        }
-        guard !extractingText else { return }
-        extractingText = true
-        contentTask?.cancel()
-        contentTask = Task { [weak self] in
+        guard let text = item.ocrText, !text.isEmpty, text != "No text found in this image." else { return }
+        PasteController.copyTextToClipboard(text)
+    }
+
+    func runOCR(_ item: ClipboardItem) {
+        guard item.type == .image, extractingItemID == nil else { return }
+        extractingItemID = item.id
+        ocrTask = Task { [weak self] in
             guard let self else { return }
-            defer { extractingText = false }
+            defer { extractingItemID = nil; ocrTask = nil }
             let storage = store.storage
             let image = await Task.detached(priority: .userInitiated) { storage.image(for: item) }.value
-            guard !Task.isCancelled, let image else { return }
+            guard !Task.isCancelled else { return }
+            guard let image else { core.showMessage("Image unavailable", tone: .danger); return }
             let text = await OCRService.recognizeText(from: image) ?? ""
             guard !Task.isCancelled, store.items.contains(where: { $0.id == item.id }) else { return }
-            store.setOCRText(text, for: item)
-            guard !text.isEmpty else { core.showMessage("No text found in this image", tone: .neutral); return }
-            PasteController.copyTextToClipboard(text)
-            core.showMessage("Text copied")
+            store.setOCRText(text.trimmingCharacters(in: .whitespacesAndNewlines), for: item)
         }
     }
 
@@ -241,6 +239,7 @@ final class ClipboardCoordinator: HealthCheckable {
         searchSession.cancel()
         contentTask?.cancel()
         loadTask?.cancel()
+        ocrTask?.cancel()
     }
 
     func prepareForTermination() async -> Bool {

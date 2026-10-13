@@ -577,6 +577,7 @@ run ollie-switcher-test -parse-as-library Fredie/Platform/Diagnostics.swift Fred
 run ollie-clipboard-test -parse-as-library \
     Fredie/Features/Clipboard/Model/*.swift \
     Fredie/Features/Clipboard/Service/ClipboardSearchSession.swift \
+    Fredie/Features/Clipboard/Service/OCRService.swift \
     Fredie/Features/Clipboard/Service/ClipboardStore.swift \
     Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
     Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \

@@ -12,7 +12,7 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 The Floating launcher is 506 points wide, with a separate search surface above a dense list.
 Its height follows the result count up to ten visible rows. Clipboard is a scoped mode in the same
-panel, 720 points wide: a 300-point list and a text/image preview. Clipboard rows show only a small
+panel, 620 points wide: a 260-point list and a text/image preview. Clipboard rows show only a small
 source application icon at the trailing edge; unknown sources leave no icon. Other modes retain the
 750 × 475-point panel. Interface Size scales all surfaces. General → Appearance → Density selects
 Compact or Comfortable spacing independently of text scale. Compact is the default: 40-point search,
@@ -20,7 +20,7 @@ Compact or Comfortable spacing independently of text scale. Compact is the defau
 44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
 The launcher has no footer; its menu and Actions hang beneath the header. Clipboard actions are in
-the preview and ⌘K. The clipboard header icon returns to the launcher when it is enabled.
+the preview footer and ⌘K. Images also expose OCR directly in the preview header; extracted text stays selectable below the image, with copy and refresh actions. The clipboard header icon returns to the launcher when it is enabled.
 
 Fredie is an **app launcher**: a borderless floating panel whose surface is just the
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
@@ -163,7 +163,7 @@ panel, the shortcut-recorder callout and the Notes switcher, and `menuRow` is de
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
-`launcherWidth 506` · `clipboardWidth 720` · `clipboardListWidth 300` · `rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
+`launcherWidth 506` · `clipboardWidth 620` · `clipboardListWidth 260` · `rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
 `detailListWidth 290` ·
 `menuWidth 276` · `fileSearchFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·

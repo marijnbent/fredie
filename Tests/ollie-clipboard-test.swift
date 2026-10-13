@@ -56,6 +56,31 @@ struct OllieClipboardTests {
         try await Task.sleep(for: .milliseconds(100))
         check("closed session cannot apply late results", session.items.isEmpty && !session.isSearching)
 
+        let fixture = NSImage(size: NSSize(width: 700, height: 160), flipped: false) { rect in
+            NSColor.white.setFill()
+            rect.fill()
+            ("Ollie OCR fixture 2147" as NSString).draw(at: NSPoint(x: 30, y: 65), withAttributes: [
+                .font: NSFont.systemFont(ofSize: 40), .foregroundColor: NSColor.black
+            ])
+            return true
+        }
+        let recognized = await OCRService.recognizeText(from: fixture)
+        check("OCR recognizes image text", recognized?.contains("Ollie OCR fixture 2147") == true)
+        let filename = reopened.storage.saveImage(fixture.tiffRepresentation!)!
+        let imageItem = ClipboardItem.image(filename: filename, timestamp: Date())
+        reopened.add(imageItem)
+        reopened.setOCRText(recognized ?? "", for: imageItem)
+        check("OCR persists", await reopened.flush())
+        let restoredImage = try reopened.storage.readHistory().first { $0.id == imageItem.id }
+        check("OCR survives reopen", restoredImage?.ocrText == recognized)
+        session.search("2147", items: reopened.items, storage: reopened.storage)
+        for _ in 0..<100 where session.isSearching { try await Task.sleep(for: .milliseconds(10)) }
+        check("extracted text is searchable", session.items.first?.id == imageItem.id)
+        reopened.setOCRText("refreshed extraction", for: imageItem)
+        session.search("2147", items: reopened.items, storage: reopened.storage)
+        for _ in 0..<100 where session.isSearching { try await Task.sleep(for: .milliseconds(10)) }
+        check("OCR refresh replaces searchable text", session.items.isEmpty)
+
         let history = directory.appendingPathComponent("history.json")
         try FileManager.default.removeItem(at: history)
         try FileManager.default.createDirectory(at: history, withIntermediateDirectories: true)
