@@ -21,14 +21,14 @@ struct ClipboardItemRow: View {
     }
 
     private var backgroundCornerRadius: CGFloat {
-        5
+        metrics.scaled(5)
     }
 
     var body: some View {
         HStack(spacing: metrics.scaled(8)) {
             if item.type == .image {
                 icon
-                    .frame(width: 20, height: 20)
+                    .frame(width: metrics.scaled(20), height: metrics.scaled(20))
             }
 
             Text(item.previewText)
@@ -82,13 +82,13 @@ struct ClipboardItemRow: View {
                 Image(nsImage: img)
                     .resizable()
                     .interpolation(.high)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 20, height: 20)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .scaledToFill()
+                    .frame(width: metrics.scaled(20), height: metrics.scaled(20))
+                    .clipShape(RoundedRectangle(cornerRadius: metrics.scaled(4), style: .continuous))
             } else {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: metrics.scaled(4), style: .continuous)
                     .fill(Color.secondary.opacity(0.12))
-                    .frame(width: 20, height: 20)
+                    .frame(width: metrics.scaled(20), height: metrics.scaled(20))
             }
         }
     }

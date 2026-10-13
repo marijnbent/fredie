@@ -138,7 +138,8 @@ private struct AppRow: View {
                     RunningDot(running: running).offset(y: 3)
                 }
             Text(app.name)
-                .font(.system(size: metrics.scaled(Theme.Size.launcherListFontSize)))
+                .font(.system(size: metrics.scaled(Theme.Size.launcherListFontSize), weight: selected ? .medium : .regular))
+                .layoutPriority(1)
                 .lineLimit(1)
             if let subtitle = app.subtitle {
                 Text(subtitle)

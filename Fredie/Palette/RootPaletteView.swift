@@ -636,33 +636,10 @@ struct RootPaletteView: View {
         HStack(alignment: .center, spacing: 0) {
             // Matches the list rows and section headers' own indent below.
             headerGutter(width: metrics.spacing.md * 2)
-            // Every sub-screen leaves the same way, so the slot reads the same on all of them.
-            if vm.mode == .clipboard {
-                Button(action: {
-                    if settings.launcherEnabled {
-                        if !vm.pop() { core.paletteCoordinator.showPalette(mode: .launcher) }
-                    } else { core.paletteCoordinator.hidePalette() }
-                }) {
-                    Image(systemName: "clipboard")
-                        .font(.system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)))
-                        .foregroundStyle(.secondary)
-                        .frame(width: metrics.size.headerIconSlot)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(settings.launcherEnabled ? "Back to launcher" : "Close clipboard")
-                .tooltip(settings.launcherEnabled ? "Back to launcher" : "Close clipboard", edge: .bottom)
-            } else if vm.mode != .launcher {
+            if vm.mode != .launcher && vm.mode != .clipboard {
                 HeaderBackButton(help: backHelp, action: goBack)
-            } else {
-                Image(systemName: vm.mode.systemImage)
-                    .font(metrics.typography.headerIcon)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
-                    .frame(width: metrics.size.headerIconSlot)
-                    .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
+                headerGutter(width: metrics.spacing.xl)
             }
-            // slot + xl equals a row's icon + lg, so the query starts where the row titles do.
-            headerGutter(width: metrics.spacing.xl)
             // One structural position: a field inside a branch loses first responder when it flips.
             headerField
             if let accessory = headerAccessory {
@@ -798,7 +775,9 @@ struct RootPaletteView: View {
         let font = metrics.typography.searchFieldNSFont
         let text = vm.query.isEmpty ? searchPrompt : vm.query
         let typed = (text as NSString).size(withAttributes: [.font: font]).width
-        let chrome = metrics.size.headerIconSlot + metrics.spacing.md * 3 + metrics.spacing.xl
+        let iconWidth = vm.mode == .launcher || vm.mode == .clipboard
+            ? 0 : metrics.size.headerIconSlot + metrics.spacing.xl
+        let chrome = iconWidth + metrics.spacing.md * 3
         let room = surface.width - accessory.width - chrome
         // +3pt so the caret sits after the last glyph rather than on top of it.
         return min(

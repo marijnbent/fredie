@@ -19,15 +19,18 @@ Compact or Comfortable spacing independently of text scale. Compact is the defau
 36-point launcher rows, 30-point clipboard rows, and a 6-point gap. Comfortable uses 54-point search,
 44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
+Launcher and clipboard search fields have no leading icon; other modes retain their back button.
 The launcher has no footer; the selected row carries a clickable Actions control with ⌘K and →.
-Clipboard uses the same control in the preview footer. Right at the query's end opens Actions;
+The Actions control uses a compact keycap and a hover-only background. Selected launcher titles
+use medium weight, with a 100-point trailing action lane. Clipboard uses the same control in a
+40-point preview footer, without a redundant paste label or button. Enter activates the selected item. Its 36-point metadata
+header and framed image preview share a 12-point inset. Right at the query's end opens Actions;
 Left at the action search's start returns to the same query and selected result. Selected text,
 modified or repeated arrows, IME composition, and arrows inside text retain normal editing behavior. Inline
 command argument fields retain their existing arrow navigation. The action search also has a back
-button. Images expose OCR & Copy in the preview header: recognition automatically copies nonempty
+button. Images expose OCR & Copy in Actions: recognition automatically copies nonempty
 text and confirms completion, while keeping the extracted text selectable below the image.
-Refresh & Copy reruns recognition. Empty extraction leaves the clipboard unchanged. If another copy happens during OCR, the extracted text is saved without replacing that newer clipboard. The clipboard
-header icon returns to the launcher when it is enabled.
+Refresh OCR & Copy reruns recognition. Empty extraction leaves the clipboard unchanged. If another copy happens during OCR, the extracted text is saved without replacing that newer clipboard.
 
 Fredie is an **app launcher**: a borderless floating panel whose surface is just the
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
@@ -260,7 +263,7 @@ Source: `Palette/PalettePanel.swift`, `Palette/RootPaletteView.swift`.
 
 - **`PalettePanel`** is a borderless `NSPanel`: `isOpaque = false`, `backgroundColor = .clear`, `.palette` level (one above `.modalPanel`, so other apps' open panels never cover it), `hasShadow`, `animationBehavior = .none`. It hosts SwiftUI via `NSHostingView`. `PaletteWindowController` centers it slightly above screen center (`+8%`) and dismisses it on `windowDidResignKey`.
 - **The results layer fills the card.** The header and bottom bar attach via `.safeAreaInset(edge: .top/.bottom)`; the top inset's spacing is the `Spacing.md` field-to-card gap, collapsed to zero in compact. The list underlaps the bottom bar and dissolves at the edges; scrolled rows end at the card's top edge.
-- **Header** (`headerHeight 44`): the field capsule — a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background of its own). Sub-screens (Quicklinks, Calculator History) show the back chevron; the launcher shows a magnifying glass. The search icon aligns horizontally with row content, and the query with the row titles.
+- **Header** (`headerHeight 44`): the field capsule — a back-chevron _or_ mode glyph, then the plain `TextField` (no border/background of its own). Sub-screens (Quicklinks, Calculator History) show the back chevron; launcher and clipboard omit the leading icon.
 - **Compact keyboard entry:** pressing `↓` in the collapsed launcher expands the results and selects the first row without replacing or defocusing the shared search field.
 - **Bottom bar** (`bottomBarHeight 52`, every mode but the launcher): a menu circle on the left, the action group on the right — both floating glass, no bar background. The action group is one glass `Capsule` holding the primary-action pill (label + `↵`) and the Actions toggle (`⌘K`).
 - **`BarButton`** is the shared bar control: bare label at rest, a `rowHover` capsule on hover, `barButtonHeight 28`. Set `isSelected` and it fills with `selection` instead, which beats hover; the Notes formatting bar lights its buttons this way. Set `isCompact` for `sm` padding instead of `md`: around a 16-point glyph frame that makes a 28-point square. It carries the footer's two buttons and the file search header's type filter, so those hover identically. Hover state lives inside it, so sweeping one never re-renders the palette body.

@@ -92,7 +92,7 @@ struct ClipboardScreen: PaletteScreen {
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
         AnyView(ClipboardPaletteView(
             coordinator: coordinator, vm: vm, rows: rows, selected: result(at: selection),
-            scroll: scroll, openActions: openActions, primaryTitle: primaryActionTitle))
+            scroll: scroll, openActions: openActions))
     }
 }
 
@@ -105,7 +105,6 @@ private struct ClipboardPaletteView: View {
     let selected: ClipboardResult?
     let scroll: ScrollIntent
     let openActions: () -> Void
-    let primaryTitle: String
 
     var body: some View {
         HStack(spacing: 0) {
@@ -138,7 +137,7 @@ private struct ClipboardPaletteView: View {
             }
             .frame(width: metrics.scaled(Theme.Size.clipboardListWidth))
             Rectangle().fill(Theme.Colors.separator).frame(width: 1)
-            ClipboardPalettePreview(result: selected, coordinator: coordinator, primaryTitle: primaryTitle, openActions: openActions, deferLoading: scroll.kind == .follow)
+            ClipboardPalettePreview(result: selected, coordinator: coordinator, openActions: openActions, deferLoading: scroll.kind == .follow)
                 .id(selected?.id)
         }
         .overlay {
@@ -176,7 +175,6 @@ private struct ClipboardPalettePreview: View {
     @Environment(\.metrics) private var metrics
     let result: ClipboardResult?
     let coordinator: ClipboardCoordinator
-    let primaryTitle: String
     let openActions: () -> Void
     let deferLoading: Bool
     @State private var text = ""
@@ -190,25 +188,26 @@ private struct ClipboardPalettePreview: View {
         VStack(alignment: .leading, spacing: 0) {
             if let result {
                 HStack {
-                    Text(title(result)).foregroundStyle(.secondary)
+                    Text(title(result)).foregroundStyle(.secondary).lineLimit(1)
                     Spacer()
                     if case .item(let item) = result, item.type == .image {
                         if coordinator.extractingItemID == item.id { ProgressView().controlSize(.mini) }
-                        Button { coordinator.runOCR(item) } label: {
-                            Label(item.ocrText == nil ? "OCR & Copy" : "Refresh & Copy", systemImage: "text.viewfinder")
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(coordinator.extractingItemID != nil)
                     }
                 }
                 .font(.system(size: metrics.scaled(11)))
-                .padding(metrics.scaled(12))
+                .padding(.horizontal, metrics.scaled(12))
+                .frame(height: metrics.scaled(36))
                 if case .item(let item) = result, item.type == .image {
                     ScrollView {
                         VStack(alignment: .leading, spacing: metrics.scaled(12)) {
                             if let image {
                                 Image(nsImage: image).resizable().interpolation(.high).scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .clipShape(RoundedRectangle(cornerRadius: metrics.scaled(5)))
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: metrics.scaled(5))
+                                            .strokeBorder(Theme.Colors.separator, lineWidth: 0.5)
+                                    }
                                     .onTapGesture { coordinator.expandedImage = item }
                             } else {
                                 Text(error ?? "Loading image…").foregroundStyle(.secondary)
@@ -217,11 +216,14 @@ private struct ClipboardPalettePreview: View {
                                 Divider()
                                 HStack(alignment: .top, spacing: metrics.scaled(8)) {
                                     Text(text.isEmpty ? "No text found in this image." : text)
+                                        .lineSpacing(metrics.scaled(2))
                                         .textSelection(.enabled)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                     if !text.isEmpty, text != "No text found in this image." {
                                         Button { coordinator.copyImageText(item) } label: {
                                             Image(systemName: "doc.on.doc")
+                                                .foregroundStyle(.secondary)
+                                                .frame(width: metrics.scaled(20), height: metrics.scaled(20))
                                         }
                                         .buttonStyle(.plain)
                                         .help("Copy extracted text")
@@ -261,15 +263,17 @@ private struct ClipboardPalettePreview: View {
                     .hideNativeScrollers()
                     .thinScrollbar()
                 }
-                HStack {
+                HStack(spacing: metrics.scaled(8)) {
                     PaletteActionsButton(action: openActions)
                     Spacer()
-                    Button(primaryTitle) { coordinator.activate(result) }
-                        .buttonStyle(.plain)
-                    Image(systemName: "return").foregroundStyle(.tertiary)
                 }
                 .font(.system(size: metrics.scaled(11)))
-                .padding(metrics.scaled(12))
+                .padding(.horizontal, metrics.scaled(8))
+                .frame(height: metrics.scaled(40))
+                .overlay(alignment: .top) {
+                    Rectangle().fill(Theme.Colors.separator).frame(height: 0.5)
+                        .padding(.horizontal, metrics.scaled(12))
+                }
             } else {
                 Color.clear
             }

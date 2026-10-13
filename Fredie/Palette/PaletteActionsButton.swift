@@ -10,24 +10,28 @@ struct PaletteActionsButton: View {
     @Environment(\.paletteActionsAvailable) private var available
     @Environment(\.paletteActionsArrowAvailable) private var arrowAvailable
     let action: () -> Void
+    @State private var hovered = false
 
     var body: some View {
         if available {
             Button(action: action) {
                 HStack(spacing: metrics.scaled(5)) {
-                    Text("Actions")
-                    KeyCapChip(text: "⌘K", style: .outline)
+                    Text("Actions").foregroundStyle(Theme.Colors.textSecondary)
+                    KeyCapChip(text: "⌘K", style: .outline, scale: .compact)
                     if arrowAvailable {
-                        Image(systemName: "chevron.right").font(.system(size: metrics.scaled(9)))
+                        Image(systemName: "chevron.right").font(.system(size: metrics.scaled(9), weight: .medium))
+                            .foregroundStyle(Theme.Colors.textTertiary)
                     }
                 }
                 .font(.system(size: metrics.scaled(11)))
                 .padding(.horizontal, metrics.scaled(6))
-                .padding(.vertical, metrics.scaled(4))
-                .background(Theme.Colors.controlSurface, in: RoundedRectangle(cornerRadius: metrics.scaled(5)))
+                .frame(height: metrics.scaled(24))
+                .contentShape(RoundedRectangle(cornerRadius: metrics.scaled(5)))
+                .background(hovered ? Theme.Colors.rowHover : .clear, in: RoundedRectangle(cornerRadius: metrics.scaled(5)))
             }
             .buttonStyle(.plain)
             .fixedSize()
+            .onHover { hovered = $0 }
             .accessibilityLabel("Actions")
             .help(arrowAvailable ? "Actions (⌘K or → at the end of search)" : "Actions (⌘K)")
         }
