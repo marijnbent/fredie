@@ -128,6 +128,9 @@ extension SettingsTab {
     }
 
     static func visible(for enabled: Set<OllieFeature>) -> [Self] {
-        available.filter { $0.feature.map(enabled.contains) ?? true }
+        available.filter { tab in
+            guard let feature = tab.feature else { return true }
+            return enabled.contains(feature)
+        }
     }
 }

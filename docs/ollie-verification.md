@@ -1,4 +1,24 @@
-# Ollie verification — build 13, 12 October 2026
+# Ollie verification
+
+## Build 14 Settings crash fix — 13 October 2026
+
+Opening Settings in build 13 crashed with `EXC_BAD_ACCESS` inside the optimized
+`Set.contains` call in `SettingsTab.visible(for:)`. The native tool's transient-window errors
+had obscured the app crash. The shipping settings harness reproduced it with `-O`, both with
+and without whole-module optimization; its unoptimized run had passed.
+
+The filter now unwraps the feature explicitly and calls `enabled.contains(feature)` directly.
+The same optimized harness passes all 137 assertions, and the suite now keeps this harness
+optimized. Signed Debug builds with no new warnings; lint, settings-search consistency,
+model import and diff checks pass. The full suite passed 89 of 90 harnesses; the unrelated
+switcher cancellation timing check passed on an isolated rerun.
+
+Signed build 14 was installed at `/Applications/Ollie.app`. Native Command-Comma opened the
+Features window successfully: all ten switches were visible, Launcher was on, and the other nine
+were off. Only the enabled Launcher's Applications and Emoji panes appeared beside the common
+settings pages. Settings was left open; no feature switches or credentials were changed.
+
+## Previous build 13 — 12 October 2026
 
 ## Features and standalone-app removal
 

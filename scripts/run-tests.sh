@@ -593,7 +593,7 @@ run ollie-services-test -parse-as-library \
     Fredie/Features/Updates/Model/UpdateReadiness.swift \
     Fredie/Platform/ProcessExit.swift \
     Fredie/Platform/AppPaths.swift
-run settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
+run -O settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
                            Fredie/Features/Settings/SettingsHistory.swift \
                            Fredie/Features/Settings/SettingsAnchor.swift \
                            Fredie/Features/Settings/SettingsNavigationState.swift \

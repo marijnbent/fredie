@@ -45,6 +45,10 @@ which is worth it only where the run dominates the compile — `raycast-test` sp
 scrypt at `-Onone` and one second at `-O`. `slow` dispatches it in the first wave, so the longest
 harnesses are not still running after everything else has finished.
 
+`settings-history-test` also runs with `-O`: the feature visibility filter previously passed in Debug
+but crashed when opening Settings in Release. Its existing visibility assertions reproduce that crash
+under optimization and verify that disabled feature panes stay hidden.
+
 The script is the **only** place the harness set is written down. Nothing runs it for you, so run it
 before you open a PR. Adding a harness means adding one `run` line.
 
