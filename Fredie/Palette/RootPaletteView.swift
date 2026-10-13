@@ -292,8 +292,7 @@ struct RootPaletteView: View {
                 )
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .background(Theme.Colors.panelScrim)
-                .background(GlassEffectView())
+                .background(PaletteBackdrop(surface: surface))
                 .overlay {
                     Theme.Colors.dialogDimming
                         .opacity(core.isDimmingPaletteForDialog ? 1 : 0)
@@ -647,13 +646,9 @@ struct RootPaletteView: View {
                 // Given room last: at the default priority it would split it with the field.
                 Spacer(minLength: 0).layoutPriority(-1)
             }
-            if vm.mode == .launcher, headerAccessory == nil {
+            if vm.mode == .launcher, headerAccessory == nil, settings.aiEnabled {
                 headerGutter(width: metrics.spacing.md)
-                if settings.aiEnabled { launcherAIButton }
-                if !isCollapsed {
-                    headerGutter(width: metrics.spacing.xs)
-                    launcherMenuButton
-                }
+                launcherAIButton
             }
             if !isCollapsed, vm.mode == .fileSearch {
                 headerGutter(width: metrics.spacing.md)
@@ -727,19 +722,6 @@ struct RootPaletteView: View {
         }
         .accessibilityLabel(settings.aiEnabled ? "Ask AI" : "Set up AI")
         .tooltip(settings.aiEnabled ? "Ask AI" : "Set up AI", edge: .bottom)
-    }
-
-    private var launcherMenuButton: some View {
-        BarButton(isSelected: openMenu == .app, isCompact: true) {
-            if openMenu == .app { closeMenus() } else { open(.app, highlighting: 0) }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(metrics.typography.bar)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .frame(width: metrics.size.headerIconSlot, height: metrics.size.headerIconSlot)
-        }
-        .accessibilityLabel(Bundle.main.appDisplayName)
-        .tooltip(Bundle.main.appDisplayName, edge: .bottom)
     }
 
     /// True when the screen took the keyboard over, which leaves the header empty beside the chevron.

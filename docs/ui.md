@@ -11,6 +11,10 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 ## The palette
 
 The Floating launcher is 506 points wide, with a separate search surface above a dense list.
+Launcher and clipboard use Tabbie's glass treatment: active within-window HUD material, an 18%
+window-background tint, a 14% white one-point border, and scaled 16-point corners. Each detached
+surface has its own material view, leaving the gap transparent. Reduce Transparency uses the
+window-background material and a 96% tint. `PaletteBackdrop` owns these surfaces.
 Its height follows the result count up to ten visible rows. Clipboard is a scoped mode in the same
 panel, 620 points wide: a 260-point list and a text/image preview. Clipboard rows show only a small
 source application icon at the trailing edge; unknown sources leave no icon. Other modes retain the
@@ -20,6 +24,7 @@ Compact or Comfortable spacing independently of text scale. Compact is the defau
 44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
 Launcher and clipboard search fields have no leading icon; other modes retain their back button.
+The launcher search bar has no app-menu button; Ask AI remains available when enabled.
 The launcher has no footer; the selected row carries a clickable Actions control with a right chevron.
 The Actions control uses a hover-only background; ⌘K remains supported without a visible shortcut hint. Selected launcher titles
 use medium weight, with a 72-point trailing action lane. Clipboard uses the same control in a
@@ -32,9 +37,9 @@ button. Images expose OCR & Copy in Actions: recognition automatically copies no
 text and confirms completion, while keeping the extracted text selectable below the image.
 Refresh OCR & Copy reruns recognition. Empty extraction leaves the clipboard unchanged. If another copy happens during OCR, the extracted text is saved without replacing that newer clipboard.
 
-Fredie is an **app launcher**: a borderless floating panel whose surface is just the
-OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
-white at a fixed alpha ramp. The surface comes in two separate pieces: the search field is its own
+Ollie uses borderless floating panels. Modes outside launcher and clipboard retain Liquid Glass
+under the existing appearance-aware scrim. Launcher and clipboard use the HUD material above.
+The floating surface comes in two separate pieces: the search field is its own
 **capsule**, and the results sit on a **card** below it, `Spacing.md` apart; collapsed, only the
 capsule shows. Outside the launcher, the bottom bar **floats over the list as a fully transparent overlay**; there are no
 hard-edged bars, strips, or dividers inside the card. Rows don't clip under the bar, they

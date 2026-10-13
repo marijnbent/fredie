@@ -80,7 +80,7 @@ enum Theme {
         static let compactPaletteGap: CGFloat = 6
         static let comfortablePaletteGap: CGFloat = 8
         static let paletteCardInset: CGFloat = 4
-        static let floatingRadius: CGFloat = 10
+        static let floatingRadius: CGFloat = 16
         static let floatingSearchFontSize: CGFloat = 15
         static let launcherListIcon: CGFloat = 26
         static let launcherListFontSize: CGFloat = 13
@@ -446,6 +446,9 @@ enum Theme {
 
         /// The ramp's inverse: the scrim darkens the dark surface and lightens the light one.
         static let panelScrim = adaptive(dark: .srgbInk(0, alpha: 0.40), light: .srgbInk(1, alpha: 0.55))
+        static let paletteGlassTint = Color(nsColor: .windowBackgroundColor).opacity(0.18)
+        static let paletteOpaqueTint = Color(nsColor: .windowBackgroundColor).opacity(0.96)
+        static let paletteGlassBorder = Color.white.opacity(0.14)
         /// Modal separation inside Fredie: the launcher recedes while its dialog is in front.
         static let dialogDimming = adaptive(
             dark: .srgbInk(0, alpha: 0.34), light: .srgbInk(0, alpha: 0.34))

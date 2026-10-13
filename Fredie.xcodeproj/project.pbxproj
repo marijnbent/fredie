@@ -798,6 +798,7 @@
 		EC7185E23C6E228E9CEDFA0B /* ExtensionPackageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A260EFD09068B3AC8C7937 /* ExtensionPackageManager.swift */; };
 		ED02E635FF683D6447963660 /* GlassEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A464D47851F35E060C423933 /* GlassEffectView.swift */; };
 		ED3E2B1268092CFCB0D6E46A /* CurrencyData.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FAD1AAE42BAB9C65A7AA23 /* CurrencyData.generated.swift */; };
+		ED5379BB88F2B17C1457C164 /* PaletteBackdrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD674D6ABA19580042731FB3 /* PaletteBackdrop.swift */; };
 		ED56A08398A5CEB31DF5CC7E /* FeatureCommandsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E71F5C8FF30995A54ED0F8A /* FeatureCommandsSection.swift */; };
 		ED8705D6FF7E9EDF3BE8D6EC /* LogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34BCFB955919E45D02436130 /* LogEntry.swift */; };
 		ED8E902DB5DEC099296305E9 /* MediaImportSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F6FFB7101E67DE2B8F9A346 /* MediaImportSettingsView.swift */; };
@@ -1566,6 +1567,7 @@
 		CCFB17232C1C508D81B207D6 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CD10FFE4973B412BC4AF704C /* FocusController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusController.swift; sourceTree = "<group>"; };
 		CD3B494820C90243D5E43598 /* ChatChoices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatChoices.swift; sourceTree = "<group>"; };
+		CD674D6ABA19580042731FB3 /* PaletteBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteBackdrop.swift; sourceTree = "<group>"; };
 		CDF9C69C19688F0D91EFFD84 /* SymbolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolCatalog.swift; sourceTree = "<group>"; };
 		CEB4D3131F5CCD208B0F6125 /* SystemActionRunner+Microphone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SystemActionRunner+Microphone.swift"; sourceTree = "<group>"; };
 		CEBBECE0E80CCA8AC47A8706 /* Fredie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fredie.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3491,6 +3493,7 @@
 				5E8788D33A1ADFE7BAB933A0 /* HoverArming.swift */,
 				A77373F57376382FD6728729 /* MenuPanel.swift */,
 				558DDBCA34D4A830969D6052 /* PaletteActionsButton.swift */,
+				CD674D6ABA19580042731FB3 /* PaletteBackdrop.swift */,
 				69BCBED7CFB0BA6F2243F3F7 /* PaletteCoordinator.swift */,
 				612D654B2324F4F3657FC36C /* PaletteDropGuideController.swift */,
 				6D6D1097E28F8561AB2BD76D /* PaletteDropGuideView.swift */,
@@ -4488,6 +4491,7 @@
 				C0F7E5FE7E74185760DCA42D /* OverlayView.swift in Sources */,
 				9753C48DCBADF2EA08BD61B2 /* PDFSurface.swift in Sources */,
 				AFC3359A65CAD605EFC45973 /* PaletteActionsButton.swift in Sources */,
+				ED5379BB88F2B17C1457C164 /* PaletteBackdrop.swift in Sources */,
 				D7428EAF292DF679E150256B /* PaletteCoordinator.swift in Sources */,
 				AFCE1D0E6CCB31B82C8EA982 /* PaletteDropGuideController.swift in Sources */,
 				DCD5488B6F19D4D3F2DCE44F /* PaletteDropGuideView.swift in Sources */,
@@ -4851,7 +4855,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4919,7 +4923,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
