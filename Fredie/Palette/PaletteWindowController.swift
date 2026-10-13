@@ -61,16 +61,13 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     func show() {
         Signposts.interval("PaletteWindowController.show") {
             isPoppedToRoot = false
-            // Summoned over one of our own windows: there is no external paste or focus target.
-            let frontmost = NSWorkspace.shared.frontmostApplication
-            let ownPID = NSRunningApplication.current.processIdentifier
-            previousApp = frontmost?.processIdentifier == ownPID ? nil : frontmost
-            // Recorded even when another app is frontmost: our panels take key without activating.
-            let key = NSApp.keyWindow
-            // A mode switch re-shows the palette while it holds key; keep what it recorded then.
-            if key !== panel { previousOwnWindow = key }
-            // Once per summon, and from `previousApp`, so the label names the paste target.
-            core.palette.pasteTarget = PasteTarget(app: previousApp)
+            if !isVisible {
+                let frontmost = NSWorkspace.shared.frontmostApplication
+                let ownPID = NSRunningApplication.current.processIdentifier
+                previousApp = frontmost?.processIdentifier == ownPID ? nil : frontmost
+                previousOwnWindow = previousApp == nil ? NSApp.keyWindow : nil
+                core.palette.pasteTarget = PasteTarget(app: previousApp)
+            }
             let panel = ensurePanel()
             // Undo a sink a modal left behind, unless one is still up.
             if NSApp.modalWindow == nil { panel.level = .palette }
@@ -89,14 +86,8 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             core.palette.noteVisible(true)
             // Only while we are on screen: a system-wide tap has no business outliving the window.
             commandEscapeTap.enable()
-            // Non-activating, so summoning never raises our own aux windows behind it.
+            NSApp.activate()
             panel.makeKeyAndOrderFront(nil)
-            panel.orderFrontRegardless()
-            // A never-activated login item can drop the first key request, so re-assert.
-            DispatchQueue.main.async { [weak panel] in
-                guard let panel, panel.isVisible, !panel.isKeyWindow else { return }
-                panel.makeKeyAndOrderFront(nil)
-            }
         }
     }
 

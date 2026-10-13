@@ -26,7 +26,6 @@ final class PalettePanel: NSPanel {
         }
     }
 
-    /// Nil until a field takes focus; a non-activating panel can only scope input to this.
     var fieldEditorContext: NSTextInputContext? { fieldEditor?.inputContext }
 
     /// SwiftUI's text fields all edit through the window's one shared field editor.
@@ -216,7 +215,7 @@ final class PalettePanel: NSPanel {
         super.init(
             contentRect: NSRect(
                 x: 0, y: 0, width: Theme.Size.panelWidth, height: Theme.Size.panelHeight),
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )

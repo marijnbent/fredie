@@ -26,8 +26,8 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
 - **Input-source switching is a palette session.** The source active at summon time is captured before
   the panel becomes key, the configured source is applied through `PalettePanel.fieldEditorContext`, and
   the captured source is restored on hide and on termination — but only when the palette is still on the
-  source it applied, so a switch made since, by the user or another app, stands. Never applied globally:
-  the panel does not activate, so a global switch would land on whichever app is still frontmost.
+  source it applied, so a switch made since, by the user or another app, stands. The configured source
+  is applied to the field editor rather than switched globally.
 
 ## Summoning
 
@@ -41,7 +41,7 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
                                             · resolves PasteTarget once per summon
                                             · resolves the screen anchor once per summon
                                             · captures the input source to restore, once per summon
-                                            · positions, lays out off-screen, orders front
+                                            · positions, lays out off-screen, activates Ollie and takes key focus
                                                               ↓
                                                     RootPaletteView.body
                                             · focuses the search field
@@ -49,6 +49,10 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
                                             PalettePanel.makeFirstResponder
                                             · applies the configured source to the field editor
 ```
+
+The palette activates Ollie before becoming key. Merely ordering a non-activating panel in front
+can leave hardware keyboard input going to the previous app. Switching palette modes preserves the
+original paste and focus targets; dismissing restores that app or the Ollie window it covered.
 
 Everything resolved "once per summon" is resolved there deliberately, not per render. `AppCore` holds
 only the closure wiring; the behaviour is `PaletteCoordinator`'s.
