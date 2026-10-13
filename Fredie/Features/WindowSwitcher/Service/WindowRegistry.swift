@@ -16,7 +16,7 @@ final class WindowRegistry {
     private let frontmostApplication: () -> NSRunningApplication?
     private let isDiscoverable: (NSRunningApplication) -> Bool
     private let sortApplications: (NSRunningApplication, NSRunningApplication) -> Bool
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
 
     private var trackedApps: [pid_t: TrackedApp] = [:]
     private var appOrder: [pid_t: Int] = [:]
@@ -295,7 +295,7 @@ final class WindowRegistry {
         synchronizeRunningApplications(scheduleNewAppRefresh: false)
         let cgStart = ContinuousClock.now
         let cgEntries = await cgSnapshots.snapshot()
-        cgMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: cgStart)
+        cgMilliseconds = Diagnostics.elapsedMilliseconds(since: cgStart)
         guard !Task.isCancelled, registryGeneration == generation else { return }
         updateCGEntries(cgEntries)
         let pids = trackedApps.keys.sorted {
@@ -338,7 +338,7 @@ final class WindowRegistry {
         if request.requiresCGRefresh {
             let cgStart = ContinuousClock.now
             let entries = await cgSnapshots.snapshot()
-            cgMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: cgStart)
+            cgMilliseconds = Diagnostics.elapsedMilliseconds(since: cgStart)
             guard trackedApps[pid]?.generation == generation else { return }
             updateCGEntries(entries)
         }
@@ -352,7 +352,7 @@ final class WindowRegistry {
             previousWindows: trackedApps[pid]?.windows ?? [],
             allowUnknownWindows: trackedApps[pid].flatMap { WineApplication.wrapperURL(for: $0.runningApplication) } != nil
         )
-        readMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: readStart)
+        readMilliseconds = Diagnostics.elapsedMilliseconds(since: readStart)
         outcome = result.benchmarkOutcome
         windowCount = result.windowCount
         guard trackedApps[pid]?.generation == generation,
@@ -363,12 +363,12 @@ final class WindowRegistry {
         if (!result.isIncremental || request.updatesFocus), let focusedWindow = result.focusedWindow {
             onFocusedWindowObserved?(pid, focusedWindow)
         }
-        applyMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: applyStart)
+        applyMilliseconds = Diagnostics.elapsedMilliseconds(since: applyStart)
         let observerStart = ContinuousClock.now
         if !result.isIncremental || trackedApps[pid]?.observer == nil {
             await ensureObserver(pid: pid, windows: windowsForObservation)
         }
-        observerMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: observerStart)
+        observerMilliseconds = Diagnostics.elapsedMilliseconds(since: observerStart)
     }
 
     private func apply(
@@ -427,7 +427,7 @@ final class WindowRegistry {
             return
         }
         guard let interval = policy.retryInterval(afterFailureCount: failureCount) else {
-            diagnostics.warning("windowRegistry.retry stopped pid=\(pid) failures=\(failureCount)")
+            diagnostics.warning("windowRegistry.retry stopped", details: "pid=\(pid) failures=\(failureCount)")
             return
         }
         scheduleRefresh(pid: pid, reason: .retryAfterFailure, delayOverride: interval)
@@ -475,7 +475,7 @@ final class WindowRegistry {
         logFailure(pid: pid, message: "observer failed failures=\(failureCount)")
 
         guard let interval = policy.retryInterval(afterFailureCount: failureCount) else {
-            diagnostics.warning("windowRegistry.observerRetry stopped pid=\(pid) failures=\(failureCount)")
+            diagnostics.warning("windowRegistry.observerRetry stopped", details: "pid=\(pid) failures=\(failureCount)")
             return
         }
         scheduleRefresh(pid: pid, reason: .retryAfterFailure, delayOverride: interval)
@@ -541,7 +541,7 @@ final class WindowRegistry {
             return
         }
         lastFailureLogDates[pid] = now
-        diagnostics.warning("windowRegistry.reconcile pid=\(pid) \(message)")
+        diagnostics.info("windowRegistry.reconcile pid=\(pid) \(message)")
     }
 
     private static func benchmarkNumber(_ value: Double) -> String {
@@ -638,7 +638,7 @@ enum AXAppWindowReadResult: @unchecked Sendable {
 
 private struct AXWindowDiscoveryWorker: Sendable {
     private let lock = NSLock()
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
     private let inventoryReader = AXWindowInventoryReader()
 
     func readWindows(

@@ -119,14 +119,14 @@ run slow -O fuzz-test      $L/SearchRelevance.swift $L/ScriptRomanization.swift 
                            $L/LauncherRankingStore.swift $L/LauncherSuggestions.swift
 run file-search-test       $L/SearchRelevance.swift \
                            Fredie/Features/FileSearch/Model/*.swift
-run file-search-session-test Fredie/Platform/Signposts.swift \
+run file-search-session-test Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
                              $L/SearchRelevance.swift \
                              Fredie/Features/FileSearch/Model/*.swift \
                              Fredie/Features/FileSearch/Service/*.swift
 run menu-search-test       $L/SearchRelevance.swift \
                            Fredie/Features/MenuSearch/Model/*.swift \
                            Fredie/Features/MenuSearch/Service/*.swift
-run index file-search-performance Fredie/Platform/Signposts.swift \
+run index file-search-performance Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Features/FileSearch/Model/*.swift \
                            Fredie/Features/FileSearch/Service/FileSearchService.swift
@@ -415,11 +415,11 @@ run quicklink-coordinator-test Fredie/Features/Quicklinks/Model/Quicklink.swift 
                            Fredie/Features/Quicklinks/UI/QuicklinkCoordinator.swift \
                            Fredie/Features/Quicklinks/UI/QuicklinkArgumentsAccessory.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
-run notes-test             Fredie/Platform/Signposts.swift \
+run notes-test             Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
                            Fredie/Features/Notes/Model/*.swift \
                            Fredie/Features/Notes/Service/*.swift
-run notes-editor-test      Fredie/Platform/Signposts.swift \
+run notes-editor-test      Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
                            Fredie/Platform/Appearance.swift \
                            Fredie/DesignSystem/Theme.swift \
                            Fredie/DesignSystem/InterfaceMetrics.swift \
@@ -445,7 +445,7 @@ run notes-editor-test      Fredie/Platform/Signposts.swift \
                            Fredie/Features/Notes/UI/NoteTextView.swift \
                            Fredie/Features/Notes/UI/NoteEditorView.swift
 run -O index notes-editor-performance \
-                           Fredie/Platform/Signposts.swift \
+                           Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
                            Fredie/Platform/Appearance.swift \
                            Fredie/DesignSystem/Theme.swift \
                            Fredie/DesignSystem/InterfaceMetrics.swift \
@@ -530,6 +530,7 @@ run slow ext-test          -parse-as-library \
                            $E/Model/ExtensionMenuBarSnapshot.swift \
                            $E/Service/ExtensionStorage.swift \
                            $E/Service/ExtensionMenuBarManager.swift \
+                           Fredie/Platform/Diagnostics.swift \
                            $E/Model/ExtensionCommandMetadata.swift \
                            $E/Service/ExtensionCommandMetadataStore.swift \
                            $E/UI/ExtensionMenuBarController.swift \
@@ -567,15 +568,16 @@ run slow ext-test          -parse-as-library \
                            Fredie/Platform/Compression/Zlib.swift \
                            Fredie/Features/Calculator/Model/ColorValue.swift \
                            Fredie/Features/Calculator/Model/ColorSpaces.swift
-run ollie-dictation-test -parse-as-library Fredie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Tests/Dictation/*.swift Fredie/Platform/AppPaths.swift Fredie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Fredie/Features/Dictation/Service/AudioCaptureController.swift Fredie/Features/Dictation/Service/AudioBufferConverter.swift Fredie/Features/Dictation/Service/AudioInputSelection.swift Fredie/Features/Dictation/Service/DeepgramLanguage.swift Fredie/Features/Dictation/Service/TranscriptionProvider.swift Fredie/Features/Dictation/Service/EnhancementProvider.swift Fredie/Features/Dictation/Service/ShortcutConfig.swift Fredie/Features/Dictation/Service/Hotkey.swift Fredie/Features/Dictation/Service/RecordingOwnership.swift Fredie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Fredie/Features/Dictation/Service/StatusModel.swift Fredie/Features/Dictation/Service/LogEntry.swift Fredie/Features/Dictation/Service/DictationSessionState.swift Fredie/Features/Dictation/Service/DictationPreferences.swift Fredie/Features/Dictation/Service/TranscriptHistoryStore.swift Fredie/Features/Dictation/Service/RawRecordingStore.swift Fredie/Features/Dictation/Service/SystemMuteController.swift Fredie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Fredie/Features/Dictation/Service/String+Trim.swift
-run ollie-switcher-test -parse-as-library Fredie/Features/WindowSwitcher/Service/*.swift
+run diagnostics-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift Fredie/Features/Settings/AppSettingsKey.swift
+run ollie-dictation-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Tests/Dictation/*.swift Fredie/Platform/AppPaths.swift Fredie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Fredie/Features/Dictation/Service/AudioCaptureController.swift Fredie/Features/Dictation/Service/AudioBufferConverter.swift Fredie/Features/Dictation/Service/AudioInputSelection.swift Fredie/Features/Dictation/Service/DeepgramLanguage.swift Fredie/Features/Dictation/Service/TranscriptionProvider.swift Fredie/Features/Dictation/Service/EnhancementProvider.swift Fredie/Features/Dictation/Service/ShortcutConfig.swift Fredie/Features/Dictation/Service/Hotkey.swift Fredie/Features/Dictation/Service/RecordingOwnership.swift Fredie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Fredie/Features/Dictation/Service/StatusModel.swift Fredie/Features/Dictation/Service/LogEntry.swift Fredie/Features/Dictation/Service/DictationSessionState.swift Fredie/Features/Dictation/Service/DictationPreferences.swift Fredie/Features/Dictation/Service/TranscriptHistoryStore.swift Fredie/Features/Dictation/Service/RawRecordingStore.swift Fredie/Features/Dictation/Service/SystemMuteController.swift Fredie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Fredie/Features/Dictation/Service/String+Trim.swift
+run ollie-switcher-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Features/WindowSwitcher/Service/*.swift
 run ollie-clipboard-test -parse-as-library \
     Fredie/Features/Clipboard/Model/*.swift \
     Fredie/Features/Clipboard/Service/ClipboardStore.swift \
     Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
     Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \
     Fredie/Features/Clipboard/Service/ClipboardImageCache.swift \
-    Fredie/Features/Clipboard/Service/ClipboardDiagnostics.swift \
+    Fredie/Platform/Diagnostics.swift \
     Fredie/Features/Clipboard/Service/SnippetStore.swift \
     Fredie/Features/Clipboard/Service/PasteController.swift \
     Fredie/Platform/NotificationToken.swift

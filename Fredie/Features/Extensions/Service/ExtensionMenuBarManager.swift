@@ -413,10 +413,10 @@ final class ExtensionMenuBarManager: ExtensionRuntimeDelegate {
     }
 
     func runtime(_ runtime: ExtensionRuntime, log level: String, message: String) {
-        if level == "error" {
-            Logger(subsystem: "nl.bentjes.fredie", category: "extension-menu-bar").error(
-                "\(message, privacy: .public)")
-        }
+        let diagnostics = Diagnostics(category: "extension-menu-bar")
+        if level == "error" { diagnostics.error("runtime.error", details: message) }
+        else if level == "warn" { diagnostics.warning("runtime.warning", details: message) }
+        else { diagnostics.info(message) }
     }
 }
 

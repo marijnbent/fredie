@@ -908,6 +908,7 @@ final class SnippetExpansionController {
     }
 
     private func logAnchorResolutionIfNeeded(_ resolution: AnchorResolution) {
+        guard Diagnostics.enabled else { return }
         let logKey = [
             resolution.strategy.rawValue,
             resolution.bundleIdentifier ?? "unknown",
@@ -921,7 +922,7 @@ final class SnippetExpansionController {
         lastAnchorLogKey = logKey
 
         let strategySuffix = sessionAnchorStrategy.map { " previous=\($0.rawValue)" } ?? ""
-        print(
+        Diagnostics(category: "snippets").info(
             "[clippie snippet] anchor strategy=\(resolution.strategy.rawValue)\(strategySuffix) " +
             "bundle=\(resolution.bundleIdentifier ?? "unknown") pid=\(resolution.processID ?? 0) " +
             "role=\(resolution.focusedRole ?? "unknown") subrole=\(resolution.focusedSubrole ?? "none") " +
@@ -930,8 +931,9 @@ final class SnippetExpansionController {
     }
 
     private func logObserver(_ message: String) {
+        guard Diagnostics.enabled else { return }
         guard let observedApplication else {
-            print("[clippie snippet] \(message)")
+            Diagnostics(category: "snippets").info(message)
             return
         }
 
@@ -941,7 +943,7 @@ final class SnippetExpansionController {
         }
         lastObserverLogKey = logKey
 
-        print(
+        Diagnostics(category: "snippets").info(
             "[clippie snippet] \(message) " +
             "bundle=\(observedApplication.bundleIdentifier ?? "unknown") pid=\(observedApplication.processIdentifier)"
         )

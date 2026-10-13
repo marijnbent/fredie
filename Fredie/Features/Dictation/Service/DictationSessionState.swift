@@ -19,6 +19,7 @@ final class AudioMeterState {
 final class DictationSessionState {
     static let maxLogEntries = 1_000
 
+    private let diagnosticsEnabled: () -> Bool
     private let historyStore: (any TranscriptHistoryPersisting)?
     private var historyRevision = 0
     private var canWriteHistory: Bool
@@ -65,8 +66,10 @@ final class DictationSessionState {
     init(
         historyStore: (any TranscriptHistoryPersisting)? = nil,
         initialTranscriptHistory: [TranscriptHistoryEntry] = [],
-        initialHistoryIsPersisted: Bool = true
+        initialHistoryIsPersisted: Bool = true,
+        diagnosticsEnabled: @escaping () -> Bool = { Diagnostics.enabled }
     ) {
+        self.diagnosticsEnabled = diagnosticsEnabled
         self.historyStore = historyStore
         self.canWriteHistory = initialHistoryIsPersisted
         self.transcriptHistory = initialTranscriptHistory
@@ -115,6 +118,7 @@ final class DictationSessionState {
     }
 
     func addLog(_ message: String, level: LogLevel = .info) {
+        guard level != .info || diagnosticsEnabled() else { return }
         logs.append(LogEntry(timestamp: Date(), level: level, message: message))
         if logs.count > Self.maxLogEntries {
             logs.removeFirst(logs.count - Self.maxLogEntries)

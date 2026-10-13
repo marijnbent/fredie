@@ -1,7 +1,7 @@
 import Foundation
 
 final class WindowDiscoveryProfiler {
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
     private var measurements: [String: Double] = [:]
     private var isRecording = false
 
@@ -19,7 +19,7 @@ final class WindowDiscoveryProfiler {
         }
         let start = ContinuousClock.now
         let result = work()
-        measurements[name] = SwitcherDiagnostics.elapsedMilliseconds(since: start)
+        measurements[name] = Diagnostics.elapsedMilliseconds(since: start)
         return result
     }
 

@@ -1,5 +1,31 @@
 # Ollie verification
 
+## Build 17 app-wide diagnostics — 13 October 2026
+
+General owns the sole Diagnostics switch. It defaults off and immediately controls optional
+window-switcher, clipboard, snippet, Dictation, extension and notification diagnostics, plus
+performance signposts. The old Window Switcher control and the separate clipboard preference
+are removed. Essential warnings and errors remain available with static event names readable;
+user-derived details remain private. Clipboard counts and timing metrics stay readable.
+Dictation transcript history, recording retention and credentials are unchanged.
+
+Two Opus source reviews informed the scope and caught a missing extension-harness dependency,
+a stale manual test command and logging privacy/usability issues; these were corrected.
+All 91 harnesses passed in 128 seconds. Signed Debug builds with no new warnings; lint passes
+with existing nonblocking warnings. Model import and diff checks pass.
+
+Native checks on the installed build confirmed General > Diagnostics starts off, turns on, and
+persists `diagnosticsEnabled = 1`. Search returns one Diagnostics result under General and opens
+that page. Window Switcher has only Shortcuts and Windows sections, with no diagnostic control.
+Diagnostics was restored to off and General Settings left open. No feature switches or credentials
+were changed. The screenshot confirmed the compact native toggle row.
+
+Signed Release build 17 was installed and opened from `/Applications/Ollie.app`. Deep strict
+signature verification passes with the existing Apple Development identity and team X44F5HTS6P.
+The installed executable matches the release output:
+`ed9ce06a4ba65e8bd9098191d64abcf2b452645f910ac7991dddb9a122c11f38` (SHA-256).
+The installed process was verified running.
+
 ## Build 16 feature settings consistency — 13 October 2026
 
 Feature pages now use shared permission, notice, removal and setting rows, named native Form

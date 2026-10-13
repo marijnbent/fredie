@@ -76,7 +76,7 @@ enum SettingsBackupCoverage {
         AppSettingsKey.switcherHiddenMode.rawValue: "Carried by settings.json in the windowSwitcher section.",
         AppSettingsKey.switcherAppsWithoutWindowsMode.rawValue: "Carried by settings.json in the windowSwitcher section.",
         AppSettingsKey.switcherImmediatePreview.rawValue: "Carried by settings.json in the windowSwitcher section.",
-        AppSettingsKey.switcherDiagnostics.rawValue: "Carried by settings.json in the windowSwitcher section.",
+        AppSettingsKey.diagnosticsEnabled.rawValue: "Carried by settings.json in the general section.",
         AppSettingsKey.clipboardEnabled.rawValue: "Clipboard monitoring requires consent on this Mac.",
         AppSettingsKey.snippetsEnabled.rawValue: "Text expansion requires consent on this Mac.",
         AppSettingsKey.clipboardHistoryDays.rawValue: "Carried by settings.json in the clipboard section.",

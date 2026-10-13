@@ -661,7 +661,7 @@ built the field, so `DialogPanel.focusFirstTextField` lays the content out first
 ## Settings
 
 Ollie exposes Features, General, Shortcuts and the enabled feature pages, plus Permissions,
-Backup and About. Features owns every master switch. Disabled feature panes disappear from
+Backup and About. Features owns every master switch. General owns the single app-wide Diagnostics toggle. Disabled feature panes disappear from
 navigation and search. `SettingsTab.available` defines supported panes; `enabledSettingsTabs`
 filters that list. AI command rows offer shortcuts only; Emoji commands also offer aliases and
 launcher visibility. Backup offers configuration and launcher learning.

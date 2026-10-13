@@ -12,7 +12,7 @@ enum AppSettingsKey: String, CaseIterable {
     case switcherHiddenMode = "switcherHiddenMode"
     case switcherAppsWithoutWindowsMode = "switcherAppsWithoutWindowsMode"
     case switcherImmediatePreview = "switcherImmediatePreview"
-    case switcherDiagnostics = "switcherDiagnostics"
+    case diagnosticsEnabled = "diagnosticsEnabled"
     case clipboardEnabled = "clipboardEnabled"
     case snippetsEnabled = "snippetsEnabled"
     case clipboardHistoryDays = "clipboardHistoryDays"

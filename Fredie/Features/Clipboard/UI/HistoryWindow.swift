@@ -104,7 +104,7 @@ class HistoryWindowController: NSWindowController {
     private let store: ClipboardStore
     private let snippets: SnippetStore
     private let onFailure: (String) -> Void
-    private let diagnostics = ClipboardDiagnostics()
+    private let diagnostics = Diagnostics(category: "clipboard", publicBenchmarkDetails: true)
     private var observers: [NotificationToken] = []
     private var contentTask: Task<Void, Never>?
     private var targetApplicationForPaste: NSRunningApplication?
@@ -273,13 +273,13 @@ class HistoryWindowController: NSWindowController {
         if let showStart {
             diagnostics.benchmark(
                 "historyWindow.orderFront",
-                durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: showStart),
+                durationMilliseconds: Diagnostics.elapsedMilliseconds(since: showStart),
                 details: "items=\(self.store.items.count)"
             )
             Task { @MainActor [diagnostics] in
                 diagnostics.benchmark(
                     "historyWindow.nextRunLoop",
-                    durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: showStart),
+                    durationMilliseconds: Diagnostics.elapsedMilliseconds(since: showStart),
                     details: "items=\(self.store.items.count)"
                 )
             }
@@ -584,7 +584,7 @@ struct HistoryContentView: View {
 
     @Bindable var store: ClipboardStore
     @Bindable var snippetStore: SnippetStore
-    private let diagnostics = ClipboardDiagnostics()
+    private let diagnostics = Diagnostics(category: "clipboard", publicBenchmarkDetails: true)
     let onCopyToClipboard: (ClipboardItem) -> Void
     let onPaste: (ClipboardItem) -> Void
     let onCopyText: (String) -> Void
@@ -810,7 +810,7 @@ struct HistoryContentView: View {
                 let sizeLookupStart = collectDiagnostics ? ContinuousClock.now : nil
                 itemSize = store.storage.itemSize(for: item)
                 let sizeLookupMilliseconds = sizeLookupStart.map {
-                    ClipboardDiagnostics.elapsedMilliseconds(since: $0)
+                    Diagnostics.elapsedMilliseconds(since: $0)
                 } ?? 0
                 let loadStart = collectDiagnostics ? ContinuousClock.now : nil
 
@@ -826,7 +826,7 @@ struct HistoryContentView: View {
                 }
 
                 let loadMilliseconds = loadStart.map {
-                    ClipboardDiagnostics.elapsedMilliseconds(since: $0)
+                    Diagnostics.elapsedMilliseconds(since: $0)
                 } ?? 0
                 let storage: String
                 if item.type == .image {
@@ -845,8 +845,8 @@ struct HistoryContentView: View {
                 if let previewStart {
                     diagnostics.benchmark(
                         "historyPreview.ready",
-                        durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: previewStart),
-                        details: "type=\(item.type.rawValue) storage=\(storage) bytes=\(itemSize ?? 0) size_lookup_ms=\(ClipboardDiagnostics.format(sizeLookupMilliseconds)) load_ms=\(ClipboardDiagnostics.format(loadMilliseconds)) cancelled=\(Task.isCancelled)"
+                        durationMilliseconds: Diagnostics.elapsedMilliseconds(since: previewStart),
+                        details: "type=\(item.type.rawValue) storage=\(storage) bytes=\(itemSize ?? 0) size_lookup_ms=\(Diagnostics.format(sizeLookupMilliseconds)) load_ms=\(Diagnostics.format(loadMilliseconds)) cancelled=\(Task.isCancelled)"
                     )
                     recordNavigationPreviewReady(
                         selectionID: .clipboard(item.id),
@@ -862,7 +862,7 @@ struct HistoryContentView: View {
                 if let previewStart {
                     diagnostics.benchmark(
                         "historyPreview.ready",
-                        durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: previewStart),
+                        durationMilliseconds: Diagnostics.elapsedMilliseconds(since: previewStart),
                         details: "type=snippet storage=inline bytes=\(bytes) content_chars=\(snippet.content.count) load_ms=0.00 cancelled=\(Task.isCancelled)"
                     )
                     recordNavigationPreviewReady(
@@ -1076,7 +1076,7 @@ struct HistoryContentView: View {
                                     proxy.scrollTo(result.id)
                                     recordNavigationScrollRequested(
                                         selectionID: result.selectionID,
-                                        scrollCallMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: scrollStart)
+                                        scrollCallMilliseconds: Diagnostics.elapsedMilliseconds(since: scrollStart)
                                     )
                                 } else {
                                     proxy.scrollTo(result.id)
@@ -1839,7 +1839,7 @@ struct HistoryContentView: View {
         let normalizationStart = collectDiagnostics ? ContinuousClock.now : nil
         let normalizedQuery = ClipboardStorage.normalizeSearchText(query)
         let queryNormalizationMilliseconds = normalizationStart.map {
-            ClipboardDiagnostics.elapsedMilliseconds(since: $0)
+            Diagnostics.elapsedMilliseconds(since: $0)
         } ?? 0
         let queryCharacterCount = query.count
 
@@ -1873,7 +1873,7 @@ struct HistoryContentView: View {
                 filteredClipboardItems = scan.matches
                 syncSelection()
                 let applyMilliseconds = applyStart.map {
-                    ClipboardDiagnostics.elapsedMilliseconds(since: $0)
+                    Diagnostics.elapsedMilliseconds(since: $0)
                 } ?? 0
 
                 if let requestStart, let scanFinished {
@@ -1890,7 +1890,7 @@ struct HistoryContentView: View {
                     Task { @MainActor [diagnostics] in
                         diagnostics.benchmark(
                             "historySearch.nextRunLoop",
-                            durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: requestStart),
+                            durationMilliseconds: Diagnostics.elapsedMilliseconds(since: requestStart),
                             details: "query_chars=\(queryCharacterCount) items=\(scan.metrics.scannedItemCount) matches=\(scan.matches.count)"
                         )
                     }
@@ -1910,12 +1910,12 @@ struct HistoryContentView: View {
     ) {
         guard diagnostics.isEnabled else { return }
         let metrics = scan.metrics
-        let requestToMainMilliseconds = ClipboardDiagnostics.elapsedMilliseconds(since: requestStart)
-        let resultQueueMilliseconds = ClipboardDiagnostics.elapsedMilliseconds(since: scanFinished)
+        let requestToMainMilliseconds = Diagnostics.elapsedMilliseconds(since: requestStart)
+        let resultQueueMilliseconds = Diagnostics.elapsedMilliseconds(since: scanFinished)
         diagnostics.benchmark(
             "historySearch.scan",
             durationMilliseconds: metrics.scanMilliseconds,
-            details: "request_to_main_ms=\(ClipboardDiagnostics.format(requestToMainMilliseconds)) result_queue_ms=\(ClipboardDiagnostics.format(resultQueueMilliseconds)) apply_ms=\(ClipboardDiagnostics.format(applyMilliseconds)) debounce_ms=70 query_normalize_ms=\(ClipboardDiagnostics.format(queryNormalizationMilliseconds)) query_chars=\(queryCharacterCount) items=\(metrics.scannedItemCount) matches=\(scan.matches.count) applied=\(applied) active_at_start=\(metrics.activeSearchCountAtStart) inline_text=\(metrics.inlineTextItemCount) file_text=\(metrics.fileBackedItemCount) images=\(metrics.imageItemCount) full_text_checks=\(metrics.fileFullTextChecks) cache_hits=\(metrics.fileCacheHits) cache_misses=\(metrics.fileCacheMisses) file_bytes_loaded=\(metrics.fileBytesLoaded) file_load_ms=\(ClipboardDiagnostics.format(metrics.fileLoadMilliseconds)) normalize_ms=\(ClipboardDiagnostics.format(metrics.normalizationMilliseconds)) slowest_item_ms=\(ClipboardDiagnostics.format(metrics.slowestItemMilliseconds)) slowest_item_bytes=\(metrics.slowestItemBytes) slowest_item_kind=\(metrics.slowestItemKind)"
+            details: "request_to_main_ms=\(Diagnostics.format(requestToMainMilliseconds)) result_queue_ms=\(Diagnostics.format(resultQueueMilliseconds)) apply_ms=\(Diagnostics.format(applyMilliseconds)) debounce_ms=70 query_normalize_ms=\(Diagnostics.format(queryNormalizationMilliseconds)) query_chars=\(queryCharacterCount) items=\(metrics.scannedItemCount) matches=\(scan.matches.count) applied=\(applied) active_at_start=\(metrics.activeSearchCountAtStart) inline_text=\(metrics.inlineTextItemCount) file_text=\(metrics.fileBackedItemCount) images=\(metrics.imageItemCount) full_text_checks=\(metrics.fileFullTextChecks) cache_hits=\(metrics.fileCacheHits) cache_misses=\(metrics.fileCacheMisses) file_bytes_loaded=\(metrics.fileBytesLoaded) file_load_ms=\(Diagnostics.format(metrics.fileLoadMilliseconds)) normalize_ms=\(Diagnostics.format(metrics.normalizationMilliseconds)) slowest_item_ms=\(Diagnostics.format(metrics.slowestItemMilliseconds)) slowest_item_bytes=\(metrics.slowestItemBytes) slowest_item_kind=\(metrics.slowestItemKind)"
         )
     }
 
@@ -2254,13 +2254,13 @@ struct HistoryContentView: View {
         if let previous = pendingNavigation, !previous.isComplete {
             diagnostics.benchmark(
                 "historyNavigation.superseded",
-                durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: previous.triggeredAt),
+                durationMilliseconds: Diagnostics.elapsedMilliseconds(since: previous.triggeredAt),
                 details: navigationDetails(previous)
             )
         }
 
         let keyIntervalMilliseconds = event.isRepeat
-            ? previousNavigationKeyAt.map { ClipboardDiagnostics.elapsedMilliseconds(since: $0) }
+            ? previousNavigationKeyAt.map { Diagnostics.elapsedMilliseconds(since: $0) }
             : nil
         previousNavigationKeyAt = event.triggeredAt
         navigationSequence += 1
@@ -2278,7 +2278,7 @@ struct HistoryContentView: View {
         navigation = pendingNavigation ?? navigation
         diagnostics.benchmark(
             "historyNavigation.selectionChanged",
-            durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: event.triggeredAt),
+            durationMilliseconds: Diagnostics.elapsedMilliseconds(since: event.triggeredAt),
             details: navigationDetails(navigation)
         )
     }
@@ -2362,8 +2362,8 @@ struct HistoryContentView: View {
         pendingNavigation = navigation
         diagnostics.benchmark(
             "historyNavigation.scrollRequested",
-            durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
-            details: "\(navigationDetails(navigation)) scroll_call_ms=\(ClipboardDiagnostics.format(scrollCallMilliseconds))"
+            durationMilliseconds: Diagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
+            details: "\(navigationDetails(navigation)) scroll_call_ms=\(Diagnostics.format(scrollCallMilliseconds))"
         )
     }
 
@@ -2377,7 +2377,7 @@ struct HistoryContentView: View {
         pendingNavigation = navigation
         diagnostics.benchmark(
             "historyNavigation.selectedRowAppeared",
-            durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
+            durationMilliseconds: Diagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
             details: navigationDetails(navigation)
         )
     }
@@ -2399,8 +2399,8 @@ struct HistoryContentView: View {
         pendingNavigation = navigation
         diagnostics.benchmark(
             "historyNavigation.previewReady",
-            durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
-            details: "\(navigationDetails(navigation)) load_ms=\(ClipboardDiagnostics.format(loadMilliseconds))"
+            durationMilliseconds: Diagnostics.elapsedMilliseconds(since: navigation.triggeredAt),
+            details: "\(navigationDetails(navigation)) load_ms=\(Diagnostics.format(loadMilliseconds))"
         )
 
         let sequence = navigation.sequence
@@ -2413,14 +2413,14 @@ struct HistoryContentView: View {
             pendingNavigation = current
             diagnostics.benchmark(
                 "historyNavigation.previewNextRunLoop",
-                durationMilliseconds: ClipboardDiagnostics.elapsedMilliseconds(since: current.triggeredAt),
+                durationMilliseconds: Diagnostics.elapsedMilliseconds(since: current.triggeredAt),
                 details: navigationDetails(current)
             )
         }
     }
 
     private func navigationDetails(_ navigation: HistoryNavigationMeasurement) -> String {
-        let keyInterval = navigation.keyIntervalMilliseconds.map { ClipboardDiagnostics.format($0) } ?? "none"
+        let keyInterval = navigation.keyIntervalMilliseconds.map { Diagnostics.format($0) } ?? "none"
         let contentCharacters = navigation.contentCharacterCount.map { String($0) } ?? "unknown"
         return "sequence=\(navigation.sequence) direction=\(navigation.direction) repeat=\(navigation.isRepeat) key_interval_ms=\(keyInterval) kind=\(navigation.kind) storage=\(navigation.storage) bytes=\(navigation.bytes) content_chars=\(contentCharacters) preview_chars=\(navigation.previewCharacterCount) stage=\(navigation.stage)"
     }

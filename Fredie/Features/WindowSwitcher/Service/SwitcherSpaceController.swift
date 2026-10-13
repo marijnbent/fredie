@@ -57,12 +57,12 @@ final class SwitcherSpaceController {
         pendingTransition = (id, transition)
         let arrived = await transition.value
         if pendingTransition?.id == id { pendingTransition = nil }
-        SwitcherDiagnostics().benchmark(
+        Diagnostics(category: "window-switcher").benchmark(
             "focus.spaceSwitch", since: started,
             details: "steps=\(plan.steps) arrived=\(arrived)"
         )
         if !arrived {
-            SwitcherDiagnostics().warning("focus.spaceSwitch failed target=\(plan.target)")
+            Diagnostics(category: "window-switcher").warning("focus.spaceSwitch failed", details: "target=\(plan.target)")
         }
     }
 

@@ -48,7 +48,6 @@ struct SwitcherSettings: Codable {
     var hiddenMode: VisibilityMode = .doNotShow
     var appsWithoutWindowsMode: VisibilityMode = .showAtBottom
     var switchWindowsImmediately = false
-    var diagnosticsEnabled = false
 
     init(
         activationShortcuts: [SwitcherShortcut] = .defaultActivators,
@@ -57,8 +56,7 @@ struct SwitcherSettings: Codable {
         minimizedMode: VisibilityMode = .doNotShow,
         hiddenMode: VisibilityMode = .doNotShow,
         appsWithoutWindowsMode: VisibilityMode = .showAtBottom,
-        switchWindowsImmediately: Bool = false,
-        diagnosticsEnabled: Bool = false
+        switchWindowsImmediately: Bool = false
     ) {
         self.activationShortcuts = activationShortcuts
         self.reverseShortcut = reverseShortcut
@@ -67,7 +65,6 @@ struct SwitcherSettings: Codable {
         self.hiddenMode = hiddenMode
         self.appsWithoutWindowsMode = appsWithoutWindowsMode
         self.switchWindowsImmediately = switchWindowsImmediately
-        self.diagnosticsEnabled = diagnosticsEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -79,7 +76,6 @@ struct SwitcherSettings: Codable {
         hiddenMode = try container.decodeIfPresent(VisibilityMode.self, forKey: .hiddenMode) ?? .doNotShow
         appsWithoutWindowsMode = try container.decodeIfPresent(VisibilityMode.self, forKey: .appsWithoutWindowsMode) ?? .showAtBottom
         switchWindowsImmediately = try container.decodeIfPresent(Bool.self, forKey: .switchWindowsImmediately) ?? false
-        diagnosticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .diagnosticsEnabled) ?? false
     }
 }
 

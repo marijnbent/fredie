@@ -141,7 +141,7 @@ final class NtfySubscriber {
             } catch is CancellationError {
                 break
             } catch {
-                Self.logger.debug("Notification subscription disconnected")
+                if Diagnostics.enabled { Self.logger.debug("Notification subscription disconnected") }
             }
 
             setConnected(false)

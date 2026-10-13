@@ -1,17 +1,33 @@
 import Foundation
 import OSLog
 
-struct SwitcherDiagnostics: Sendable {
-    private static let logger = Logger(subsystem: "nl.bentjes.fredie", category: "window-switcher")
-    var isEnabled: Bool { UserDefaults.standard.bool(forKey: "switcherDiagnosticsEnabled") }
-    func setEnabled(_ enabled: Bool) { UserDefaults.standard.set(enabled, forKey: "switcherDiagnosticsEnabled") }
+struct Diagnostics: Sendable {
+    static let preferenceKey = "diagnosticsEnabled"
+    static var enabled: Bool { UserDefaults.standard.bool(forKey: preferenceKey) }
+    private let logger: Logger
+    private let publicBenchmarkDetails: Bool
+    var isEnabled: Bool { Self.enabled }
+
+    init(category: String, publicBenchmarkDetails: Bool = false) {
+        self.publicBenchmarkDetails = publicBenchmarkDetails
+        logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "nl.bentjes.fredie", category: category)
+    }
     func info(_ message: @autoclosure () -> String) {
         guard isEnabled else { return }
         let text = message()
-        Self.logger.debug("\(text, privacy: .private)")
+        logger.debug("\(text, privacy: .private)")
     }
-    func warning(_ message: @autoclosure () -> String) { info(message()) }
-    func error(_ message: @autoclosure () -> String) { info(message()) }
+    func warning(_ name: StaticString, details: @autoclosure () -> String = "") {
+        let event = String(describing: name)
+        let detail = details()
+        logger.warning("\(event, privacy: .public) \(detail, privacy: .private)")
+    }
+
+    func error(_ name: StaticString, details: @autoclosure () -> String = "") {
+        let event = String(describing: name)
+        let detail = details()
+        logger.error("\(event, privacy: .public) \(detail, privacy: .private)")
+    }
 
     @discardableResult
     func measure<T>(_ name: @autoclosure () -> String, thresholdMilliseconds: Double = 0, _ work: () -> T) -> T {
@@ -44,32 +60,25 @@ struct SwitcherDiagnostics: Sendable {
 
     func benchmark(
         _ name: String,
-        durationMilliseconds: Double,
+        durationMilliseconds: @autoclosure () -> Double,
         details: @autoclosure () -> String = ""
     ) {
         guard isEnabled else {
             return
         }
 
-        let suffix = details()
-        let detailText = suffix.isEmpty ? "" : " \(suffix)"
-        info("benchmark.\(name) duration_ms=\(Self.format(durationMilliseconds))\(detailText)")
-    }
-
-    func benchmarkEvent(_ name: String, details: @autoclosure () -> String = "") {
-        guard isEnabled else {
-            return
+        let duration = Self.format(durationMilliseconds())
+        let detail = details()
+        if publicBenchmarkDetails {
+            logger.debug("benchmark.\(name, privacy: .public) duration_ms=\(duration, privacy: .public) \(detail, privacy: .public)")
+        } else {
+            logger.debug("benchmark.\(name, privacy: .public) duration_ms=\(duration, privacy: .public) \(detail, privacy: .private)")
         }
-
-        let suffix = details()
-        let detailText = suffix.isEmpty ? "" : " \(suffix)"
-        info("benchmark.\(name)\(detailText)")
     }
 
     static func elapsedMilliseconds(since start: ContinuousClock.Instant) -> Double {
         milliseconds(from: start.duration(to: .now))
     }
-
 
     static func milliseconds(from duration: Duration) -> Double {
         let parts = duration.components

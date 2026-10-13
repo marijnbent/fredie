@@ -11,7 +11,7 @@ final class WindowSwitcherCoordinator: HealthCheckable {
     @ObservationIgnored private let focusController = FocusController()
     @ObservationIgnored private let panelController = SwitcherPanelController()
     @ObservationIgnored private let failureFeedback = SwitcherFailureFeedback()
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
     @ObservationIgnored private lazy var shortcutMonitor = SwitcherShortcutMonitor(settingsStore: settingsStore)
     @ObservationIgnored private var workspaceActivationObserver: NotificationToken?
     @ObservationIgnored private var workspaceSpaceObserver: NotificationToken?
@@ -62,9 +62,7 @@ final class WindowSwitcherCoordinator: HealthCheckable {
             minimizedMode: VisibilityMode(rawValue: preferences.switcherMinimizedMode) ?? .doNotShow,
             hiddenMode: VisibilityMode(rawValue: preferences.switcherHiddenMode) ?? .doNotShow,
             appsWithoutWindowsMode: VisibilityMode(rawValue: preferences.switcherAppsWithoutWindowsMode) ?? .showAtBottom,
-            switchWindowsImmediately: preferences.switcherImmediatePreview,
-            diagnosticsEnabled: preferences.switcherDiagnostics)
-        diagnostics.setEnabled(settingsStore.settings.diagnosticsEnabled)
+            switchWindowsImmediately: preferences.switcherImmediatePreview)
         conflict = reservedBindings.compactMap {
             core.hotKeys.conflictOwner(of: $0, includeReservations: false)
         }.first
@@ -168,10 +166,10 @@ final class WindowSwitcherCoordinator: HealthCheckable {
         let panelStart = ContinuousClock.now
         let panelMetrics = panelController.show(items: items, selectedIndex: 0)
         updateInteractionState()
-        let panelMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: panelStart)
-        let shortcutMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: benchmarkStart)
+        let panelMilliseconds = Diagnostics.elapsedMilliseconds(since: panelStart)
+        let shortcutMilliseconds = Diagnostics.elapsedMilliseconds(since: benchmarkStart)
         Task { @MainActor [diagnostics] in
-            let nextRunLoopMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: benchmarkStart)
+            let nextRunLoopMilliseconds = Diagnostics.elapsedMilliseconds(since: benchmarkStart)
             diagnostics.benchmark(
                 "switcher.shortcutToNextRunLoop",
                 durationMilliseconds: nextRunLoopMilliseconds,
@@ -199,7 +197,7 @@ final class WindowSwitcherCoordinator: HealthCheckable {
 
     private func performSelectionAction(_ action: SwitcherSelectionAction) {
         guard panelController.isVisible, let item = panelController.currentSelectedItem else {
-            diagnostics.warning("selectionAction.missingSelection action=\(action.diagnosticName)")
+            diagnostics.warning("selectionAction.missingSelection", details: "action=\(action.diagnosticName)")
             return
         }
 

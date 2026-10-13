@@ -56,7 +56,7 @@ enum SettingsFileSchema {
         case .switcherHiddenMode: return bind(settings, \.switcherHiddenMode) { ["show", "showAtBottom", "doNotShow"].contains($0) ? $0 : nil }
         case .switcherAppsWithoutWindowsMode: return bind(settings, \.switcherAppsWithoutWindowsMode) { ["show", "showAtBottom", "doNotShow"].contains($0) ? $0 : nil }
         case .switcherImmediatePreview: return bind(settings, \.switcherImmediatePreview)
-        case .switcherDiagnostics: return bind(settings, \.switcherDiagnostics)
+        case .diagnosticsEnabled: return bind(settings, \.diagnosticsEnabled)
         case .clipboardHistoryDays: return bind(settings, \.clipboardHistoryDays) { [1, 7, 30, 180].contains($0) ? $0 : nil }
         case .launcherEnabled: return bind(settings, \.launcherEnabled)
         case .typingSoundProfile: return bind(settings, \.typingSoundProfile) { SoundProfile(rawValue: $0) == nil ? nil : $0 }

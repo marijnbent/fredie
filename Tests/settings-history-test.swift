@@ -30,6 +30,9 @@ struct SettingsHistoryTests {
         catalogIdentitiesAreUnique()
         unsupportedPanesCannotOpen()
         catalogFindsKnownRows()
+        let diagnostics = SettingsSearchCatalog.results(for: "Diagnostics", available: [.general])
+        expect(diagnostics.first?.title == "Diagnostics" && diagnostics.first?.feature == nil,
+            "diagnostics stays searchable without any enabled feature")
         catalogRanksTitlesFirst()
         catalogAnchorsMatchTheirPane()
         revealingRecordsANewRequestEachTime()

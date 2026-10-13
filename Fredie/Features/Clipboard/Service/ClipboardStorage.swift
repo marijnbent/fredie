@@ -187,7 +187,7 @@ final class ClipboardStorage: @unchecked Sendable {
     }
 
     func search(_ items: [ClipboardItem], normalizedQuery: String) -> ClipboardSearchScan? {
-        let collectDiagnostics = ClipboardDiagnostics().isEnabled
+        let collectDiagnostics = Diagnostics(category: "clipboard").isEnabled
         let scanStart = collectDiagnostics ? ContinuousClock.now : nil
         var metrics = ClipboardSearchMetrics()
         if collectDiagnostics {
@@ -227,7 +227,7 @@ final class ClipboardStorage: @unchecked Sendable {
                 matches.append(item)
             }
             if let itemStart {
-                let itemMilliseconds = ClipboardDiagnostics.elapsedMilliseconds(since: itemStart)
+                let itemMilliseconds = Diagnostics.elapsedMilliseconds(since: itemStart)
                 if itemMilliseconds > metrics.slowestItemMilliseconds {
                     metrics.slowestItemMilliseconds = itemMilliseconds
                     slowestItem = item
@@ -247,7 +247,7 @@ final class ClipboardStorage: @unchecked Sendable {
             }
         }
         if let scanStart {
-            metrics.scanMilliseconds = ClipboardDiagnostics.elapsedMilliseconds(since: scanStart)
+            metrics.scanMilliseconds = Diagnostics.elapsedMilliseconds(since: scanStart)
         }
 
         guard !Task.isCancelled else { return nil }
@@ -324,7 +324,7 @@ final class ClipboardStorage: @unchecked Sendable {
 
         let start = ContinuousClock.now
         let normalizedText = normalizeSearchText(text)
-        metrics.normalizationMilliseconds += ClipboardDiagnostics.elapsedMilliseconds(since: start)
+        metrics.normalizationMilliseconds += Diagnostics.elapsedMilliseconds(since: start)
         return normalizedText
     }
 
@@ -489,7 +489,7 @@ final class ClipboardStorage: @unchecked Sendable {
             let text = try cachedText ?? loadFullTextFromDisk(filename: filename)
             if let loadStart, cachedText == nil {
                 metrics.fileBytesLoaded += itemSize(for: item) ?? 0
-                metrics.fileLoadMilliseconds += ClipboardDiagnostics.elapsedMilliseconds(since: loadStart)
+                metrics.fileLoadMilliseconds += Diagnostics.elapsedMilliseconds(since: loadStart)
             }
             guard !Task.isCancelled else { return nil }
             let normalizedText = Self.normalizedSearchText(

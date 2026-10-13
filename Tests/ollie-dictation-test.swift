@@ -47,8 +47,24 @@ private final class HistoryFixture: TranscriptHistoryPersisting, @unchecked Send
         ShortcutRuntimeTests().testCompanionKeyDiscardsRecordingWhileShortcutIsHeldWithoutConsumingKey()
         ShortcutRuntimeTests().testFnKeyDownDoesNotDiscardItsOwnQuickPress()
         await PasteRuntimeTests().testNewCopyAndStopCancelPendingRestoration()
+        diagnosticLogging()
         try await historyPersistence()
         print("PASS: dictation runtime, awaited shutdown, clipboard ownership and history retry scenarios")
+    }
+
+    private static func diagnosticLogging() {
+        var enabled = false
+        let state = DictationSessionState(diagnosticsEnabled: { enabled })
+        state.addLog("detail")
+        assertTrue(state.logs.isEmpty)
+        state.addLog("warning", level: .warning)
+        state.addLog("error", level: .error)
+        assertEqual(state.logs.map(\.message), ["warning", "error"])
+        enabled = true
+        state.addLog("enabled")
+        enabled = false
+        state.addLog("disabled")
+        assertEqual(state.logs.map(\.message), ["warning", "error", "enabled"])
     }
 
     private static func historyPersistence() async throws {

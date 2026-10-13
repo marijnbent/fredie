@@ -597,7 +597,7 @@ final class AppCore {
             $0.typingSounds.isRecording = $0.dictation.session.recordingPhase != .idle
             $0.clipboard.isRecording = $0.dictation.session.recordingPhase != .idle
         })
-        track({ _ = $0.windowSwitcherEnabled; _ = $0.switcherCommandTab; _ = $0.switcherCommandBacktick; _ = $0.switcherWindowSource; _ = $0.switcherMinimizedMode; _ = $0.switcherHiddenMode; _ = $0.switcherAppsWithoutWindowsMode; _ = $0.switcherImmediatePreview; _ = $0.switcherDiagnostics }, reproject: { $0.windowSwitcher.apply() })
+        track({ _ = $0.windowSwitcherEnabled; _ = $0.switcherCommandTab; _ = $0.switcherCommandBacktick; _ = $0.switcherWindowSource; _ = $0.switcherMinimizedMode; _ = $0.switcherHiddenMode; _ = $0.switcherAppsWithoutWindowsMode; _ = $0.switcherImmediatePreview }, reproject: { $0.windowSwitcher.apply() })
         track(hotKeys, { _ = $0.revision }, reproject: { $0.windowSwitcher.apply(); $0.dictation.apply() })
         track({ _ = $0.clipboardEnabled; _ = $0.snippetsEnabled; _ = $0.clipboardHistoryDays }, reproject: { $0.clipboard.apply(); $0.hotKeys.refreshRegistrations() })
         track({ _ = $0.launcherEnabled }, reproject: { $0.applyLauncherEnabled() })

@@ -33,9 +33,6 @@ struct WindowSwitcherSettingsView: View {
                 visibility("Apps without windows", selection: $settings.switcherAppsWithoutWindowsMode)
                 Toggle("Preview windows while switching", isOn: $settings.switcherImmediatePreview)
             }
-            Section("Advanced") {
-                Toggle("Diagnostic logging", isOn: $settings.switcherDiagnostics)
-            }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.windowSwitcher)

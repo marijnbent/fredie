@@ -55,6 +55,9 @@ struct GeneralSettingsView: View {
                     SettingsRowTitle(.generalGeneral, "Automatically check for updates")
                     Text("Check for Updates remains available when off.")
                 }
+                Toggle(isOn: $settings.diagnosticsEnabled) {
+                    SettingsRowTitle(.generalGeneral, "Diagnostics")
+                }
                 if settings.launcherEnabled {
                 Picker(selection: $settings.popToRootTimeout) {
                     ForEach(PopToRootTimeout.allCases) { timeout in

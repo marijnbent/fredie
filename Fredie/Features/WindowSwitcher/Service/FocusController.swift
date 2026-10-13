@@ -3,7 +3,7 @@ import ApplicationServices
 
 @MainActor
 final class FocusController {
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
     private let worker = AXFocusWorker()
     private let spaceSwitcher = SwitcherSpaceController()
 
@@ -103,7 +103,7 @@ final class FocusController {
         if app.isHidden {
             let unhideStart = ContinuousClock.now
             let didUnhide = app.unhide()
-            unhideMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: unhideStart)
+            unhideMilliseconds = Diagnostics.elapsedMilliseconds(since: unhideStart)
             diagnostics.info("focus.unhide result=\(didUnhide)")
         }
 
@@ -113,13 +113,13 @@ final class FocusController {
                 guard canContinue() else { return }
                 let unminimizeStart = ContinuousClock.now
                 let result = await worker.perform(.unminimize, target: target)
-                unminimizeMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: unminimizeStart)
+                unminimizeMilliseconds = Diagnostics.elapsedMilliseconds(since: unminimizeStart)
                 diagnostics.info("focus.unminimize result=\(result.rawValue)")
             }
             guard canContinue() else { return }
             let mainStart = ContinuousClock.now
             let mainResult = await worker.perform(.makeMain, target: target)
-            setMainMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: mainStart)
+            setMainMilliseconds = Diagnostics.elapsedMilliseconds(since: mainStart)
             mainResultCode = mainResult.rawValue
         }
 
@@ -129,7 +129,7 @@ final class FocusController {
             ? NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier == SteamApplication.bundleID } ?? app
             : app
         let didActivate = await activateApplication(activationApp)
-        appActivationMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: appActivationStart)
+        appActivationMilliseconds = Diagnostics.elapsedMilliseconds(since: appActivationStart)
         diagnostics.info("focus.appActivate result=\(didActivate)")
 
         guard let window = item.windowElement else {
@@ -142,12 +142,12 @@ final class FocusController {
         guard canContinue() else { return }
         let raiseStart = ContinuousClock.now
         let raiseResult = await worker.perform(.raise, target: target)
-        raiseMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: raiseStart)
+        raiseMilliseconds = Diagnostics.elapsedMilliseconds(since: raiseStart)
         raiseResultCode = raiseResult.rawValue
         guard canContinue() else { return }
         let focusedStart = ContinuousClock.now
         let focusedResult = await worker.perform(.focus, target: target)
-        setFocusedMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: focusedStart)
+        setFocusedMilliseconds = Diagnostics.elapsedMilliseconds(since: focusedStart)
         focusedResultCode = focusedResult.rawValue
         diagnostics.info(
             "focus.windowActivate raise=\(raiseResult.rawValue) main=\(Self.benchmarkResult(mainResultCode)) focused=\(focusedResult.rawValue)"
@@ -172,7 +172,7 @@ final class FocusController {
             let activated = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
             return !Task.isCancelled && activated.processIdentifier == app.processIdentifier
         } catch {
-            diagnostics.warning("focus.workspaceActivate failed=\(error.localizedDescription)")
+            diagnostics.warning("focus.workspaceActivate", details: "failed=\(error.localizedDescription)")
             return false
         }
     }

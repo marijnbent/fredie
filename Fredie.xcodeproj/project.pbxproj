@@ -106,7 +106,6 @@
 		1D7CEE753EDAAE5E2F56779A /* AIThinkTagDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B073058734E4619C55808ED5 /* AIThinkTagDecoder.swift */; };
 		1DDCFEC0C0E9E151AD59BD56 /* ModifierTapMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723D1C63FF8B2CE540B6E5A9 /* ModifierTapMonitor.swift */; };
 		1E3075AD01087D91E88C5150 /* CalculatorCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04991C4CFCF7844444668C7 /* CalculatorCardView.swift */; };
-		1E441A76C9D665D4F6BB9E6A /* ClipboardDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4512FC4B09C124A6F3B73573 /* ClipboardDiagnostics.swift */; };
 		1EBFC0389A87285B517CE17F /* ExtensionInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = CED52C5038BFD84C701132BE /* ExtensionInstaller.swift */; };
 		1F112DF9867710D62D677278 /* ChatCitations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FB9664C34C189917B94824B /* ChatCitations.swift */; };
 		1F9C5F110D0EB0EDBCE49BD6 /* AIInstructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FC2930140490A9B0A3435 /* AIInstructions.swift */; };
@@ -120,6 +119,7 @@
 		226E1D2B2848FBEDCD8133BF /* RoomWindowSweep.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F0FC4E886E9935194BCD1E /* RoomWindowSweep.swift */; };
 		22EA1EAFB2D71BB2B64E8422 /* NetworkThirdPartyNotices.txt in Resources */ = {isa = PBXBuildFile; fileRef = B56F1316744223775CF193DE /* NetworkThirdPartyNotices.txt */; };
 		23079D4335AAA9FA0C3E3988 /* AppPickerPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197773A444406104D861F42E /* AppPickerPopover.swift */; };
+		23644AF190F952539A7215DB /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EE61ED77C4F2AE4D5DBB530 /* Diagnostics.swift */; };
 		23775CF11FB8E93ABA44EDEA /* ImportSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8526C9B3CEE9233B1C86040 /* ImportSupport.swift */; };
 		23F6588C4392526877F730E2 /* RedactedPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE263A77F19EE97B9F2A61F9 /* RedactedPlaceholder.swift */; };
 		242220FCD5535ED2333E1303 /* PlainTextSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AC8FC07852B34FC1F53E5B /* PlainTextSurface.swift */; };
@@ -271,7 +271,6 @@
 		53B7E98F1DD9DE902B8FD4BE /* AIModelChecklist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6136B26D889E95F23D0027 /* AIModelChecklist.swift */; };
 		53E61CC84F8F261971694A90 /* NtfyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920CB093D4DFAA9254A80D53 /* NtfyMessage.swift */; };
 		53EBE9BAA05D0455ADF83AB5 /* NoteFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = D260B69D10D7F1B20AAE66BF /* NoteFormatting.swift */; };
-		53EF32A3FFCE793C81D30026 /* SwitcherDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7B66FC4A31CEFC6EC969A0 /* SwitcherDiagnostics.swift */; };
 		547131C278F33FAB8CFCBBB9 /* MarkdownMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4050ED542FA3D9067F031CEF /* MarkdownMath.swift */; };
 		548CDE2D23C0E6457C320865 /* EntryIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00499144E448F92F7D2125ED /* EntryIconView.swift */; };
 		54EA6F75E507B8C2AD85CB25 /* RoomArrangement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3380A6F5A0A615125F94B18C /* RoomArrangement.swift */; };
@@ -891,7 +890,6 @@
 		0A3B45BFC042FD3A8E15015F /* MarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownView.swift; sourceTree = "<group>"; };
 		0AAEE34FDDB373E2737299E0 /* TextTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTranslator.swift; sourceTree = "<group>"; };
 		0B054C191B75F55A91FE90D2 /* CalcFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcFormatter.swift; sourceTree = "<group>"; };
-		0B7B66FC4A31CEFC6EC969A0 /* SwitcherDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitcherDiagnostics.swift; sourceTree = "<group>"; };
 		0C114DBEB0D3532E5DEE4D44 /* InterfaceSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterfaceSize.swift; sourceTree = "<group>"; };
 		0C39DCF44B7E0713C283D95C /* ExtensionCleanup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCleanup.swift; sourceTree = "<group>"; };
 		0C497E9F5FDA0DD870EA58DD /* ExtensionFormField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionFormField.swift; sourceTree = "<group>"; };
@@ -1062,7 +1060,6 @@
 		443B8E581032BACEE3DB9A5F /* VolumeSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeSlider.swift; sourceTree = "<group>"; };
 		4447AF591E3A567001AFD1DE /* QuickAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAction.swift; sourceTree = "<group>"; };
 		44C8EDBE0FBC10B7181E3954 /* MeetingCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingCardView.swift; sourceTree = "<group>"; };
-		4512FC4B09C124A6F3B73573 /* ClipboardDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardDiagnostics.swift; sourceTree = "<group>"; };
 		4517140E67242BF8AC3F3DFE /* FileSearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchResult.swift; sourceTree = "<group>"; };
 		453CF29117540E1EC8888052 /* AppleShortcutCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutCoordinator.swift; sourceTree = "<group>"; };
 		45EB6441F87B6A30C58284AD /* CustomWindowSizeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindowSizeStore.swift; sourceTree = "<group>"; };
@@ -1392,6 +1389,7 @@
 		9E322AF88685DF48B9AE86B5 /* ShortcutRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRuntime.swift; sourceTree = "<group>"; };
 		9E6D9C1389ABE61933DE1618 /* ChatCopyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCopyButton.swift; sourceTree = "<group>"; };
 		9E846491ACA074EF581BDAE7 /* FileSearchPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchPolicy.swift; sourceTree = "<group>"; };
+		9EE61ED77C4F2AE4D5DBB530 /* Diagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
 		9EFBEC83F4DABB70BFB042EF /* SymbolPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolPicker.swift; sourceTree = "<group>"; };
 		9F57E55FD82B1BD3EB685EC6 /* KeyCapChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyCapChip.swift; sourceTree = "<group>"; };
 		9F70C55B5BE27C6611601D60 /* NotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesStore.swift; sourceTree = "<group>"; };
@@ -2072,7 +2070,6 @@
 		3D9A82519A5189B87140A354 /* Service */ = {
 			isa = PBXGroup;
 			children = (
-				4512FC4B09C124A6F3B73573 /* ClipboardDiagnostics.swift */,
 				9C33A0B02F7201D4493F3B28 /* ClipboardImageCache.swift */,
 				E5A88AE3F6E6A5E1CF77D86E /* ClipboardStorage.swift */,
 				971D46B2ADDA9E5D34C422CD /* ClipboardStore.swift */,
@@ -2614,7 +2611,6 @@
 				CD10FFE4973B412BC4AF704C /* FocusController.swift */,
 				8E58D3FB30E458B3C78A5F4A /* Models.swift */,
 				94070C5D812206D31483D9DC /* SwitcherActivation.swift */,
-				0B7B66FC4A31CEFC6EC969A0 /* SwitcherDiagnostics.swift */,
 				B17E4CF28AD7F8AEAD0857A0 /* SwitcherItemRank.swift */,
 				8211CB84AB0D94C10F05FC74 /* SwitcherSettingsStore.swift */,
 				7A5AD4AC876E53D7C8423520 /* SwitcherShortcut.swift */,
@@ -3547,6 +3543,7 @@
 				9CA592ADA5E6C4FF7B2BEB09 /* CalendarAccess.swift */,
 				EE7B4712485220980AFBFDC9 /* CameraAccess.swift */,
 				130542A8703B950CA0D0E0B0 /* DateBucket.swift */,
+				9EE61ED77C4F2AE4D5DBB530 /* Diagnostics.swift */,
 				B13C7C0FDC9E8C8E8CE43E3F /* ExecutableLocator.swift */,
 				4BCFD18A14F91FF1ED568C4F /* ExecutablePicker.swift */,
 				2A342615EDC5AB1231FC5327 /* FolderPicker.swift */,
@@ -4046,7 +4043,6 @@
 				46090110C9CD127042E9FD3D /* ClipScanner.swift in Sources */,
 				F245C4925E38FD0A5C5F1175 /* ClipboardCapture.swift in Sources */,
 				0719204591C9D7639859BB8F /* ClipboardCoordinator.swift in Sources */,
-				1E441A76C9D665D4F6BB9E6A /* ClipboardDiagnostics.swift in Sources */,
 				E29652E62477B9F248F351C1 /* ClipboardHistoryLimit.swift in Sources */,
 				F7F973C3DF7B58F674AF25EE /* ClipboardImageCache.swift in Sources */,
 				32FA658FB83EE931FA6EB78D /* ClipboardItem.swift in Sources */,
@@ -4093,6 +4089,7 @@
 				A989EDAF33509273566D6201 /* DeepgramClient.swift in Sources */,
 				64453CFD6C4F5E8104723667 /* DeepgramLanguage.swift in Sources */,
 				89FF982DFD98DE7637B0DC50 /* DeepgramPrerecordedClient.swift in Sources */,
+				23644AF190F952539A7215DB /* Diagnostics.swift in Sources */,
 				CFC22A15577ACBC75BE02DB0 /* DialogChip.swift in Sources */,
 				3A1C305EC08154627A3C23B8 /* DialogController.swift in Sources */,
 				4AC9152DC4C34E2B1E1ADEE7 /* DialogPanel.swift in Sources */,
@@ -4615,7 +4612,6 @@
 				873366588F52A62AABAD6D8B /* SupportReminderStore.swift in Sources */,
 				027C2C8FB9598271590DD7AA /* SupportWindowView.swift in Sources */,
 				0E7E40ABD9CDB52C1997951E /* SwitcherActivation.swift in Sources */,
-				53EF32A3FFCE793C81D30026 /* SwitcherDiagnostics.swift in Sources */,
 				E842B56249CCC9E927EC2E0B /* SwitcherFailureFeedback.swift in Sources */,
 				B6EA1B8A3D4327FC7ADCE46B /* SwitcherItemRank.swift in Sources */,
 				BDD45706B4C20FDF7BB7197D /* SwitcherPanelController.swift in Sources */,
@@ -4799,7 +4795,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4867,7 +4863,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -112,8 +112,9 @@ Match the surrounding code. Beyond that:
 - Errors surface through `DialogController` (something the user must acknowledge) or
   `MessageHUDController` (something transient). Never a `print`, never a silent `try?` on a path the user
   cares about.
-- Diagnostics go through `Logger` with a per-subsystem category, and timings through
-  `Platform/Signposts.swift`. Neither is a substitute for the other.
+- Optional diagnostics go through `Platform/Diagnostics.swift` with a feature category; timings use
+  `Platform/Signposts.swift`. General > Diagnostics controls both through one preference. Warnings
+  and errors remain available when off; dynamic app names, window titles and extension text stay private.
 - Delete dead code rather than commenting it out or leaving a compatibility path behind it.
 
 ## Concurrency and lifetime

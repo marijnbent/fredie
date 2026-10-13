@@ -113,20 +113,20 @@ final class SwitcherPanelController: NSObject, NSTableViewDataSource, NSTableVie
     func show(items: [SwitcherItem], selectedIndex: Int = 0) -> SwitcherPanelShowMetrics {
         let pointerStart = ContinuousClock.now
         tableView.beginPointerTracking(at: NSEvent.mouseLocation)
-        let pointerMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: pointerStart)
+        let pointerMilliseconds = Diagnostics.elapsedMilliseconds(since: pointerStart)
 
         let updateStart = ContinuousClock.now
         updateItems(items, selectedIndex: selectedIndex)
-        let updateMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: updateStart)
+        let updateMilliseconds = Diagnostics.elapsedMilliseconds(since: updateStart)
 
         let centerStart = ContinuousClock.now
         centerOnActiveScreen(preferredDisplayID: items.first?.displayID)
-        let centerMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: centerStart)
+        let centerMilliseconds = Diagnostics.elapsedMilliseconds(since: centerStart)
 
         let orderStart = ContinuousClock.now
         isVisible = true
         panel.orderFrontRegardless()
-        let orderMilliseconds = SwitcherDiagnostics.elapsedMilliseconds(since: orderStart)
+        let orderMilliseconds = Diagnostics.elapsedMilliseconds(since: orderStart)
 
         return SwitcherPanelShowMetrics(
             pointerMilliseconds: pointerMilliseconds,
@@ -227,7 +227,7 @@ final class SwitcherPanelController: NSObject, NSTableViewDataSource, NSTableVie
             let start = ContinuousClock.now
             if rejoinSpace { panel.orderOut(nil) }
             panel.orderFrontRegardless()
-            SwitcherDiagnostics().benchmark(
+            Diagnostics(category: "window-switcher").benchmark(
                 "switcher.restoreVisibility",
                 since: start,
                 details: "space_changed=\(rejoinSpace) requests=\(requests)"

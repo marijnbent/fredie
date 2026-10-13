@@ -24,7 +24,7 @@ final class SwitcherShortcutMonitor {
     private var hasStarted = false
     private var isStarting = false
     private let settingsStore: SwitcherSettingsStore
-    private let diagnostics = SwitcherDiagnostics()
+    private let diagnostics = Diagnostics(category: "window-switcher")
     private let trackedModifiers: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
     private var activeCycleModifiers: NSEvent.ModifierFlags?
     private var isCycleActive = false
@@ -48,7 +48,7 @@ final class SwitcherShortcutMonitor {
         diagnostics.info("shortcutMonitor.start")
         let hasListenAccess = CGPreflightListenEventAccess()
         guard hasListenAccess else {
-            diagnostics.warning("shortcutMonitor.waitingForListenAccess")
+            diagnostics.info("shortcutMonitor.waitingForListenAccess")
             return
         }
 
@@ -185,7 +185,7 @@ final class SwitcherShortcutMonitor {
     }
 
     private func handleDisabledTap(type: CGEventType) {
-        diagnostics.warning("shortcutMonitor.tapDisabled type=\(type.rawValue)")
+        diagnostics.warning("shortcutMonitor.tapDisabled", details: "type=\(type.rawValue)")
         guard let eventTap else {
             diagnostics.warning("shortcutMonitor.tapDisabled missingTap")
             replaceEventTapIfPermitted()
@@ -202,7 +202,7 @@ final class SwitcherShortcutMonitor {
         if CGEvent.tapIsEnabled(tap: eventTap) {
             diagnostics.info("shortcutMonitor.tapReenabled type=\(type.rawValue)")
         } else {
-            diagnostics.warning("shortcutMonitor.tapReenable failed type=\(type.rawValue)")
+            diagnostics.warning("shortcutMonitor.tapReenable failed", details: "type=\(type.rawValue)")
             replaceEventTapIfPermitted()
         }
     }

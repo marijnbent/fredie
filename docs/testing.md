@@ -204,7 +204,7 @@ search result that navigates and then sits there.
 
 ## Performance measurement
 
-`Platform/Signposts.swift` emits eight intervals on the `nl.bentjes.fredie.perf` subsystem: `AppCore.start`,
+With General > Diagnostics enabled, `Platform/Signposts.swift` emits eight intervals on the `nl.bentjes.fredie.perf` subsystem: `AppCore.start`,
 `AppIndex.scan`, `AppIndex.rank`, `PaletteWindowController.show`, `UninstallScanner.discover` and
 `UninstallScanner.measure`, `FileSearchService.search`, and `Notes.search`. Open the Time Profiler or
 `os_signpost` instrument in Instruments and filter to that subsystem; nothing needs recompiling.
@@ -216,7 +216,7 @@ file resolves. Keep the entry's source list matching the command beside it.
 Run the real Spotlight-backed file-search benchmark separately from the deterministic harnesses:
 
 ```sh
-swiftc -O -swift-version 6 Fredie/Platform/Signposts.swift \
+swiftc -O -swift-version 6 Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
     Fredie/Features/Launcher/Model/SearchRelevance.swift \
     Fredie/Features/FileSearch/Model/*.swift \
     Fredie/Features/FileSearch/Service/FileSearchService.swift \
@@ -263,7 +263,7 @@ middle) and 4 ms:
 
 ```sh
 N=Fredie/Features/Notes
-swiftc -O -swift-version 6 Fredie/Platform/{Signposts,Appearance,NotificationToken}.swift \
+swiftc -O -swift-version 6 Fredie/Platform/{Diagnostics,Signposts,Appearance,NotificationToken}.swift \
     Fredie/DesignSystem/{Theme,InterfaceMetrics}.swift \
     Fredie/Features/TextInjection/Service/InjectableTextView.swift \
     $N/Model/{NoteDocument,NoteMarkdown,NoteMarkdownParser,NoteInlineScanner}.swift \
@@ -685,3 +685,12 @@ interaction checks. It enables every feature pane in that identity's preferences
 without calling `AppCore.start()`, so capture services do not start. Use it to inspect grouped forms,
 recorders and editor dismissal without changing the installed app's preferences. Release builds
 contain neither verification entry point.
+
+## App-wide diagnostics
+
+General > Diagnostics is the sole optional logging switch (`general.diagnostics` in settings.json).
+It applies immediately to window switching, clipboard and snippet traces, informational Dictation
+logs, extension console output, notification debug events and performance signposts. Warnings and
+errors remain available when off. Dictation's Logs tab remains a viewer; it has no separate switch.
+`diagnostics-test` verifies the shared live gate, lazy message evaluation, essential errors and that
+signpost gating never skips application work. The Dictation harness covers log filtering.

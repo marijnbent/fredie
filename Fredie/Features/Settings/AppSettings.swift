@@ -562,8 +562,8 @@ final class AppSettings {
     var switcherImmediatePreview: Bool {
         didSet { defaults.set(switcherImmediatePreview, forKey: Key.switcherImmediatePreview.rawValue) }
     }
-    var switcherDiagnostics: Bool {
-        didSet { defaults.set(switcherDiagnostics, forKey: Key.switcherDiagnostics.rawValue) }
+    var diagnosticsEnabled: Bool {
+        didSet { defaults.set(diagnosticsEnabled, forKey: Key.diagnosticsEnabled.rawValue) }
     }
 
     var clipboardEnabled: Bool {
@@ -630,7 +630,7 @@ final class AppSettings {
         switcherHiddenMode = defaults.string(forKey: Key.switcherHiddenMode.rawValue) ?? "doNotShow"
         switcherAppsWithoutWindowsMode = defaults.string(forKey: Key.switcherAppsWithoutWindowsMode.rawValue) ?? "showAtBottom"
         switcherImmediatePreview = defaults.object(forKey: Key.switcherImmediatePreview.rawValue) == nil ? false : defaults.bool(forKey: Key.switcherImmediatePreview.rawValue)
-        switcherDiagnostics = defaults.object(forKey: Key.switcherDiagnostics.rawValue) == nil ? false : defaults.bool(forKey: Key.switcherDiagnostics.rawValue)
+        diagnosticsEnabled = defaults.object(forKey: Key.diagnosticsEnabled.rawValue) == nil ? false : defaults.bool(forKey: Key.diagnosticsEnabled.rawValue)
         clipboardEnabled = defaults.bool(forKey: Key.clipboardEnabled.rawValue)
         snippetsEnabled = defaults.bool(forKey: Key.snippetsEnabled.rawValue)
         let savedHistoryDays = defaults.integer(forKey: Key.clipboardHistoryDays.rawValue)

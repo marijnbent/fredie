@@ -856,9 +856,10 @@ final class ExtensionManager: ExtensionRuntimeDelegate, ExtensionHostContext {
     }
 
     func runtime(_ runtime: ExtensionRuntime, log level: String, message: String) {
-        #if DEBUG
-            print("[extension \(level)] \(message)")
-        #endif
+        let diagnostics = Diagnostics(category: "extension")
+        if level == "error" { diagnostics.error("runtime.error", details: message) }
+        else if level == "warn" { diagnostics.warning("runtime.warning", details: message) }
+        else { diagnostics.info(message) }
     }
 
     // MARK: - ExtensionHostContext

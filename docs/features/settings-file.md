@@ -1,7 +1,8 @@
 # Settings file
 
-Fredie syncs only General, Appearance, Hyper Key, Search, Applications, Emoji and AI settings.
-Legacy feature keys are no longer bound, exported or applied by the live settings-file schema.
+Ollie mirrors shared and feature preferences through `SettingsFileSchema`.
+
+`general.diagnostics` controls optional app-wide diagnostic logging and performance traces. It defaults to false.
 
 An opt-in mirror of Fredie's preferences, the launcher's items and all of window management in
 `~/.config/fredie/settings.json`, switched on in **Settings → Backup → Settings File**. `UserDefaults`
