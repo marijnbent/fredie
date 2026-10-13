@@ -12,9 +12,9 @@ enum SettingsBackupCoverage {
         "escapeKeyBehavior": .escapeKeyBehavior,
         "appearance": .appearance,
         "calcNumberStyle": .calcNumberStyle,
+        "paletteDensity": .paletteDensity,
         "interfaceSize": .interfaceSize,
         "compactMode": .compactMode,
-        "launcherTileStyle": .launcherTileStyle,
         "searchScopes": .searchScopes,
         "rootSearchSensitivity": .rootSearchSensitivity,
         "openOnCursorScreen": .openOnCursorScreen,
@@ -65,6 +65,8 @@ enum SettingsBackupCoverage {
     /// Keys kept out of a backup on purpose, each with the reason it has to stay out.
     static let deliberatelyExcluded: [String: String] = [
         AppSettingsKey.dictationEnabled.rawValue: "Dictation requires consent on this Mac.",
+        AppSettingsKey.spacesEnabled.rawValue: "Space swipe interception requires consent on this Mac.",
+        AppSettingsKey.spacesTransitionSpeed.rawValue: "Carried by settings.json in the spaces section.",
         AppSettingsKey.windowSwitcherEnabled.rawValue: "Window switching requires consent on this Mac.",
         AppSettingsKey.switcherCommandTab.rawValue: "Carried by settings.json in the windowSwitcher section.",
         AppSettingsKey.switcherCommandBacktick.rawValue: "Carried by settings.json in the windowSwitcher section.",

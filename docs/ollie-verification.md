@@ -1,5 +1,47 @@
 # Ollie verification
 
+## Launcher keyboard focus — local, 13 October 2026
+
+The isolated build-19 launcher reproduced missing key-window ownership: after summon and a second
+explicit `makeKey`, the app remained inactive and the visible panel reported `isKeyWindow == false`.
+Directly addressed AppKit events still reached the text editor, so those passing handlers alone did
+not establish that the window could receive normal keyboard input. Restoring `nonactivatingPanel`
+while retaining the activation request made the panel become key immediately.
+
+The signed isolated app passed ten assertions both on direct launch and a background LaunchServices
+launch. Checks cover focus on summon/reopen, typed key events reaching the query, Escape closing an
+empty launcher, clearing a query then closing, and Return/keypad Enter activating the selected result.
+The selected result opens Emoji inside the verification app; external app launching and physical
+keyboard input in the installed app were not exercised. User requested isolated-app verification.
+
+All 92 harnesses passed in one 94-second run. Debug build, lint, model purity and diff checks pass;
+there are no new compiler warnings. The installed build 19 was not replaced. The earlier Spaces
+integration remains in the same local working tree; no commit or push was performed.
+
+## Spaces / Strafe integration — local, 13 October 2026
+
+Added an opt-in Spaces feature with Strafe-style horizontal swipe interception, Instant/Quick/Smooth
+transitions and existing Previous/Next Space shortcut recorders. The tap handles only gesture/Dock
+events, passes Mission Control and synthetic input through, and is removed on disable or termination.
+The shared switch service guards desktop edges per display, expires stale predictions, observes Space
+changes for both keyboard and trackpad use, and closes an active animated gesture on cancellation.
+Settings import carries speed and shortcuts without granting interception access. Strafe attribution
+and license notices are included in the bundled NOTICE.md.
+
+The Debug build passes with no new compiler warnings; Xcode emits its existing no-AppIntents metadata
+message. Host lint, settings-search target checks, model purity and diff checks pass. The full suite
+passed 91/92 harnesses in 110 seconds; the new search assertion incorrectly demanded first place from
+an alias match. After correcting it to check discoverability, disabled-feature filtering and direct
+Spaces ranking, the optimized settings harness passed in 4 seconds. All 92 harnesses therefore pass
+across the full run and corrected rerun. New tests cover swipe phases, cancellation, one switch per
+swipe, edge suppression, per-display predictions, expiration, topology changes and transition fields.
+
+A separately signed verification copy mounted all 18 Settings panes in light and dark and exited 0.
+Offscreen native Form captures omit control text/materials, so this establishes mounting rather than
+visual or interaction correctness. Physical trackpad/keyboard switching, actual animation timing,
+fullscreen/multiple-monitor behavior and permission recovery remain unverified on the live desktop.
+The installed app was not replaced and no release, commit or push was performed.
+
 ## Build 18 remove built-in Hyper Key — 13 October 2026
 
 Removed the Hyper Key event tap, Caps Lock HID remapping, lifecycle hooks and health checks.
@@ -255,3 +297,18 @@ The installed executable matches the release output exactly:
 The process was verified running from `/Applications/Ollie.app/Contents/MacOS/Ollie`.
 The old `/Applications/Fredie.app` bundle was replaced. Original sibling app repositories remain clean;
 no sibling app data was adopted automatically, and Mailie was not modified.
+
+
+## Build 20: Floating launcher and clipboard
+
+- Signed Release installed at `/Applications/Ollie.app` with the existing Apple Development identity.
+- All 92 standalone harnesses passed; Debug compiled with no new source warnings; lint and model purity passed.
+- Native checks: typed launcher command lookup, Return into Clipboard, narrow result-height launcher,
+  two-column clipboard, icon-only sources, text preview, empty results, Left/Right caret movement,
+  query-selection copy versus whole-item copy, shared Actions menu, and Escape returning to Settings.
+- Compact and Comfortable density were visually exercised; Compact restored after the test.
+- Opening from Settings correctly showed Copy. Launcher-to-Clipboard retained its original external
+  target label. Actual cross-app paste and the physical global shortcut remain unverified in this pass:
+  background native control sends keys directly to the selected app and did not reproduce that sequence.
+- Opus reviewed integration risks; corrected dismiss-before-switch, fresh-open selection, paste recency,
+  stale-search activation, feature gating, preview bounds, density backups, and obsolete tile settings.

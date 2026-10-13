@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ClipboardItemRow: View {
+    @Environment(\.metrics) private var metrics
+    @Environment(AppSettings.self) private var settings
     let item: ClipboardItem
     let store: ClipboardStore
     let isSelected: Bool
@@ -11,51 +13,44 @@ struct ClipboardItemRow: View {
 
     private var backgroundColor: Color {
         if isSelected {
-            return Color.accentColor.opacity(0.15)
+            return Theme.Colors.selection
         } else if isHovered {
-            return Color.primary.opacity(0.05)
+            return Theme.Colors.rowHover
         }
         return Color.clear
     }
 
     private var backgroundCornerRadius: CGFloat {
-        isSelected ? 0 : 4
+        5
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: metrics.scaled(8)) {
             if item.type == .image {
                 icon
-                    .frame(width: 28, height: 28)
+                    .frame(width: 20, height: 20)
             }
 
             Text(item.previewText)
-                .font(.system(size: 14))
+                .font(.system(size: metrics.scaled(Theme.Size.clipboardListFontSize)))
                 .foregroundColor(.primary)
                 .lineLimit(1)
 
             Spacer(minLength: 0)
 
-            if let app = item.sourceApp {
-                Group {
-                    if let icon = sourceAppIcon {
-                        Image(nsImage: icon)
-                            .resizable()
-                            .interpolation(.high)
-                            .aspectRatio(contentMode: .fit)
-                            .opacity(0.85)
-                    } else {
-                        Image(systemName: "app.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary.opacity(0.4))
-                    }
-                }
-                .frame(width: 18, height: 18)
-                .help(app)
+            if let sourceAppIcon {
+                Image(nsImage: sourceAppIcon)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: metrics.scaled(Theme.Size.clipboardSourceIcon), height: metrics.scaled(Theme.Size.clipboardSourceIcon))
+                    .accessibilityLabel(item.sourceApp ?? "Source application")
+                    .tooltip(item.sourceApp ?? "Source application")
             }
+
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.horizontal, metrics.scaled(8))
+        .frame(height: metrics.scaled(settings.paletteDensity.clipboardRowHeight))
         .background(
             backgroundColor,
             in: RoundedRectangle(cornerRadius: backgroundCornerRadius, style: .continuous)
@@ -88,12 +83,12 @@ struct ClipboardItemRow: View {
                     .resizable()
                     .interpolation(.high)
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 28, height: 28)
+                    .frame(width: 20, height: 20)
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             } else {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(Color.secondary.opacity(0.12))
-                    .frame(width: 28, height: 28)
+                    .frame(width: 20, height: 20)
             }
         }
     }

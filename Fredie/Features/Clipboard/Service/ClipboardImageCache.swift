@@ -5,6 +5,7 @@ final class ClipboardImageCache: @unchecked Sendable {
     private let imagesDirectory: URL
     private let thumbnails = NSCache<NSUUID, NSImage>()
     private let icons = NSCache<NSString, NSImage>()
+    @MainActor private var missingIcons = Set<String>()
 
     init(imagesDirectory: URL) {
         self.imagesDirectory = imagesDirectory
@@ -37,13 +38,35 @@ final class ClipboardImageCache: @unchecked Sendable {
     }
 
     @MainActor
+    func preview(for item: ClipboardItem) async -> NSImage? {
+        guard let filename = item.imageFilename,
+              let url = try? ClipboardStorage.contentURL(filename, in: imagesDirectory) else { return nil }
+        let image = await Task.detached(priority: .utility) {
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil as CGImage? }
+            return CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceCreateThumbnailWithTransform: true,
+                kCGImageSourceThumbnailMaxPixelSize: 1_600,
+                kCGImageSourceShouldCacheImmediately: true
+            ] as CFDictionary)
+        }.value
+        guard !Task.isCancelled, let image else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+    }
+
+    @MainActor
     func sourceAppIcon(for item: ClipboardItem) async -> NSImage? {
         guard let identifier = item.sourceBundleIdentifier ?? item.sourceApp, !Task.isCancelled else { return nil }
+        guard !missingIcons.contains(identifier) else { return nil }
         let key = identifier as NSString
         if let cached = icons.object(forKey: key) { return cached }
         let workspace = NSWorkspace.shared
         guard let url = item.sourceBundleIdentifier.flatMap({ workspace.urlForApplication(withBundleIdentifier: $0) })
-            ?? workspace.runningApplications.first(where: { $0.localizedName == item.sourceApp })?.bundleURL else { return nil }
+            ?? workspace.runningApplications.first(where: { $0.localizedName == item.sourceApp })?.bundleURL else {
+            if missingIcons.count >= 128 { missingIcons.removeAll() }
+            missingIcons.insert(identifier)
+            return nil
+        }
         let icon = workspace.icon(forFile: url.path)
         icon.size = NSSize(width: 16, height: 16)
         icons.setObject(icon, forKey: key)

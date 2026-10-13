@@ -74,7 +74,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             // Open disarmed: a pointer already over a row must not highlight it.
             core.palette.disarmHoverHighlight(pointerAt: NSEvent.mouseLocation)
             // Re-resolve the anchor now, then hold it so resizes never move the window.
-            anchor = nil
+            if !isVisible { anchor = nil }
             // Size and place before ordering front, so a compact summon never flashes.
             positionPanel(panel)
             // Flush first-mount layout off-screen, so the safe-area settle isn't visible.
@@ -123,9 +123,18 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         pasteMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
             [weak self] event in
             guard let self, self.panel?.isKeyWindow == true,
-                Self.commandCharacter(from: event) == "v"
+                let character = Self.commandCharacter(from: event)
             else { return event }
-            return self.attachPastedFile() ? nil : event
+            if character == "c", self.core.palette.mode == .clipboard {
+                guard let editor = self.panel?.firstResponder as? NSTextView,
+                      editor.isFieldEditor, editor.selectedRange().length == 0 else { return event }
+                let results = self.core.clipboard.results(for: self.core.palette.query)
+                let selection = self.core.palette.selection
+                guard results.indices.contains(selection) else { return event }
+                self.core.clipboard.activate(results[selection], copyOnly: true)
+                return nil
+            }
+            return character == "v" && self.attachPastedFile() ? nil : event
         }
     }
 
@@ -140,6 +149,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     }
 
     func hide(restoreFocus: Bool) {
+        core.clipboard.paletteDidHide()
         panel?.orderOut(nil)
         commandEscapeTap.disable()
         core.inputSourceSwitcher.endSession()
@@ -382,7 +392,12 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         installPasteMonitor()
         // Handled at the panel: a focused preview answers Escape before the palette's own handler.
         panel.onEscape = { [weak self] in
-            guard let self, core.palette.fileSearchQuickLook else { return false }
+            guard let self else { return false }
+            if core.palette.mode == .clipboard, core.clipboard.expandedImage != nil {
+                core.clipboard.expandedImage = nil
+                return true
+            }
+            guard core.palette.fileSearchQuickLook else { return false }
             core.palette.fileSearchQuickLook = false
             return true
         }

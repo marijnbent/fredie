@@ -2,9 +2,6 @@ import AppKit
 import Foundation
 
 enum Paster { static let fredieEventTag: Int64 = 0x465245444945 }
-extension Notification.Name {
-    static let bufferDidWritePasteboard = Notification.Name("bufferDidWritePasteboard")
-}
 
 @main
 @MainActor
@@ -41,6 +38,23 @@ struct OllieClipboardTests {
         try FileManager.default.createSymbolicLink(at: texts.appendingPathComponent("escape.txt"), withDestinationURL: outside)
         check("path traversal rejected", (try? ClipboardStorage.contentURL("../outside.txt", in: texts)) == nil)
         check("symlink escape rejected", (try? ClipboardStorage.contentURL("escape.txt", in: texts)) == nil)
+
+        let session = ClipboardSearchSession()
+        let alpha = ClipboardItem.text("alpha needle", timestamp: Date())
+        let beta = ClipboardItem.text("beta needle", timestamp: Date())
+        session.search("alpha", items: [alpha, beta], storage: reopened.storage)
+        session.search("beta", items: [alpha, beta], storage: reopened.storage)
+        check("new search removes stale actionable rows", session.items.isEmpty)
+        for _ in 0..<100 where session.isSearching { try await Task.sleep(for: .milliseconds(10)) }
+        check("latest search wins", session.items == [beta] && session.query == "beta")
+        session.search("alpha", items: [alpha, beta], storage: reopened.storage)
+        session.search("", items: [beta, alpha], storage: reopened.storage)
+        try await Task.sleep(for: .milliseconds(100))
+        check("clearing search cancels pending results", session.items == [beta, alpha])
+        session.search("alpha", items: [alpha, beta], storage: reopened.storage)
+        session.cancel()
+        try await Task.sleep(for: .milliseconds(100))
+        check("closed session cannot apply late results", session.items.isEmpty && !session.isSearching)
 
         let history = directory.appendingPathComponent("history.json")
         try FileManager.default.removeItem(at: history)

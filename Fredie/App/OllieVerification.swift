@@ -4,6 +4,19 @@ import SwiftUI
 
 @MainActor enum OllieVerification {
     static func runIfRequested() -> Bool {
+        if CommandLine.arguments.contains("--verify-ollie-launcher") {
+            guard Bundle.main.bundleIdentifier == "nl.bentjes.ollie.verification" else { exit(2) }
+            Task {
+                do {
+                    try await LauncherInputVerification.run()
+                    exit(0)
+                } catch {
+                    print("VERIFY FAILED: \(error)")
+                    exit(1)
+                }
+            }
+            return true
+        }
         let preview = CommandLine.arguments.contains("--preview-ollie-settings")
         guard preview || CommandLine.arguments.contains("--verify-ollie-ui") else { return false }
         guard Bundle.main.bundleIdentifier == "nl.bentjes.ollie.verification" else { exit(2) }
@@ -46,6 +59,7 @@ import SwiftUI
         core.settings.snippetsEnabled = true
         core.settings.dictationEnabled = true
         core.settings.windowSwitcherEnabled = true
+        core.settings.spacesEnabled = true
         core.settings.typingSoundsEnabled = true
         core.settings.aiEnabled = true
         core.settings.mediaImportEnabled = true

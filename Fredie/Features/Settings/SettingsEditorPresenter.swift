@@ -409,6 +409,7 @@ extension View {
             .environment(navigation)
             .environment(core)
             .environment(core.typingSounds)
+            .environment(core.spaces)
             .environment(core.notifications)
             .environment(core.network)
             .environment(core.mediaImport)

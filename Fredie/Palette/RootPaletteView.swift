@@ -52,6 +52,8 @@ struct RootPaletteView: View {
                 vm: vm, running: selectionIsRunning,
                 openActions: openActions,
                 scrollToFollow: { scroll = ScrollIntent(kind: .follow) })
+        case .clipboard:
+            return ClipboardScreen(coordinator: core.clipboard, vm: vm, openActions: openActions)
         case .uninstall:
             return UninstallScreen(
                 session: uninstall, core: core, vm: vm, openActions: openActions)
@@ -353,6 +355,7 @@ struct RootPaletteView: View {
                 if vm.mode == .fileSearch { fileSearch.search(vm.query, filter: vm.fileSearchFilter) }
                 if vm.mode == .dictionary { dictionary.lookUp(vm.query) }
                 if vm.mode == .menuSearch { menuSearch.filter(vm.query) }
+                if vm.mode == .clipboard { core.clipboard.refreshSearch() }
                 // A command that took over the search text filters its own list.
                 if vm.mode == .extensionCommand, let handler = extensionScreen.searchTextHandler {
                     extensions.dispatch(handler: handler, arguments: [vm.query])
@@ -371,6 +374,8 @@ struct RootPaletteView: View {
                 fileSearch.search(vm.query, filter: vm.fileSearchFilter)
             }
             .onChange(of: vm.mode) {
+                if vm.mode == .clipboard { core.clipboard.refreshSearch() }
+                else { core.clipboard.searchSession.cancel() }
                 vm.fileSearchFilter = .all
                 vm.emojiCategoryFilter = .all
                 vm.emojiGridColumnsOverride = nil
@@ -495,7 +500,7 @@ struct RootPaletteView: View {
                     guard !vm.isComposing else { return .ignored }
                     // The fallback for a hidden-field screen with no control focused to answer.
                     let answersWithoutFocus = screen.hidesSearchField && screen.rows.isEmpty
-                    guard searchFocused || answersWithoutFocus else { return .ignored }
+                    guard searchFocused || answersWithoutFocus || vm.mode == .clipboard else { return .ignored }
                     activateSelection()
                     return .handled
                 }
@@ -512,6 +517,10 @@ struct RootPaletteView: View {
                 return screen.pasteKeepingWindowOpen(at: selection) ? .handled : .ignored
             }
             .onKeyPress(.escape) {
+                if vm.mode == .clipboard, core.clipboard.expandedImage != nil {
+                    core.clipboard.expandedImage = nil
+                    return .handled
+                }
                 if menuPanel.isClosing { return .handled }
                 // An open control list owns Escape before the palette beneath it.
                 if vm.isControlListOpen { return .ignored }
@@ -624,7 +633,21 @@ struct RootPaletteView: View {
             // Matches the list rows and section headers' own indent below.
             headerGutter(width: metrics.spacing.md * 2)
             // Every sub-screen leaves the same way, so the slot reads the same on all of them.
-            if vm.mode != .launcher {
+            if vm.mode == .clipboard {
+                Button(action: {
+                    if settings.launcherEnabled {
+                        if !vm.pop() { core.paletteCoordinator.showPalette(mode: .launcher) }
+                    } else { core.paletteCoordinator.hidePalette() }
+                }) {
+                    Image(systemName: "clipboard")
+                        .font(.system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)))
+                        .foregroundStyle(.secondary)
+                        .frame(width: metrics.size.headerIconSlot)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(settings.launcherEnabled ? "Back to launcher" : "Close clipboard")
+                .tooltip(settings.launcherEnabled ? "Back to launcher" : "Close clipboard", edge: .bottom)
+            } else if vm.mode != .launcher {
                 HeaderBackButton(help: backHelp, action: goBack)
             } else {
                 Image(systemName: vm.mode.systemImage)
@@ -645,7 +668,7 @@ struct RootPaletteView: View {
             }
             if vm.mode == .launcher, headerAccessory == nil {
                 headerGutter(width: metrics.spacing.md)
-                launcherAIButton
+                if settings.aiEnabled { launcherAIButton }
                 if !isCollapsed {
                     headerGutter(width: metrics.spacing.xs)
                     launcherMenuButton
@@ -693,7 +716,7 @@ struct RootPaletteView: View {
             headerGutter(width: metrics.spacing.md * 2)
         }
         // Identical metrics in both states, so typing can't move the search bar.
-        .frame(height: metrics.size.headerHeight)
+        .frame(height: surface.fieldHeight)
         .padding(.top, surface.fieldTop)
         .frame(maxWidth: .infinity)
         // Set after the show, so the field it names is focused rather than the search field.
@@ -717,16 +740,9 @@ struct RootPaletteView: View {
 
     private var launcherAIButton: some View {
         BarButton(action: { core.quickAICoordinator.askFromLauncher(vm.query) }) {
-            HStack(spacing: metrics.spacing.sm) {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                Text("Ask AI")
-                    .font(metrics.typography.bar)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                Text(verbatim: "⌘↵")
-                    .font(metrics.typography.keyCap)
-                    .foregroundStyle(Theme.Colors.textTertiary)
-            }
+            Image(systemName: "sparkles")
+                .font(.system(size: metrics.scaled(13)))
+                .foregroundStyle(Theme.Colors.textSecondary)
         }
         .accessibilityLabel(settings.aiEnabled ? "Ask AI" : "Set up AI")
         .tooltip(settings.aiEnabled ? "Ask AI" : "Set up AI", edge: .bottom)
@@ -801,7 +817,7 @@ struct RootPaletteView: View {
         @Bindable var vm = vm
         return TextField("", text: $vm.query)
             .textFieldStyle(.plain)
-            .font(metrics.typography.searchField)
+            .font(surface.detached ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
             .tint(Theme.Colors.textPrimary)
             .focused($searchFocused)
             // Fills the row's height, so there's no gap above it for topDragStrip to meet.
@@ -810,7 +826,7 @@ struct RootPaletteView: View {
                 // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
                 if vm.query.isEmpty, !vm.isComposing {
                     Text(searchPrompt)
-                        .font(metrics.typography.searchField)
+                        .font(surface.detached ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
                         .foregroundStyle(Theme.Colors.textTertiary)
                         .lineLimit(1)
                         // Never a click target: tapping the placeholder must still land the caret.
@@ -1269,6 +1285,11 @@ struct RootPaletteView: View {
 
     /// A ring hop leaves a step back — except the hop closing the ring on the launcher, its root.
     private func cycleMode() {
+        if vm.mode == .clipboard {
+            guard settings.launcherEnabled else { return }
+            if !vm.pop() { vm.prepare(mode: .launcher) }
+            return
+        }
         switch PaletteTabAction.resolve(
             mode: vm.mode, aiEnabled: settings.aiEnabled)
         {

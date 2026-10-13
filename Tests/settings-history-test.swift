@@ -43,7 +43,7 @@ struct SettingsHistoryTests {
     }
 
     static func unsupportedPanesCannotOpen() {
-        expect(SettingsTab.available == [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about],
+        expect(SettingsTab.available == [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .spaces, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about],
             "Settings offers every integrated Ollie feature and supporting panes")
         let navigation = SettingsNavigationState(tab: .general)
         for tab in SettingsTab.allCases where !SettingsTab.available.contains(tab) {
@@ -60,6 +60,10 @@ struct SettingsHistoryTests {
             expect(visible.contains(feature.settingsTab), "enabling a feature reveals its pane")
             expect(visible.subtracting(off) == Set(feature == .launcher ? [.applications, .emoji] : [feature.settingsTab]), "unrelated panes stay hidden")
         }
+        expect(SettingsSearchCatalog.results(for: "strafe").contains { $0.tab == .spaces },
+            "Strafe finds the Spaces pane")
+        expect(!SettingsSearchCatalog.results(for: "strafe", available: off).contains { $0.tab == .spaces },
+            "disabled Spaces stays hidden from search")
         let disabledSearch = SettingsSearchCatalog.results(for: "dictation", available: off)
         expect(disabledSearch.map(\.tab) == [.features], "search offers enablement without exposing disabled settings")
         expect(SettingsSearchCatalog.results(for: "dictation").contains { $0.tab == .dictation }, "enabled dictation settings are searchable")
@@ -193,12 +197,13 @@ struct SettingsHistoryTests {
             ("launch at login", .general),
             ("automatically check for updates", .general),
             ("popup", .general),
-            ("tile style", .general),
+            ("density", .general),
             ("search scopes", .applications),
             ("accessibility", .permissions),
             ("emoji", .emoji),
             ("skin tone", .emoji),
             ("column count", .emoji),
+            ("spaces", .spaces),
             ("mcp", .ai)
         ]
         for (query, tab) in cases {

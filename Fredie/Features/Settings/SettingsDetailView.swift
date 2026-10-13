@@ -14,6 +14,7 @@ struct SettingsDetailView: View {
             case .shortcuts: OllieShortcutsSettingsView()
             case .dictation: DictationSettingsView()
             case .windowSwitcher: WindowSwitcherSettingsView()
+            case .spaces: SpacesSettingsView()
             case .clipboard: ClipboardSettingsView()
             case .snippets: SnippetsSettingsView()
             case .mediaImport: MediaImportSettingsView()

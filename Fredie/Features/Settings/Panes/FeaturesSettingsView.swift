@@ -8,6 +8,7 @@ extension OllieFeature {
         case .snippets: \.snippetsEnabled
         case .dictation: \.dictationEnabled
         case .windowSwitcher: \.windowSwitcherEnabled
+        case .spaces: \.spacesEnabled
         case .ai: \.aiEnabled
         case .typingSounds: \.typingSoundsEnabled
         case .network: \.networkEnabled

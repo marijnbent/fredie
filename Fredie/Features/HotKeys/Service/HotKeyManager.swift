@@ -270,8 +270,15 @@ final class HotKeyManager {
         syncModifierTaps()
     }
 
+    private func canRegister(_ action: HotKeyAction) -> Bool {
+        if case .windowCommand(let id) = action, id == .previousSpace || id == .nextSpace {
+            return allowsAction?(action) ?? true
+        }
+        return (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true)
+    }
+
     private func register(_ action: HotKeyAction) {
-        guard (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true) else { return }
+        guard canRegister(action) else { return }
         guard let shortcut = binding(for: action)?.shortcut else { return }
         center.register(
             id: action.defaultsKey, shortcut: shortcut,
@@ -282,7 +289,7 @@ final class HotKeyManager {
     private func syncModifierTaps() {
         modifierTaps = [:]
         for action in candidateActions {
-            guard (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true) else { continue }
+            guard canRegister(action) else { continue }
             guard let binding = binding(for: action), binding.usesModifierTapMonitor else { continue }
             modifierTaps[binding] = action
         }

@@ -154,7 +154,6 @@ final class LauncherCoordinator {
     func runCommand(_ id: CommandID) {
         switch id {
         case .clipboardHistory:
-            dismissPalette()
             core.clipboard.show()
         case .quickAI:
             core.quickAICoordinator.show()

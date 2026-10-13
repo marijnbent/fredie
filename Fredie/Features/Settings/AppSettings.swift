@@ -170,6 +170,10 @@ final class AppSettings {
     }
 
     /// Scales the palette and its floating siblings only. Read through `InterfaceSize.metrics`.
+    var paletteDensity: PaletteDensity {
+        didSet { defaults.set(paletteDensity.rawValue, forKey: Key.paletteDensity.rawValue) }
+    }
+
     var interfaceSize: InterfaceSize {
         didSet {
             defaults.set(interfaceSize.rawValue, forKey: Key.interfaceSize.rawValue)
@@ -186,10 +190,6 @@ final class AppSettings {
     /// Summon the launcher as just its search bar, revealing results on typing or ↓.
     var compactMode: Bool {
         didSet { defaults.set(compactMode, forKey: Key.compactMode.rawValue) }
-    }
-
-    var launcherTileStyle: LauncherTileStyle {
-        didSet { defaults.set(launcherTileStyle.rawValue, forKey: Key.launcherTileStyle.rawValue) }
     }
 
     /// Summon the palette on the display under the pointer instead of the one holding the menu bar.
@@ -522,6 +522,13 @@ final class AppSettings {
     var dictationEnabled: Bool {
         didSet { defaults.set(dictationEnabled, forKey: Key.dictationEnabled.rawValue) }
     }
+    var spacesEnabled: Bool {
+        didSet { defaults.set(spacesEnabled, forKey: Key.spacesEnabled.rawValue) }
+    }
+    var spacesTransitionSpeed: String {
+        didSet { defaults.set(spacesTransitionSpeed, forKey: Key.spacesTransitionSpeed.rawValue) }
+    }
+
     var windowSwitcherEnabled: Bool {
         didSet { defaults.set(windowSwitcherEnabled, forKey: Key.windowSwitcherEnabled.rawValue) }
     }
@@ -606,6 +613,8 @@ final class AppSettings {
 
     init() {
         dictationEnabled = defaults.bool(forKey: Key.dictationEnabled.rawValue)
+        spacesEnabled = defaults.bool(forKey: Key.spacesEnabled.rawValue)
+        spacesTransitionSpeed = defaults.string(forKey: Key.spacesTransitionSpeed.rawValue) ?? "instant"
         windowSwitcherEnabled = defaults.object(forKey: Key.windowSwitcherEnabled.rawValue) == nil ? false : defaults.bool(forKey: Key.windowSwitcherEnabled.rawValue)
         switcherCommandTab = defaults.object(forKey: Key.switcherCommandTab.rawValue) == nil ? true : defaults.bool(forKey: Key.switcherCommandTab.rawValue)
         switcherCommandBacktick = defaults.object(forKey: Key.switcherCommandBacktick.rawValue) == nil ? true : defaults.bool(forKey: Key.switcherCommandBacktick.rawValue)
@@ -661,13 +670,12 @@ final class AppSettings {
         calcNumberStyle =
             defaults.string(forKey: Key.calcNumberStyle.rawValue).flatMap(CalcNumberStyle.init)
             ?? .system
+        paletteDensity = defaults.string(forKey: Key.paletteDensity.rawValue).flatMap(PaletteDensity.init) ?? .compact
         interfaceSize =
             defaults.string(forKey: Key.interfaceSize.rawValue).flatMap(InterfaceSize.init)
             ?? .standard
         compactMode = defaults.bool(forKey: Key.compactMode.rawValue)
-        launcherTileStyle =
-            defaults.string(forKey: Key.launcherTileStyle.rawValue).flatMap(LauncherTileStyle.init)
-            ?? .iconHighlight
+
         // Unset seeds the defaults; a stored empty array is a deliberately cleared list.
         searchScopes =
             defaults.stringArray(forKey: Key.searchScopes.rawValue) ?? SearchScopes.defaults

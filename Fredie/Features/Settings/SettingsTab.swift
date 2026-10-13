@@ -1,8 +1,8 @@
 enum SettingsTab: CaseIterable, Identifiable {
-    case features, shortcuts, dictation, windowSwitcher, clipboard, snippets, mediaImport, notifications, network, typingSounds, general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
+    case features, shortcuts, dictation, windowSwitcher, spaces, clipboard, snippets, mediaImport, notifications, network, typingSounds, general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         ai, quickActions, extensions, permissions, backup, about
-    static let available: [Self] = [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about]
+    static let available: [Self] = [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .spaces, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport, .permissions, .backup, .about]
 
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
@@ -13,6 +13,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .shortcuts: return "Shortcuts"
         case .dictation: return "Dictation"
         case .windowSwitcher: return "Window Switcher"
+        case .spaces: return "Spaces"
         case .clipboard: return "Clipboard"
         case .snippets: return "Snippets"
         case .mediaImport: return "Media Import"
@@ -48,6 +49,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .shortcuts: return "keyboard"
         case .dictation: return "mic"
         case .windowSwitcher: return "rectangle.on.rectangle"
+        case .spaces: return "rectangle.split.3x1"
         case .clipboard: return "clipboard"
         case .snippets: return "text.badge.plus"
         case .mediaImport: return "externaldrive.badge.plus"
@@ -91,7 +93,7 @@ enum SettingsSection: CaseIterable, Identifiable {
 
     var tabs: [SettingsTab] {
         switch self {
-        case .app: [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport]
+        case .app: [.features, .general, .shortcuts, .applications, .clipboard, .snippets, .dictation, .windowSwitcher, .spaces, .emoji, .ai, .typingSounds, .network, .notifications, .mediaImport]
         case .advanced: [.permissions, .backup, .about]
         }
     }
@@ -99,7 +101,7 @@ enum SettingsSection: CaseIterable, Identifiable {
 
 
 enum OllieFeature: CaseIterable, Identifiable {
-    case launcher, clipboard, snippets, dictation, windowSwitcher, ai, typingSounds, network, notifications, mediaImport
+    case launcher, clipboard, snippets, dictation, windowSwitcher, spaces, ai, typingSounds, network, notifications, mediaImport
 
     var id: Self { self }
 
@@ -110,6 +112,7 @@ enum OllieFeature: CaseIterable, Identifiable {
         case .snippets: .snippets
         case .dictation: .dictation
         case .windowSwitcher: .windowSwitcher
+        case .spaces: .spaces
         case .ai: .ai
         case .typingSounds: .typingSounds
         case .network: .network

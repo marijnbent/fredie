@@ -11,7 +11,14 @@ final class ClipboardCoordinator: HealthCheckable {
     private unowned let core: AppCore
     private let ticker: HealthTicker
     @ObservationIgnored private lazy var expansion = SnippetExpansionController(store: snippets)
-    @ObservationIgnored private var window: HistoryWindowController?
+    let searchSession = ClipboardSearchSession()
+    var expandedImage: ClipboardItem?
+    var snippetEditor: SnippetEditorTarget?
+    private(set) var extractingText = false
+    @ObservationIgnored private var pendingActivation: String?
+    @ObservationIgnored private var snippetQuery: String?
+    @ObservationIgnored private var snippetResults: [ClipboardResult] = []
+    @ObservationIgnored private var contentTask: Task<Void, Never>?
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     private(set) var snippetsRunning = false
     var isCapturingShortcut = false { didSet { applyExpansion() } }
@@ -53,14 +60,162 @@ final class ClipboardCoordinator: HealthCheckable {
 
     func show() {
         guard core.settings.clipboardEnabled || core.settings.snippetsEnabled else { return }
-        if window?.window?.isVisible == true { window?.close(); return }
-        if window == nil {
-            window = HistoryWindowController(store: store, snippets: snippets) { [weak self] error in
-                self?.core.showMessage(error, tone: .danger)
+        if core.paletteCoordinator.isShowing(.clipboard) {
+            core.paletteCoordinator.hidePalette()
+            return
+        }
+        expandedImage = nil
+        pendingActivation = nil
+        contentTask?.cancel()
+        searchSession.reset()
+        snippetQuery = nil
+        core.paletteCoordinator.showPalette(mode: .clipboard, seeding: core.settings.clipboardEnabled ? "" : ":")
+        core.palette.selection = 0
+        load { [weak self] in self?.refreshSearch() }
+        refreshSearch()
+    }
+
+    var snippetsEnabled: Bool { core.settings.snippetsEnabled }
+
+    func results(for query: String) -> [ClipboardResult] {
+        if query.hasPrefix(":") {
+            guard core.settings.snippetsEnabled else { return [] }
+            if snippetQuery != query {
+                snippetQuery = query
+                snippetResults = snippets.matches(for: String(query.dropFirst())).map(ClipboardResult.snippet)
+            }
+            return snippetResults
+        }
+        guard core.settings.clipboardEnabled, searchSession.query == query else { return [] }
+        return searchSession.items.map(ClipboardResult.item)
+    }
+
+    func refreshSearch() {
+        guard core.palette.mode == .clipboard else { searchSession.cancel(); return }
+        let query = core.palette.query
+        if pendingActivation != query { pendingActivation = nil }
+        let previous = results(for: query)
+        let selection = core.palette.selection
+        let selectedID = previous.indices.contains(selection) ? previous[selection].id : nil
+        searchSession.search(query, items: store.items, storage: store.storage) { [weak self] in
+            guard let self, core.palette.mode == .clipboard, core.palette.query == query else { return }
+            let current = results(for: query)
+            core.palette.selection = selectedID.flatMap { id in current.firstIndex { $0.id == id } }
+                ?? min(selection, max(current.count - 1, 0))
+            if pendingActivation == query, core.paletteCoordinator.isShowing(.clipboard) {
+                pendingActivation = nil
+                if let first = current.first { activate(first) }
             }
         }
-        window?.showWindow(nil)
-        load(after: {})
+    }
+
+    func activateSelection() {
+        let query = core.palette.query
+        let rows = results(for: query)
+        let selection = core.palette.selection
+        if rows.indices.contains(selection) { activate(rows[selection]); return }
+        if searchSession.isSearching || searchSession.query != query {
+            pendingActivation = query
+            if searchSession.query != query { refreshSearch() }
+        }
+    }
+
+    func paletteDidHide() {
+        pendingActivation = nil
+        searchSession.cancel()
+        expandedImage = nil
+    }
+
+    func snippetsChanged() {
+        snippetQuery = nil
+        refreshSearch()
+    }
+
+    func activate(_ result: ClipboardResult, copyOnly: Bool = false) {
+        contentTask?.cancel()
+        let target = core.paletteCoordinator.targetApp
+        let shouldPaste = !copyOnly && target != nil && target?.processIdentifier != NSRunningApplication.current.processIdentifier
+        if shouldPaste, !Permissions.ensureAccessibility() { return }
+        if !copyOnly { core.paletteCoordinator.hidePalette() }
+        contentTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let content: PreparedClipboardContent
+                switch result {
+                case .item(let item):
+                    content = try await store.storage.prepareClipboardContent(for: item)
+                    guard store.items.contains(where: { $0.id == item.id }) else { return }
+                case .snippet(let snippet):
+                    guard snippets.snippets.contains(where: { $0.id == snippet.id }) else { return }
+                    content = .text(snippet.content)
+                }
+                try Task.checkCancellation()
+                let success = shouldPaste
+                    ? await PasteController.paste(content, targetApplication: target)
+                    : PasteController.copyToClipboard(content)
+                guard success else {
+                    core.showMessage(shouldPaste ? "Could not paste to the previous app" : "Could not copy this item", tone: .danger)
+                    return
+                }
+                if shouldPaste, case .item(let item) = result { store.moveToTop(item) }
+                if case .snippet(let snippet) = result { snippets.recordUsage(for: snippet.id) }
+            } catch is CancellationError {
+            } catch { core.showMessage(error.localizedDescription, tone: .danger) }
+        }
+    }
+
+    func delete(_ result: ClipboardResult) {
+        switch result {
+        case .item(let item): store.delete(item)
+        case .snippet(let snippet): Task { await deleteSnippet(snippet) }
+        }
+        refreshSearch()
+    }
+
+    func editSnippet(_ result: ClipboardResult?) {
+        contentTask?.cancel()
+        contentTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let target: SnippetEditorTarget
+                switch result {
+                case .item(let item):
+                    let text = try await store.storage.loadActionText(for: item)
+                    try Task.checkCancellation()
+                    target = SnippetEditorTarget(snippet: nil, content: text)
+                case .snippet(let snippet): target = SnippetEditorTarget(snippet: snippet)
+                case nil: target = SnippetEditorTarget(snippet: nil)
+                }
+                core.paletteCoordinator.hidePalette()
+                core.settingsCoordinator.showSettings(tab: .snippets)
+                snippetEditor = target
+            } catch is CancellationError {
+            } catch { core.showMessage(error.localizedDescription, tone: .danger) }
+        }
+    }
+
+    func copyImageText(_ item: ClipboardItem) {
+        if let text = item.ocrText {
+            if text.isEmpty || text == "No text found in this image." { core.showMessage("No text found in this image", tone: .neutral) }
+            else { PasteController.copyTextToClipboard(text) }
+            return
+        }
+        guard !extractingText else { return }
+        extractingText = true
+        contentTask?.cancel()
+        contentTask = Task { [weak self] in
+            guard let self else { return }
+            defer { extractingText = false }
+            let storage = store.storage
+            let image = await Task.detached(priority: .userInitiated) { storage.image(for: item) }.value
+            guard !Task.isCancelled, let image else { return }
+            let text = await OCRService.recognizeText(from: image) ?? ""
+            guard !Task.isCancelled, store.items.contains(where: { $0.id == item.id }) else { return }
+            store.setOCRText(text, for: item)
+            guard !text.isEmpty else { core.showMessage("No text found in this image", tone: .neutral); return }
+            PasteController.copyTextToClipboard(text)
+            core.showMessage("Text copied")
+        }
     }
 
     private func applyExpansion() {
@@ -82,7 +237,9 @@ final class ClipboardCoordinator: HealthCheckable {
         expansion.stop()
         ticker.unsubscribe(self)
         snippetsRunning = false
-        window?.close()
+        if core.paletteCoordinator.isShowing(.clipboard) { core.paletteCoordinator.hidePalette() }
+        searchSession.cancel()
+        contentTask?.cancel()
         loadTask?.cancel()
     }
 
@@ -119,5 +276,6 @@ final class ClipboardCoordinator: HealthCheckable {
     func deleteSnippet(_ snippet: Snippet) async {
         guard await core.confirm(title: "Delete :\(snippet.trigger)?", message: nil, symbol: "trash", confirmTitle: "Delete") else { return }
         snippets.deleteSnippet(id: snippet.id)
+        snippetsChanged()
     }
 }

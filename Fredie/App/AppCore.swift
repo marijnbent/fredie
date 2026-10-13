@@ -29,6 +29,8 @@ final class AppCore {
     let hotKeys = HotKeyManager()
     let windowMover = WindowMover()
     let spaceSwitcher = SpaceSwitcher()
+    @ObservationIgnored private(set) lazy var spaces = SpacesCoordinator(
+        settings: settings, switcher: spaceSwitcher, ticker: healthTicker)
     let inputSourceSwitcher = InputSourceSwitcher()
     let settings: AppSettings
     /// Mirrors settings into settings.json; nil while the Backup pane's switch is off.
@@ -308,6 +310,7 @@ final class AppCore {
             }
             paletteCoordinator.onScreenOpening = { [weak self] mode in
                 switch mode {
+                case .clipboard: self?.clipboard.refreshSearch()
                 case .menuSearch: self?.menuSearchCoordinator.load()
                 case .rooms, .roomWindows: self?.roomCoordinator.load()
                 default: break
@@ -375,7 +378,11 @@ final class AppCore {
             }
             hotKeys.displayName = { [weak self] action in self?.hotKeyDisplayName(for: action) }
             hotKeys.allowsAction = { [weak self] action in
-                guard let self, visibility.allowsHotKey(action) else { return false }
+                guard let self else { return false }
+                if case .windowCommand(let id) = action, SpaceDirection(id) != nil {
+                    return settings.spacesEnabled || (settings.windowManagementEnabled && visibility.allowsHotKey(action))
+                }
+                guard visibility.allowsHotKey(action) else { return false }
                 if action == .togglePalette { return settings.launcherEnabled }
                 if action == .command(.clipboardHistory) {
                     return settings.clipboardEnabled || settings.snippetsEnabled
@@ -395,6 +402,7 @@ final class AppCore {
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)),
                 quickActionIDs: Set(customQuickActions.actions.map(\.id)))
             applyLauncherEnabled()
+            spaces.apply()
             windowSwitcher.apply()
             dictation.apply()
 
@@ -489,6 +497,7 @@ final class AppCore {
     func prepareForTermination() {
         compactMenu.stop()
         dictation.stop()
+        spaces.stop()
         windowSwitcher.stop()
         clipboard.stop()
         typingSounds.stop()
@@ -581,6 +590,10 @@ final class AppCore {
     }
 
     private func observeFeatureSwitches() {
+        track({ _ = $0.spacesEnabled; _ = $0.spacesTransitionSpeed }, reproject: {
+            $0.spaces.apply()
+            $0.hotKeys.refreshRegistrations()
+        })
         track({ _ = $0.dictationEnabled }, reproject: { $0.dictation.apply() })
         track(dictation.settings, { _ = $0.shortcuts; _ = $0.historyLimit; _ = $0.deepgramLanguage }, reproject: { $0.dictation.applySettings() })
         track(dictation.session, { _ = $0.recordingPhase }, reproject: {
@@ -622,6 +635,7 @@ final class AppCore {
             },
             reproject: {
                 $0.applyWindowCommandsPresence()
+                $0.hotKeys.refreshRegistrations()
                 $0.customWindowSizeCoordinator.applyCustomWindowSizesPresence()
             })
         track(
@@ -691,6 +705,7 @@ final class AppCore {
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
 
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
+        track({ _ = $0.paletteDensity }, reproject: { $0.paletteCoordinator.syncPaletteSize() })
         track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
         // Settings panes did these on change; settings.json can change them with no pane open.
 

@@ -22,13 +22,14 @@ final class WindowCommandCoordinator {
 
     /// The one funnel for palette and hotkey alike. See docs/features/window-management.md#wiring.
     func runWindowCommand(id: WindowCommand.ID) {
-        guard settings.windowManagementEnabled else { return }
         if let direction = SpaceDirection(id) {
+            guard settings.spacesEnabled || settings.windowManagementEnabled else { return }
             // Restoring focus reactivates an app elsewhere, pulling its Space forward.
             if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
             spaceSwitcher.perform(direction)
             return
         }
+        guard settings.windowManagementEnabled else { return }
         windowMover.perform(
             id, target: handOffTarget(), gap: CGFloat(settings.windowGap),
             cycle: settings.windowCycle)

@@ -9,17 +9,28 @@ Mailie is excluded.
 
 `AppCore` owns ClipboardCoordinator, DictationCoordinator, WindowSwitcherCoordinator,
 TypingSoundsCoordinator, MediaImportCoordinator, NotificationsCoordinator, NetworkCoordinator,
-and CompactMenuController. The existing launcher and AI remain.
+SpacesCoordinator, and CompactMenuController. The existing launcher and AI remain.
 New capture and monitoring capabilities start disabled and cannot be enabled by a settings import.
 Each switch controls its service lifecycle; the shared HealthTicker recovers input monitors after
 permissions change. Synthetic input carries the host Paster marker so it cannot trigger sounds or
 another input handler. Dictation temporarily silences typing sounds and snippet expansion.
 
+Spaces integrates Strafe's trackpad interception, desktop boundary prediction, and Instant/Quick/Smooth
+transition presets. Its master switch starts off; Accessibility is reused and retried by HealthTicker.
+Only gesture/Dock events enter its tap. Mission Control gestures and synthetic input pass through.
+Previous/Next Space shortcuts use the existing window-command bindings, also exposed in Spaces and
+Shortcuts, and work independently of Launcher. Bindings are left unassigned until recorded.
+The shared SpaceSwitcher retains Ollie's gesture encoding and handles keyboard and trackpad requests.
+Boundary state is display-specific, resets on Space changes, expires after missing notifications, and
+rejects changed desktop layouts. Animated gestures serialize and close when disabled.
+Speed and shortcuts mirror through settings.json; importing cannot enable swipe interception.
+Strafe's source and upstream license notices are bundled in NOTICE.md.
+
 The original shells, status items, app delegates, and settings windows were not imported. Native
 settings use the feature coordinator environments. Features is the default settings page and owns
 all master switches. Disabled feature panes and their search results are hidden; navigation history
 drops them and stale links return to Features. Launcher owns the Applications and Emoji panes.
-Clipboard and media import retain their larger task windows; dictation retains its recording overlay. The compact menu has icon actions, live
+Clipboard uses the palette’s floating two-column mode; media import retains its task window; dictation retains its recording overlay. The compact menu has icon actions, live
 recording/import state, notifications, network usage, and settings. Shortcut information lives in
 settings and tooltips, with no menu row dedicated to displaying a shortcut.
 

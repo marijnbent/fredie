@@ -1,31 +1,7 @@
 import SwiftUI
 
 enum LauncherBody: Equatable {
-    case grid(count: Int, columns: Int)
     case list(count: Int)
-
-    func cardHeight(_ metrics: InterfaceMetrics) -> CGFloat {
-        let inset = metrics.spacing.md * 2
-        switch self {
-        case .grid(let count, let columns):
-            let rows = Self.visible(
-                (max(count, 1) + max(columns, 1) - 1) / max(columns, 1),
-                limit: Theme.Size.launcherVisibleTileRows)
-            return inset + CGFloat(rows) * metrics.size.launcherTileHeight
-                + CGFloat(rows - 1) * metrics.spacing.xs
-        case .list(let count):
-            let rows = Self.visible(count, limit: Theme.Size.launcherVisibleRows)
-            return inset + CGFloat(rows) * metrics.size.launcherRowHeight
-        }
-    }
-
-    static func tallestCard(_ metrics: InterfaceMetrics) -> CGFloat {
-        max(
-            LauncherBody.grid(count: Theme.Size.launcherVisibleTileRows, columns: 1).cardHeight(metrics),
-            LauncherBody.list(count: Theme.Size.launcherVisibleRows).cardHeight(metrics))
-    }
-
-    private static func visible(_ rows: Int, limit: Int) -> Int { min(max(rows, 1), limit) }
 }
 
 struct PaletteSurface: Equatable {
@@ -39,19 +15,28 @@ struct PaletteSurface: Equatable {
     let detached: Bool
     let radius: CGFloat
 
-    init(mode: PaletteMode, collapsed: Bool, launcher: LauncherBody, metrics: InterfaceMetrics) {
+    init(mode: PaletteMode, collapsed: Bool, launcher: LauncherBody, metrics: InterfaceMetrics, density: PaletteDensity = .compact) {
         let size = metrics.size
         slotWidth = size.panelWidth
-        fieldHeight = size.headerHeight
-        radius = metrics.radius.panel
-        detached = mode == .launcher
+        detached = mode == .launcher || mode == .clipboard
+        fieldHeight = detached ? metrics.scaled(density.searchHeight) : size.headerHeight
+        radius = detached ? metrics.scaled(Theme.Size.floatingRadius) : metrics.radius.panel
         if detached {
-            let cardTop = size.headerHeight + metrics.spacing.md
-            width = size.launcherWidth
+            let cardTop = fieldHeight + metrics.scaled(density.gap)
+            width = metrics.scaled(mode == .clipboard ? Theme.Size.clipboardWidth : Theme.Size.launcherWidth)
             fieldTop = 0
-            expandedHeight = cardTop + LauncherBody.tallestCard(metrics)
+            let rowHeight = metrics.scaled(density.launcherRowHeight)
+            let inset = metrics.scaled(Theme.Size.paletteCardInset * 2)
+            let count: Int
+            switch launcher {
+            case .list(let value): count = value
+            }
+            let cardHeight = mode == .clipboard
+                ? metrics.scaled(density.clipboardRowHeight) * 10 + inset
+                : inset + CGFloat(min(max(count, 1), 10)) * rowHeight
+            expandedHeight = cardTop + (mode == .clipboard ? cardHeight : inset + 10 * rowHeight)
             self.cardTop = collapsed ? nil : cardTop
-            height = collapsed ? size.headerHeight : cardTop + launcher.cardHeight(metrics)
+            height = collapsed ? fieldHeight : cardTop + cardHeight
         } else {
             width = size.panelWidth
             fieldTop = size.headerPadding
@@ -116,7 +101,7 @@ struct PaletteSurfaceShape: Shape {
         }
         var path = Path(
             roundedRect: CGRect(x: rect.minX, y: rect.minY + fieldTop, width: rect.width, height: fieldHeight),
-            cornerRadius: fieldHeight / 2, style: .continuous)
+            cornerRadius: radius, style: .continuous)
         if let cardTop, rect.height > cardTop {
             path.addRoundedRect(
                 in: CGRect(

@@ -50,9 +50,11 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
                                             · applies the configured source to the field editor
 ```
 
-The palette activates Ollie before becoming key. Merely ordering a non-activating panel in front
-can leave hardware keyboard input going to the previous app. Switching palette modes preserves the
-original paste and focus targets; dismissing restores that app or the Ollie window it covered.
+The palette requests Ollie activation and retains `nonactivatingPanel` so it can acquire keyboard
+focus even when macOS has not granted activation yet. A regular borderless panel can remain visible
+with a field editor attached but no key window; Return and Escape then never reach the launcher.
+Switching palette modes preserves the original paste and focus targets; dismissing restores that app
+or the Ollie window it covered.
 
 Everything resolved "once per summon" is resolved there deliberately, not per render. `AppCore` holds
 only the closure wiring; the behaviour is `PaletteCoordinator`'s.
@@ -88,6 +90,7 @@ each screen, which may choose its first unpinned result.
 | Mode | Screen | Inner list |
 | --- | --- | --- |
 | `.launcher` | `LauncherScreen` | `LauncherList` |
+| `.clipboard` | `ClipboardScreen` | `ClipboardPaletteView` |
 | `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList` |
 | `.emoji` | `EmojiScreen` | `EmojiGridView` |
 | `.fileSearch` | `FileSearchScreen` | `FileSearchList` (see [file-search.md](file-search.md)) |
@@ -139,7 +142,7 @@ whole stack for that same root search from any depth.
 `closeAndPopToRoot` an empty field closes the window and resets it immediately, whatever Pop to Root
 Search says. Clearing the query is still the first press either way.
 
-The header draws a back chevron on **every** screen but the launcher: leaving is what the icon
+Clipboard uses a clipboard icon to return to the launcher. Other sub-screens draw a back chevron: leaving is what the icon
 slot means once you are off the root, and a slot that changed shape with provenance would read
 as two different controls. Where the click lands still depends on the stack — a pushed screen
 pops, a root one closes — so `backHelp` says which, rather than promising a step that is really
@@ -577,3 +580,31 @@ The same show also mirrors that app into `PaletteState.pasteTarget` (a `PasteTar
 name + bundle path), so Emoji can name it — the footer pill reads "Paste to Notes" and
 the ⌘K paste rows carry the app's icon. Resolved once per summon, never per render, and deliberately
 not cleared by `prepare` (pop-to-root resets the screen, not the target).
+
+### Isolated keyboard regression check
+
+A Debug verification bundle with identifier `nl.bentjes.ollie.verification` accepts
+`--verify-ollie-launcher`. It runs the shipped palette without starting the integrated background
+services, types a query through AppKit key events, and checks key-window ownership, empty-query
+Escape, query clearing followed by dismissal, Return and keypad Enter. Selection activation opens
+Emoji inside the verification app, so this check does not launch or control another application.
+Run it both directly and with `open -n -g` to cover background startup. It exits nonzero on failure.
+
+
+## Floating launcher and clipboard
+
+Launcher results include enabled applications and commands in one list. The results card fits up to
+ten rows and shares the floating search bar with Clipboard. General → Appearance → Density controls
+Compact/Comfortable spacing; Interface Size still controls text scale. The previous tile-style control
+is absent from Settings. The clipboard mode keeps two columns even with no matches.
+
+Clipboard invocation switches mode without dismissing the panel, preserving the original paste target.
+An external target gives Enter a paste action; otherwise it copies. ⌘C copies the selected item unless
+a text view has selected text. ⌘K exposes copy, snippet, image-text and delete actions. Left/Right remain
+caret movement. `:` searches snippets. Snippet creation/editing uses the existing Settings editor.
+
+`ClipboardSearchSession` cancels superseded searches and clears old actionable rows immediately.
+Image previews decode off-main at a bounded 1600 pixels. Text previews begin with an excerpt and load
+2000-character chunks up to 8000; full saved content is used for copy/paste. Truncated captures are
+labelled. Source icons use the clipboard icon cache; rows contain no timestamp or source-name label.
+The standalone HistoryWindow and its competing key monitor have been removed.

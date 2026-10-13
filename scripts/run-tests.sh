@@ -335,6 +335,12 @@ run window-preset-test     Fredie/Features/WindowManagement/Model/WindowCommand.
                            Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
                            Fredie/Platform/ASCIIKeyboardLayout.swift \
                            Fredie/Features/HotKeys/Service/KeyShortcut.swift
+run spaces-test           Fredie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Fredie/Features/WindowManagement/Model/SpaceGesture.swift \
+                           Fredie/Features/Spaces/Model/SpaceSwipeState.swift \
+                           Fredie/Features/Spaces/Model/SpaceBoundaryState.swift \
+                           Fredie/Features/Spaces/Model/SpaceTransitionSpeed.swift
+
 run space-gesture-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \
                            Fredie/Features/WindowManagement/Model/SpaceGesture.swift
 run window-layout-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \
@@ -570,6 +576,7 @@ run ollie-dictation-test -parse-as-library Fredie/Platform/Diagnostics.swift Fre
 run ollie-switcher-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Features/WindowSwitcher/Service/*.swift
 run ollie-clipboard-test -parse-as-library \
     Fredie/Features/Clipboard/Model/*.swift \
+    Fredie/Features/Clipboard/Service/ClipboardSearchSession.swift \
     Fredie/Features/Clipboard/Service/ClipboardStore.swift \
     Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
     Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \

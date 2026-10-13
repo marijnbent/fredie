@@ -38,6 +38,9 @@ struct OllieShortcutsSettingsView: View {
                     Button("Edit Dictation Shortcuts…") { navigation.select(.dictation) }
                 }
             }
+            if settings.spacesEnabled {
+                Section("Spaces") { SpacesShortcutRows() }
+            }
             if settings.windowSwitcherEnabled {
                 Section("Window Switcher") {
                     if settings.switcherCommandTab { LabeledContent("All apps", value: "⌘ Tab") }
@@ -49,7 +52,7 @@ struct OllieShortcutsSettingsView: View {
                     Button("Edit Window Switcher…") { navigation.select(.windowSwitcher) }
                 }
             }
-            let other = hotKeys.assignedActions.filter { !primary.contains($0) && settings.launcherEnabled }
+            let other = hotKeys.assignedActions.filter { !primary.contains($0) && !(settings.spacesEnabled && SpacesShortcutRows.actions.contains($0)) && settings.launcherEnabled }
             if !other.isEmpty {
                 Section("Other Shortcuts") {
                     ForEach(other, id: \.self) { action in

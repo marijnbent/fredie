@@ -150,7 +150,7 @@ final class PaletteCoordinator {
         PaletteSurface(
             mode: palette.mode, collapsed: paletteIsCollapsed,
             launcher: palette.mode == .launcher ? launcherBody() : .list(count: 0),
-            metrics: settings.interfaceSize.metrics)
+            metrics: settings.interfaceSize.metrics, density: settings.paletteDensity)
     }
 
     func syncPaletteSize() {

@@ -51,20 +51,21 @@ enum SpaceGesture {
 
     /// The gesture fields for one phase. `augmented` selects the macOS 27 encoding.
     static func fields(
-        phase: Phase, direction: SpaceDirection, augmented: Bool, timestamp: UInt64
+        phase: Phase, direction: SpaceDirection, augmented: Bool, timestamp: UInt64,
+        progress: Double? = nil, velocity: Double? = nil
     ) -> [Field] {
         let sign = direction == .next ? 1.0 : -1.0
         var fields = [
             Field(raw: eventTypeField, value: .integer(dockControlEventType)),
             Field(raw: hidTypeField, value: .integer(dockSwipeHIDType)),
             Field(raw: phaseField, value: .integer(phase.rawValue)),
-            Field(raw: progressField, value: .double(sign * progressMagnitude(augmented))),
+            Field(raw: progressField, value: .double(progress ?? sign * progressMagnitude(augmented))),
             Field(raw: motionField, value: .integer(horizontalMotion))
         ]
 
         guard augmented else {
-            fields.append(Field(raw: velocityXField, value: .double(sign * velocity)))
-            fields.append(Field(raw: velocityYField, value: .double(sign * velocity)))
+            fields.append(Field(raw: velocityXField, value: .double(velocity ?? sign * Self.velocity)))
+            fields.append(Field(raw: velocityYField, value: .double(velocity ?? sign * Self.velocity)))
             return fields
         }
 
@@ -74,7 +75,7 @@ enum SpaceGesture {
         fields.append(Field(raw: positionXField, value: .double(positionX)))
         // Velocity on any phase but the last makes the Space slide back before it settles.
         if phase == .ended {
-            fields.append(Field(raw: velocityXField, value: .double(sign * velocity)))
+            fields.append(Field(raw: velocityXField, value: .double(velocity ?? sign * Self.velocity)))
         }
         return fields
     }
@@ -90,15 +91,18 @@ enum SpaceGesture {
     }
 
     /// The IOHID queue element macOS 27 validates the gesture against, for `payloadField`.
-    static func payload(phase: Phase, direction: SpaceDirection, timestamp: UInt64) -> Data {
+    static func payload(
+        phase: Phase, direction: SpaceDirection, timestamp: UInt64,
+        progress: Double? = nil, velocity: Double? = nil
+    ) -> Data {
         let sign = direction == .next ? 1.0 : -1.0
         let carriesVelocity = phase == .ended
 
         var payload = queueHeader(
             timestamp: timestamp, eventCount: carriesVelocity ? 2 : 1)
-        payload.append(fluidRecord(phase: phase, progress: sign * progressMagnitude(true)))
+        payload.append(fluidRecord(phase: phase, progress: progress ?? sign * progressMagnitude(true)))
         guard carriesVelocity else { return payload }
-        payload.append(velocityRecord(x: sign * velocity))
+        payload.append(velocityRecord(x: velocity ?? sign * Self.velocity))
         return payload
     }
 

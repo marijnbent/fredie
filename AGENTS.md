@@ -1,7 +1,7 @@
 # Ollie
 
 A unified native macOS menu-bar app: launcher, clipboard and snippets, dictation, window switcher,
-typing sounds, media import, notifications and network monitoring. The launcher includes hotkeys,
+typing sounds, Spaces, media import, notifications and network monitoring. The launcher includes hotkeys,
 calculator, notes, quicklinks, window management, emoji and Raycast extensions in JavaScriptCore.
 Mailie is excluded.
 SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party

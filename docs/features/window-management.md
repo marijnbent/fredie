@@ -315,10 +315,14 @@ Three details are load-bearing and each was expensive to learn:
   happens. Fredie is a resident menu-bar app, so this is free — but it is why a one-shot CLI cannot
   be used to reproduce a bug here.
 
-Boundaries are left to macOS. The private `CGSGetActiveSpace` lags behind the Dock after a synthetic
-switch, so a pre-check returns stale answers during exactly the rapid switching it would exist to
-protect; skipping it also means this feature links no private symbol at all. A second gesture arriving
-while one is in flight is dropped rather than queued, for the same reason the phases are paced.
+Spaces now shares this service with the previous/next keyboard commands. Strafe-style boundary
+prediction reads the existing `SpaceSystemAPI` topology for the display under the cursor and tracks
+the expected destination while the live query lags. Predictions reset on Space changes, expire after
+0.5 seconds, and are discarded when the ordered Space IDs change. An unavailable topology leaves
+physical swipes native. A second gesture arriving during an animated switch is dropped rather than
+queued. Instant remains the default; Quick and Smooth use 30/60 ms progress ramps from Strafe.
+The Spaces feature switch gates interception and supplies the speed; existing Window Management
+commands remain available under their original feature switch. See [Ollie](../ollie.md).
 
 The serialized `CGEvent` format is a big-endian tagged record list behind a version word, which
 `SpaceSwitcher` checks is `2` before splicing; a bumped version makes the command a quiet no-op rather

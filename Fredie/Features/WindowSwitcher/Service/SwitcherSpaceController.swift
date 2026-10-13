@@ -102,7 +102,7 @@ final class SwitcherSpaceController {
     }
 }
 
-private struct SpaceSystemAPI {
+struct SpaceSystemAPI {
     private typealias MainConnection = @convention(c) () -> Int32
     private typealias CopyDisplays = @convention(c) (Int32) -> Unmanaged<CFArray>?
     private typealias CopyWindowSpaces = @convention(c) (Int32, Int32, CFArray) -> Unmanaged<CFArray>?

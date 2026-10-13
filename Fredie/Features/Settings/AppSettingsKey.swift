@@ -4,6 +4,8 @@ import Foundation
 enum AppSettingsKey: String, CaseIterable {
     // Every raw value is spelled out so renaming a case can never rename a persisted key.
     case dictationEnabled = "dictationEnabled"
+    case spacesEnabled = "spacesEnabled"
+    case spacesTransitionSpeed = "spacesTransitionSpeed"
     case windowSwitcherEnabled = "windowSwitcherEnabled"
     case switcherCommandTab = "switcherCommandTab"
     case switcherCommandBacktick = "switcherCommandBacktick"
@@ -35,9 +37,9 @@ enum AppSettingsKey: String, CaseIterable {
     case escapeKeyBehavior = "escapeKeyBehavior"
     case appearance = "appearance"
     case calcNumberStyle = "calculatorNumberStyle"
+    case paletteDensity = "paletteDensity"
     case interfaceSize = "interfaceSize"
     case compactMode = "compactMode"
-    case launcherTileStyle = "launcherTileStyle"
     case searchScopes = "launcherSearchScopes"
     case rootSearchSensitivity = "rootSearchSensitivity"
     case openOnCursorScreen = "openOnCursorScreen"

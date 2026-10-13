@@ -436,30 +436,12 @@ per-item reset in its Actions menu, and users can clear all learned ranking in G
 
 ## The empty list
 
-A grid of the pinned apps, in `FavoritesStore.keys` order. With no visible app pinned, the grid shows
-the most-used apps instead — `LauncherOrder.byUsage`, capped at three rows — and those tiles are not
-favorites, so `Results.favoriteCount` is zero and nothing about them reorders. A typed query keeps the
-grid and fills it with the ranked apps; there are no section headers, cards or fallback rows in either.
-Only a pinned custom command awaiting its arguments draws as a row, which carries the arguments
-accessory. `LauncherScreen.showsFavorites` holds only while the trimmed query is empty, and favorite
-reorder, the selection after a toggle and the pinned set all read it, so a typed grid never acts as
-the favorites.
-
-**Settings → Appearance → Tile style** picks what the hover and selection fill paint
-(`LauncherTileStyle`): the 40pt icon's plate (Icon highlight, the default) or the whole 84pt tile
-(Full tile). It applies in both layouts and never changes a tile's size.
-
-The column count is `(panelWidth − 2 × spacing.md) / Size.appTile`, computed by `LauncherScreen`
-from `InterfaceMetrics`, so the drawn grid and `LauncherAppGrid`'s arrow moves read the same number.
-←/→ step one tile and stop at the ends; ↑/↓ step one row, and ↓ into a short last row lands on its
-last tile. That holds while typing too, so ←/→ move between tiles rather than the caret, as in the
-emoji grid. With no match the card keeps one tile row's height and says "No apps found".
-
-The bottom fade appears only when results exceed three tile rows and more content remains below.
-It occupies a narrow edge band and disappears at the end of the scroll; fitting results stay fully opaque.
-
-The launcher no longer has a separate Suggestions section or its setting. When nothing is pinned,
-the app grid uses launch frequency and recency to select apps.
+A compact list of favorites in `FavoritesStore.keys` order. With no favorites, the list shows up
+to ten entries ranked by frequency and recency. Typed queries rank enabled apps and commands together.
+There are no section headers. Commands with arguments retain their header accessory. Favorite reorder
+is available only for an empty query. Up/Down move one row; Left/Right remain text-editing keys.
+The card fits up to ten visible rows and scrolls after that; an empty result occupies one row.
+General → Appearance → Density controls spacing. See [UI](../ui.md) for dimensions.
 
 ## System actions
 
@@ -703,25 +685,10 @@ across the list — the top of Favorites on add, the neighbour above the one tha
 
 `FavoriteSlots` (`Launcher/Model/FavoriteSlots.swift`) defines ten local palette slots: **⌘1…⌘9 then
 ⌘0**. They match the physical number row, not the character produced by the current keyboard layout,
-so the same positions work on QWERTY and AZERTY. The same slots address pinned Clipboard entries in
-that screen; the eleventh favorite is still listed and reorderable, and simply has no slot.
-
-**A slot is a position in what root search shows**: the grid's tiles while the field is empty (pins,
-or the most-used apps when nothing is pinned), the ranked tiles once a query is typed. `launchSlot`
-reads `LauncherScreen.rows`, the same array the view draws, so a digit can't name a tile it isn't on.
-The collapsed compact bar shows no tiles, yet ⌘-digit still launches the slots the expanded grid
-would show, because `paletteIsCollapsed` requires an empty query and the rows are the same.
-
-A tile shows its chord only while ⌘ is held; a pinned custom command's argument row shows its chord
-on the trailing edge, dimmed, and ↩ in its place when selected. `PalettePanel` publishes the modifier
-into `PaletteState.commandHeld` from `.flagsChanged` and clears it in `resignKey` — not in `prepare`,
-which a re-show that preserves state skips entirely. The flag flips **400 ms after** the press, not
-on it: every ⌘ chord in the palette starts as a ⌘ press, so revealing on the down edge flashed the
-numbering under ⌘↵ and ⌘K. `noteCommandHeld` schedules the reveal and any release cancels it, so a
-chord's own tap never outlives its keystroke while a deliberate hold still lights every tile. **`AppTile` observes that flag itself**: reading
-it any higher would attach it to `RootPaletteView`'s body and rebuild the whole palette on every ⌘
-press, where a tile-level read re-runs only the tiles the `LazyVGrid` has realized. Each tile's and
-row's digit comes from its enumerated position, so none searches for its own place.
+so the same positions work on QWERTY and AZERTY. A slot addresses the row at that position in
+`LauncherScreen.rows`. The collapsed search bar can launch the same slots as the expanded list.
+Rows reveal their slot chord while Command is held; the selected row shows Return. `AppRow`
+observes `PaletteState.commandHeld` directly so a modifier does not rebuild the whole palette.
 
 ## Hiding one result
 

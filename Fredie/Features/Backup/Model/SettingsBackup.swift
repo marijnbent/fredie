@@ -30,7 +30,7 @@ struct SettingsBackup: Codable {
         var calcNumberStyle: String?
         var interfaceSize: String?
         var compactMode: Bool?
-        var launcherTileStyle: String?
+        var paletteDensity: String?
         var searchScopes: [String]?
         var rootSearchSensitivity: String?
         var openOnCursorScreen: Bool?
@@ -131,7 +131,7 @@ extension SettingsBackup {
             calcNumberStyle: s.calcNumberStyle.rawValue,
             interfaceSize: s.interfaceSize.rawValue,
             compactMode: s.compactMode,
-            launcherTileStyle: s.launcherTileStyle.rawValue,
+            paletteDensity: s.paletteDensity.rawValue,
             searchScopes: s.searchScopes,
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
             openOnCursorScreen: s.openOnCursorScreen,
@@ -324,8 +324,8 @@ extension SettingsBackup {
             settings.compactMode = flag
             count += 1
         }
-        if let raw = s.launcherTileStyle, let style = LauncherTileStyle(rawValue: raw) {
-            settings.launcherTileStyle = style
+        if let raw = s.paletteDensity, let style = PaletteDensity(rawValue: raw) {
+            settings.paletteDensity = style
             count += 1
         }
         if let scopes = s.searchScopes {

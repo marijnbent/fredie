@@ -53,14 +53,14 @@ struct ClipboardSettingsView: View {
 
 struct SnippetsSettingsView: View {
     @Environment(ClipboardCoordinator.self) private var clipboard
-    @State private var editor: SnippetEditorTarget?
 
     private var needsAccess: Bool {
         !clipboard.snippetsRunning && !clipboard.isRecording && !clipboard.isCapturingShortcut
     }
 
     var body: some View {
-        Form {
+        @Bindable var clipboard = clipboard
+        return Form {
             if needsAccess || clipboard.snippets.persistenceError != nil {
                 Section {
                     if needsAccess {
@@ -76,26 +76,27 @@ struct SnippetsSettingsView: View {
                 ForEach(clipboard.snippets.snippets) { snippet in
                     SettingsRow(title: snippet.displayTitle, subtitle: snippet.content) {
                         Text(":\(snippet.trigger)").font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
-                        Button("Edit…") { editor = SnippetEditorTarget(snippet: snippet) }
+                        Button("Edit…") { clipboard.snippetEditor = SnippetEditorTarget(snippet: snippet) }
                         SettingsRemoveButton(label: "Delete \(snippet.displayTitle)", deletesContent: true) {
                             Task { await clipboard.deleteSnippet(snippet) }
                         }
                     }
                 }
-                Button("New Snippet…") { editor = SnippetEditorTarget(snippet: nil) }
+                Button("New Snippet…") { clipboard.snippetEditor = SnippetEditorTarget(snippet: nil) }
             }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.snippets)
-        .settingsEditorPanel(item: $editor) { target in
-            SnippetEditorPanel(target: target, onDone: { editor = nil })
+        .settingsEditorPanel(item: $clipboard.snippetEditor) { target in
+            SnippetEditorPanel(target: target, onDone: { clipboard.snippetEditor = nil })
         }
     }
 }
 
-private struct SnippetEditorTarget: Identifiable {
+struct SnippetEditorTarget: Identifiable {
     let id = UUID()
     let snippet: Snippet?
+    var content: String = ""
 }
 
 private struct SnippetEditorPanel: View {
@@ -112,7 +113,7 @@ private struct SnippetEditorPanel: View {
         self.onDone = onDone
         _title = State(initialValue: target.snippet?.title ?? "")
         _trigger = State(initialValue: target.snippet?.trigger ?? "")
-        _content = State(initialValue: target.snippet?.content ?? "")
+        _content = State(initialValue: target.snippet?.content ?? target.content)
     }
 
     var body: some View {

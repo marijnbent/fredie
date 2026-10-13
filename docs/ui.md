@@ -10,14 +10,17 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 ## The palette
 
-The launcher is 560 points wide and its card is as tall as its results: four columns of app tiles,
-empty or searching, up to three rows, after which it scrolls; only a custom command awaiting its
-arguments draws as a list row. `LauncherBody` sizes the card from the resolved result count, so nothing is measured;
-the top edge stays put as it grows. The launcher has no bottom bar: its app menu is the header's `…`
-button, and both it and ⌘K hang below the field. Other modes retain the 750 × 475-point panel. Both sizes scale
-with Interface Size. `PaletteSurface` owns the window and clipping geometry, preserving the
-center and top edge when switching modes. The launcher field is 44 points tall with an 8-point
-gap above the results card. Ask AI and ⌘Return use the same field; Ctrl-⌘Return reveals an app.
+The Floating launcher is 506 points wide, with a separate search surface above a dense list.
+Its height follows the result count up to ten visible rows. Clipboard is a scoped mode in the same
+panel, 720 points wide: a 300-point list and a text/image preview. Clipboard rows show only a small
+source application icon at the trailing edge; unknown sources leave no icon. Other modes retain the
+750 × 475-point panel. Interface Size scales all surfaces. General → Appearance → Density selects
+Compact or Comfortable spacing independently of text scale. Compact is the default: 40-point search,
+36-point launcher rows, 30-point clipboard rows, and a 6-point gap. Comfortable uses 54-point search,
+44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
+same top edge and horizontal center when changing mode or result count. One search field stays mounted.
+The launcher has no footer; its menu and Actions hang beneath the header. Clipboard actions are in
+the preview and ⌘K. The clipboard header icon returns to the launcher when it is enabled.
 
 Fredie is an **app launcher**: a borderless floating panel whose surface is just the
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is
@@ -160,8 +163,7 @@ panel, the shortcut-recorder callout and the Notes switcher, and `menuRow` is de
 ### Size (`Theme.Size`)
 
 `panelWidth 750` · `panelHeight 475` · `headerHeight 44` · `bottomBarHeight 52` · `barButtonHeight 28` ·
-`launcherWidth 560` · `launcherTileHeight 84` · `launcherRowHeight 40` · `launcherVisibleTileRows 3` ·
-`launcherVisibleRows 7` · `rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
+`launcherWidth 506` · `clipboardWidth 720` · `clipboardListWidth 300` · `rowIcon 24` · `resultRowIcon 26` · `appTile 112` · `appTileIcon 40` · `keyCap 18` · `recorderKeyCap 16` · `menuButton 36` ·
 `detailListWidth 290` ·
 `menuWidth 276` · `fileSearchFilterMenuWidth 200` ·
 `emojiCategoryMenuWidth 220` · `menuIcon 20` ·
@@ -409,7 +411,7 @@ Source: `Launcher/UI/LauncherList.swift`, `FileSearch/UI/FileSearchList.swift`,
 All lists share one row grammar so launcher and file search look identical:
 
 - `HStack(spacing: lg)`: leading 26pt icon/thumbnail, title (`.body`, `lineLimit(1)`), optional trailing keycaps/kind label, `Spacer`. Insets: `.horizontal md`, `.vertical sm`. A launcher row is a fixed `launcherRowHeight` tall and ends in its dimmed `⌘n` slot instead of a kind label, and ↩ in the accent colour when selected.
-- **Launcher results are a grid of `AppTile`s**, empty or typed: a 40pt `appTileIcon` on an `appTile 14`-cornered plate over a one-line `rowTrailing` name. The row `fill` precedence lands on the plate (Icon highlight) or the whole `launcherTileHeight` tile (Full tile), per `LauncherTileStyle`; the plate carries the running dot and, while ⌘ is held, the slot keycaps; the name brightens to primary when selected. `Size.appTile` is the column width the panel is divided by.
+- **Launcher results are a dense list**, with 26pt application icons, 13pt titles, a subtle selection fill, and a Return glyph on the selected row. Clipboard uses 12pt rows with 14pt source icons.
 - **The palette result slot is always `Theme.Size.resultRowIcon`, whatever fills it.** A glyph smaller than an app icon — the uninstall list's 16pt checkbox — is centred _inside_ that 26pt slot rather than sizing the slot to itself. Every list then starts its title at the same x, so switching palette modes doesn't jog the column sideways. The slot doubles as the hit target. Settings keeps the existing 24pt `rowIcon`.
 - Background is a `RoundedRectangle(row, .continuous)` filled by `fill`: **selection → hover → clear**, in that precedence. This `fill` computed property is copy-identical across `AppRow` and `UninstallRow` — keep them in sync. The launcher's lead cards don't restate it: `.leadCard(selected:)` (`Features/Launcher/UI/LeadCard.swift`) owns their fill and hover, so a card can't answer a selection differently from its siblings.
 - **Hover state lives on the row**, not the list, so a mouse sweep repaints only the rows entering/leaving (a list-level hover rebuilds every row per move — don't do that).

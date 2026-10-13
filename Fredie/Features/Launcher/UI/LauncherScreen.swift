@@ -15,9 +15,7 @@ struct LauncherScreen: PaletteScreen {
     /// Resolved in `init`: the palette indexes this several times per event, so it can't recompute.
     let rows: [AppEntry]
     private let pinnedCount: Int
-    private let showsGrid: Bool
     private let showsFavorites: Bool
-    private let columns: Int
 
     init(
         appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore, core: AppCore,
@@ -35,23 +33,17 @@ struct LauncherScreen: PaletteScreen {
 
         let resolved = Self.resolve(
             appIndex: appIndex, favorites: favorites, visibility: visibility, core: core, vm: vm)
-        columns = resolved.columns
         rows = resolved.results.entries
         pinnedCount = resolved.results.favoriteCount
-        showsGrid = resolved.showsGrid
         showsFavorites = resolved.showsFavorites
     }
 
     struct Resolved {
         let results: AppIndex.Results
-        let showsGrid: Bool
         let showsFavorites: Bool
-        let columns: Int
 
         var body: LauncherBody {
-            showsGrid
-                ? .grid(count: results.entries.count, columns: columns)
-                : .list(count: results.entries.count)
+            .list(count: results.entries.count)
         }
     }
 
@@ -59,7 +51,6 @@ struct LauncherScreen: PaletteScreen {
         appIndex: AppIndex, favorites: FavoritesStore, visibility: VisibilityStore, core: AppCore,
         vm: PaletteState
     ) -> Resolved {
-        let columns = Self.columns(for: core.settings.interfaceSize.metrics)
         // Listed even when hidden from search: the shortcut that opened it still has to be answered.
         let pinned = vm.argumentEntryID.flatMap(core.customCommands.command(entryID:))
             .map(AppEntry.init).flatMap { $0.name == vm.query ? $0 : nil }
@@ -67,15 +58,10 @@ struct LauncherScreen: PaletteScreen {
             pinned.map { AppIndex.Results(entries: [$0]) }
             ?? appIndex.appResults(
                 query: vm.query, visibility: visibility, favorites: favorites,
-                fallbackLimit: columns * 2)
+                fallbackLimit: 10)
         return Resolved(
-            results: results, showsGrid: pinned == nil,
-            showsFavorites: pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty,
-            columns: columns)
-    }
-
-    private static func columns(for metrics: InterfaceMetrics) -> Int {
-        max(Int((metrics.size.launcherWidth - metrics.spacing.md * 2) / metrics.size.appTile), 1)
+            results: results,
+            showsFavorites: pinned == nil && vm.query.trimmingCharacters(in: .whitespaces).isEmpty)
     }
 
     private var clampedSelection: Int {
@@ -88,15 +74,6 @@ struct LauncherScreen: PaletteScreen {
 
     private func entry(at selection: Int) -> AppEntry? {
         rows.indices.contains(selection) ? rows[selection] : nil
-    }
-
-    func move(_ delta: Int, axis: PaletteAxis, from selection: Int) -> Int? {
-        guard showsGrid else { return nil }
-        let grid = LauncherAppGrid(count: rows.count, columns: columns)
-        switch axis {
-        case .vertical: return grid.vertical(from: selection, by: delta)
-        case .horizontal: return grid.horizontal(from: selection, by: delta)
-        }
     }
 
     /// What the controls are is the owning feature's business; this only forwards.
@@ -266,7 +243,7 @@ struct LauncherScreen: PaletteScreen {
     /// Re-read the order the change just invalidated; this warms the key the next render reads.
     private func reorderedResults() -> AppIndex.Results {
         appIndex.appResults(
-            query: vm.query, visibility: visibility, favorites: favorites, fallbackLimit: columns * 2)
+            query: vm.query, visibility: visibility, favorites: favorites, fallbackLimit: 10)
     }
 
     private func select(row index: Int) {
@@ -285,8 +262,6 @@ struct LauncherScreen: PaletteScreen {
             LauncherList(
                 results: rows,
                 selectedRowID: entry(at: selection)?.id,
-                layout: showsGrid ? .grid(columns: columns) : .list,
-                tileStyle: core.settings.launcherTileStyle,
                 scroll: scroll,
                 onActivate: launch,
                 onActions: { app in

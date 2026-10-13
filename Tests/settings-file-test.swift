@@ -49,7 +49,8 @@ struct SettingsFileTest {
         check(
             "sections follow the Settings sidebar",
             SettingsFileKey.sections == [
-                "dictation", "mediaImport", "windowSwitcher", "clipboard", "general", "appearance", "calculator", "search", "applications",
+                "dictation", "mediaImport", "spaces", "windowSwitcher", "clipboard", "general",
+                "appearance", "calculator", "search", "applications",
                 "systemSettings", "systemActions", "commands", "quicklinks", "appleShortcuts", "ai",
                 "quickActions", "fileSearch", "notes", "navigation",
                 "windowManagement", "emoji", "calendar", "extensions", "sounds"
@@ -57,7 +58,7 @@ struct SettingsFileTest {
 
         // A file that could switch one of these on would grant what only the app may ask for.
         let grantPaths = [
-            "extensions.enabled", "calendar.enabled",
+            "extensions.enabled", "calendar.enabled", "spaces.enabled",
             "calendar.autoJoinMeetings", "calendar.cameraPreview", "quickActions.enabled",
             "ai.mcpEnabled", "mcp.enabled", "sounds.typingSoundsEnabled", "network.enabled",
             "notifications.enabled", "mediaImport.enabled"

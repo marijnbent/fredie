@@ -2,6 +2,7 @@ import AppKit
 
 enum PaletteMode: String, CaseIterable, Identifiable {
     case launcher
+    case clipboard
     case ai
     case aiHistory
     case calculatorHistory
@@ -24,6 +25,7 @@ enum PaletteMode: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .clipboard: return "clipboard"
         case .launcher: return "magnifyingglass"
         case .ai: return "sparkles"
         case .aiHistory: return "clock.arrow.circlepath"
@@ -43,7 +45,8 @@ enum PaletteMode: String, CaseIterable, Identifiable {
     }
     var placeholder: String {
         switch self {
-        case .launcher: return "Search apps…"
+        case .clipboard: return "Search clipboard…"
+        case .launcher: return "Search apps and commands…"
         case .ai: return "Ask anything…"
         case .aiHistory: return "Search chats…"
         case .calculatorHistory: return "Do math, convert units, or search your past calculations…"

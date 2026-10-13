@@ -49,6 +49,12 @@ enum SettingsFileSchema {
         case .dictationAudioInput: return bind(dictation, \.audioInputStoredValue)
         case .mediaImportOpenOnDetection: return bind(mediaImport, \.openOnDetection)
 
+        case .spacesTransitionSpeed:
+            return bind(settings, \.spacesTransitionSpeed) { SpaceTransitionSpeed(rawValue: $0) == nil ? nil : $0 }
+        case .spacesPreviousShortcut:
+            return shortcuts.binding(for: key, action: .windowCommand(id: .previousSpace), name: "Previous Space")
+        case .spacesNextShortcut:
+            return shortcuts.binding(for: key, action: .windowCommand(id: .nextSpace), name: "Next Space")
         case .switcherCommandTab: return bind(settings, \.switcherCommandTab)
         case .switcherCommandBacktick: return bind(settings, \.switcherCommandBacktick)
         case .switcherWindowSource: return bind(settings, \.switcherWindowSource) { ["allSpaces", "visibleAndFullScreenSpaces", "visibleSpaces"].contains($0) ? $0 : nil }
@@ -75,9 +81,9 @@ enum SettingsFileSchema {
         case .autoSwitchInputSource: return bind(settings, \.autoSwitchInputSourceID)
         case .supportReminders: return bind(settings, \.supportRemindersEnabled)
         case .appearance: return bind(settings, \.appearance)
+        case .paletteDensity: return bind(settings, \.paletteDensity)
         case .interfaceSize: return bind(settings, \.interfaceSize)
         case .compactMode: return bind(settings, \.compactMode)
-        case .launcherTileStyle: return bind(settings, \.launcherTileStyle)
         case .openOnCursorScreen: return bind(settings, \.openOnCursorScreen)
         case .paletteDraggable: return bind(settings, \.paletteDraggable)
         case .calcNumberStyle: return bind(settings, \.calcNumberStyle)
@@ -172,7 +178,7 @@ extension PopToRootTimeout: SettingsFileRawValue {}
 extension EscapeKeyBehavior: SettingsFileRawValue {}
 extension AppAppearance: SettingsFileRawValue {}
 extension InterfaceSize: SettingsFileRawValue {}
-extension LauncherTileStyle: SettingsFileRawValue {}
+extension PaletteDensity: SettingsFileRawValue {}
 extension CalcNumberStyle: SettingsFileRawValue {}
 extension SearchSensitivity: SettingsFileRawValue {}
 extension QuicklinkSelectionFallback: SettingsFileRawValue {}

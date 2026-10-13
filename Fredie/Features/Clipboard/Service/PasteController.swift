@@ -1,5 +1,9 @@
 import Cocoa
 
+extension Notification.Name {
+    static let bufferDidWritePasteboard = Notification.Name("bufferDidWritePasteboard")
+}
+
 enum ClipboardContentError: LocalizedError {
     case unavailable
     var errorDescription: String? { "The saved clipboard content could not be loaded." }

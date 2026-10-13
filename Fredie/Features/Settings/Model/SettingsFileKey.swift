@@ -20,6 +20,9 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case dictationAppTranscriptionLanguageOverrides = "dictation.appTranscriptionLanguageOverrides"
     case dictationAudioInput = "dictation.audioInput"
     case mediaImportOpenOnDetection = "mediaImport.openOnDetection"
+    case spacesTransitionSpeed = "spaces.transitionSpeed"
+    case spacesPreviousShortcut = "spaces.previousShortcut"
+    case spacesNextShortcut = "spaces.nextShortcut"
     case switcherCommandTab = "windowSwitcher.commandTab"
     case switcherCommandBacktick = "windowSwitcher.commandBacktick"
     case switcherWindowSource = "windowSwitcher.windowSource"
@@ -38,9 +41,9 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case autoSwitchInputSource = "general.autoSwitchInputSource"
     case supportReminders = "general.supportReminders"
     case appearance = "appearance.theme"
+    case paletteDensity = "appearance.density"
     case interfaceSize = "appearance.interfaceSize"
     case compactMode = "appearance.compactMode"
-    case launcherTileStyle = "appearance.tileStyle"
     case openOnCursorScreen = "appearance.followCursorAcrossDisplays"
     case paletteDraggable = "appearance.dragToReposition"
     case calcNumberStyle = "calculator.numberStyle"
@@ -125,7 +128,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case typingMouseVolume = "sounds.typingMouseVolume"
 
     static let available = allCases.filter {
-        ["mediaImport", "dictation", "clipboard", "windowSwitcher", "sounds", "general", "appearance", "search", "applications", "emoji", "ai"].contains($0.section)
+        ["spaces", "mediaImport", "dictation", "clipboard", "windowSwitcher", "sounds", "general", "appearance", "search", "applications", "emoji", "ai"].contains($0.section)
     }
 
     /// The top-level object the key sits in.

@@ -37,7 +37,7 @@ struct SettingsSearchEntry: Identifiable, Hashable, Sendable {
     var feature: OllieFeature? {
         if tab == .general {
             if anchor == .generalGlobalShortcuts || anchor == .generalSearch { return .launcher }
-            let launcherRows: Set<String> = ["Pop to Root Search", "Escape Key Behavior", "Auto-switch input source", "Interface size", "Layout", "Tile style", "Follow the cursor across displays", "Drag to reposition"]
+            let launcherRows: Set<String> = ["Pop to Root Search", "Escape Key Behavior", "Auto-switch input source", "Layout", "Follow the cursor across displays", "Drag to reposition"]
             if launcherRows.contains(title) { return .launcher }
         }
         return tab.feature
@@ -119,7 +119,7 @@ enum SettingsSearchCatalog {
 
     static let entries: [SettingsSearchEntry] =
         general + applications + emoji + ai + permissions + backup + about
-        + [.init(pane: .features, keywords: ["enable", "disable", "launcher", "clipboard", "snippets", "dictation", "window switcher", "AI", "typing sounds", "network", "notifications", "media import"]),
+        + [.init(pane: .features, keywords: ["enable", "disable", "launcher", "clipboard", "snippets", "dictation", "window switcher", "spaces", "strafe", "AI", "typing sounds", "network", "notifications", "media import"]),
            .init(pane: .shortcuts, keywords: ["keyboard", "hotkeys", "bindings"]),
            .init(pane: .dictation, keywords: ["talkie", "speech", "microphone", "transcription"]),
            .init(pane: .windowSwitcher, keywords: ["tabbie", "command tab", "windows"])]
@@ -127,6 +127,7 @@ enum SettingsSearchCatalog {
         + [.init(pane: .mediaImport, keywords: ["camera", "card", "video", "importie", "ffmpeg"])]
         + [.init(pane: .notifications, keywords: ["ntfy", "topics", "notifications"])]
         + [.init(pane: .network, keywords: ["traffic", "usage", "nettie", "bandwidth"])]
+        + [.init(pane: .spaces, keywords: ["strafe", "swipe", "desktop", "transition", "instant", "trackpad"])]
         + [.init(pane: .typingSounds, keywords: ["keyboard", "sound", "typie", "volume", "mouse"])]
 
     private static let general: [SettingsSearchEntry] = [
@@ -163,8 +164,8 @@ enum SettingsSearchCatalog {
             .generalAppearance, "Layout",
             keywords: ["compact", "expanded", "window mode", "slim", "search bar", "small", "grid"]),
         .init(
-            .generalAppearance, "Tile style",
-            keywords: ["icon highlight", "full tile", "selection", "hover", "grid", "apps"]),
+            .generalAppearance, "Density",
+            keywords: ["compact", "comfortable", "spacing", "clipboard", "launcher"]),
         .init(
             .generalAppearance, "Follow the cursor across displays",
             keywords: ["monitor", "screen", "pointer", "multi display"]),
