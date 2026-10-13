@@ -203,6 +203,7 @@ final class ClipboardCoordinator: HealthCheckable {
     func runOCR(_ item: ClipboardItem) {
         guard item.type == .image, extractingItemID == nil else { return }
         extractingItemID = item.id
+        let pasteboardChange = NSPasteboard.general.changeCount
         ocrTask = Task { [weak self] in
             guard let self else { return }
             defer { extractingItemID = nil; ocrTask = nil }
@@ -212,7 +213,18 @@ final class ClipboardCoordinator: HealthCheckable {
             guard let image else { core.showMessage("Image unavailable", tone: .danger); return }
             let text = await OCRService.recognizeText(from: image) ?? ""
             guard !Task.isCancelled, store.items.contains(where: { $0.id == item.id }) else { return }
-            store.setOCRText(text.trimmingCharacters(in: .whitespacesAndNewlines), for: item)
+            let extracted = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            store.setOCRText(extracted, for: item)
+            guard !extracted.isEmpty else {
+                core.showMessage("No text found in this image", tone: .neutral)
+                return
+            }
+            guard NSPasteboard.general.changeCount == pasteboardChange else {
+                core.showMessage("OCR ready · Clipboard changed", tone: .neutral)
+                return
+            }
+            if PasteController.copyTextToClipboard(extracted) { core.showMessage("OCR text copied") }
+            else { core.showMessage("OCR ready · Could not copy", tone: .danger) }
         }
     }
 

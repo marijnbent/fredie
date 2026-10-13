@@ -70,7 +70,10 @@ struct PopoverMenuContent {
     let items: [PopoverMenuItem]
 }
 
-/// The palette's own menu, hosted by `MenuPanelController` in a window of its own.
+extension EnvironmentValues {
+    @Entry var paletteMenuBack: (() -> Void)?
+}
+
 struct PopoverMenu: View {
     enum Attachment {
         case none
@@ -117,7 +120,6 @@ struct PopoverMenu: View {
     @Environment(PaletteState.self) private var palette
     @Environment(\.metrics) private var metrics
     @Environment(\.displayScale) private var displayScale
-    @FocusState private var searchFocused: Bool
     /// Set by the pointer so the reveal can tell its own move from a keyboard one.
     @State private var pointerSelection: Int?
 
@@ -168,31 +170,7 @@ struct PopoverMenu: View {
     }
 
     private var searchField: some View {
-        @Bindable var palette = palette
-        let placeholder = search.placeholder
-        return TextField("", text: $palette.menuQuery)
-            .textFieldStyle(.plain)
-            .font(metrics.typography.menuRow)
-            .foregroundStyle(Theme.Colors.textPrimary)
-            .tint(Theme.Colors.textPrimary)
-            .focused($searchFocused)
-            .lineLimit(1)
-            .background(alignment: .leading) {
-                if palette.menuQuery.isEmpty {
-                    Text(placeholder)
-                        .font(metrics.typography.menuRow)
-                        .foregroundStyle(Theme.Colors.textTertiary)
-                        .lineLimit(1)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-                }
-            }
-            .padding(.horizontal, metrics.spacing.xl + metrics.spacing.sm)
-            .frame(height: metrics.size.menuRowHeight)
-            .offset(y: search.placement == .bottom ? -metrics.spacing.xxs / 2 : 0)
-            .padding(.vertical, metrics.spacing.xxs / 2)
-            .accessibilityLabel(placeholder)
-            .onAppear { searchFocused = true }
+        PopoverMenuSearchField(palette: palette, search: search)
     }
 
     private var searchSeparator: some View {
@@ -465,4 +443,54 @@ struct MenuFileIcon: View {
             image = await IconCache.loadAsync(forFile: path)
         }
     }
+}
+
+private struct PopoverMenuSearchField: View {
+    @Bindable var palette: PaletteState
+    let search: PopoverMenu.Search
+    @Environment(\.metrics) private var metrics
+    @Environment(\.paletteMenuBack) private var goBack
+    @FocusState private var searchFocused: Bool
+
+    var body: some View {
+        let placeholder = search.placeholder
+        HStack(spacing: 0) {
+            if let goBack {
+                Button(action: goBack) {
+                    Image(systemName: "chevron.left")
+                        .frame(width: metrics.size.menuRowHeight, height: metrics.size.menuRowHeight)
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .accessibilityLabel("Back to results")
+                .help("Back to results (← at the start of search)")
+            }
+            TextField("", text: $palette.menuQuery)
+            .textFieldStyle(.plain)
+            .font(metrics.typography.menuRow)
+            .foregroundStyle(Theme.Colors.textPrimary)
+            .tint(Theme.Colors.textPrimary)
+            .focused($searchFocused)
+            .lineLimit(1)
+            .background(alignment: .leading) {
+                if palette.menuQuery.isEmpty {
+                    Text(placeholder)
+                        .font(metrics.typography.menuRow)
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                        .lineLimit(1)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            .padding(.leading, goBack == nil ? metrics.spacing.xl + metrics.spacing.sm : 0)
+            .padding(.trailing, metrics.spacing.xl + metrics.spacing.sm)
+            .frame(height: metrics.size.menuRowHeight)
+            .offset(y: search.placement == .bottom ? -metrics.spacing.xxs / 2 : 0)
+            .padding(.vertical, metrics.spacing.xxs / 2)
+            .accessibilityLabel(placeholder)
+            .onAppear { searchFocused = true }
+        }
+        .defaultFocus($searchFocused, true)
+    }
+
 }

@@ -32,6 +32,7 @@ struct RootPaletteView: View {
     @State private var selectionIsRunning = false
     /// Highlighted row of whichever menu is open; each open path sets where it starts.
     @State private var menuSelection = 0
+    @State private var actionClipboardResult: ClipboardResult?
     /// The argument field whose choices are up, so `menuContent` can rebuild the same menu.
     @State private var argumentOptionsField: String?
     @State private var menuPanel = MenuPanelController()
@@ -306,6 +307,9 @@ struct RootPaletteView: View {
                 )
                 .clipShape(surface.shape)),
             selection: sel)
+            .environment(\.paletteActionsAvailable, actionsAvailable)
+            .environment(\.paletteActionsArrowAvailable,
+                actionsAvailable && surface.detached && headerAccessory == nil && searchFocused)
     }
 
     private var surface: PaletteSurface { core.paletteCoordinator.paletteSurface }
@@ -339,10 +343,19 @@ struct RootPaletteView: View {
         refreshActionsMenu()
     }
 
+    private func clipboardObservers(_ content: some View) -> some View {
+        content
+            .onChange(of: core.clipboard.store.items) { closeClipboardActions() }
+            .onChange(of: core.clipboard.extractingItemID) { closeClipboardActions() }
+            .onChange(of: vm.selection) {
+                if selectedClipboardResult != actionClipboardResult { closeClipboardActions() }
+            }
+    }
+
     /// Split from `body` for the same reason `keyHandlers` is: one chain cannot carry them all.
     @ViewBuilder
     private func stateObservers(_ content: some View) -> some View {
-        emojiObservers(content)
+        clipboardObservers(emojiObservers(content))
             // Every show bumps focusToken so the search field refocuses.
             .onChange(of: vm.focusToken) {
                 searchFocused = !screen.hidesSearchField
@@ -564,16 +577,7 @@ struct RootPaletteView: View {
                 guard press.modifiers.contains(.command),
                     ASCIIKeyboardLayout.matches(press.key, character: "k")
                 else { return .ignored }
-                // A control's open list owns the screen, so a second panel may never open over it.
-                guard !vm.isControlListOpen else { return .handled }
-                // The Actions menu has no anchor in the compact bar, so swallow ⌘K there.
-                guard !isCollapsed else { return .handled }
-                let screen = screen
-                guard !screen.rows.isEmpty || screen.actsWithoutRows else { return .handled }
-                // An error calc card is the selection but has no actions — don't open an empty panel.
-                guard screen.hasPrimaryAction(at: selection(in: screen)) else { return .handled }
-                // Same for a menu the footer doesn't offer: ⌘K opens exactly what the bar advertises.
-                guard screen.hasActions(at: selection(in: screen)) else { return .handled }
+                guard actionsAvailable else { return .handled }
                 toggleActions()
                 return .handled
             }
@@ -924,8 +928,22 @@ struct RootPaletteView: View {
         .frosted(in: Capsule())
     }
 
-    /// The one path opening the Actions menu, sampling the state its rows depend on.
+    private var actionsAvailable: Bool {
+        if vm.mode == .clipboard, core.clipboard.expandedImage != nil { return false }
+        let screen = screen
+        let selected = selection(in: screen)
+        return !isCollapsed && !vm.isControlListOpen
+            && (!screen.rows.isEmpty || screen.actsWithoutRows)
+            && screen.hasPrimaryAction(at: selected) && screen.hasActions(at: selected)
+    }
+
     private func openActions() {
+        guard actionsAvailable else { return }
+        if let clipboard = screen as? ClipboardScreen {
+            let rows = clipboard.rows
+            let index = selection(count: rows.count)
+            actionClipboardResult = rows.indices.contains(index) ? rows[index] : nil
+        } else { actionClipboardResult = nil }
         let launcher = screen as? LauncherScreen
         selectionIsRunning = launcher.map { $0.isRunning(at: selection(in: $0)) } ?? false
         open(.actions, highlighting: 0)
@@ -1041,6 +1059,17 @@ struct RootPaletteView: View {
         vm.menuOpen = true
     }
 
+    private var selectedClipboardResult: ClipboardResult? {
+        guard vm.mode == .clipboard else { return nil }
+        let rows = core.clipboard.results(for: vm.query)
+        let selected = selection(count: rows.count)
+        return rows.indices.contains(selected) ? rows[selected] : nil
+    }
+
+    private func closeClipboardActions() {
+        if vm.mode == .clipboard, openMenu == .actions { closeMenus() }
+    }
+
     private func closeMenus() {
         menuPanel.hide()
         openMenu = nil
@@ -1068,7 +1097,8 @@ struct RootPaletteView: View {
             menuPanel.hide()
             return
         }
-        let view = content.view(corner)
+        let back: (() -> Void)? = openMenu == .actions && surface.detached ? { closeMenus() } : nil
+        let view = AnyView(content.view(corner).environment(\.paletteMenuBack, back))
         if presenting, let hostWindow {
             menuPanel.show(
                 view, corner: corner, parent: hostWindow, core: core,
@@ -1087,6 +1117,17 @@ struct RootPaletteView: View {
         if event.charactersIgnoringModifiers == "\u{1B}" {
             escapeMenu()
             return true
+        }
+        if openMenu == .actions, surface.detached, event.specialKey == .leftArrow,
+            navigationModifiers.isEmpty, !event.isARepeat {
+            let atStart: Bool
+            if let editor = event.window?.firstResponder as? NSTextView {
+                atStart = editor.isFieldEditor && PaletteFieldBoundary.resolve(
+                    direction: -1, selection: editor.selectedRange(),
+                    textLength: (editor.string as NSString).length,
+                    isComposing: editor.hasMarkedText(), hasModifiers: false) == .leading
+            } else { atStart = vm.menuQuery.isEmpty }
+            if atStart { closeMenus(); return true }
         }
         switch event.specialKey {
         case .some(.downArrow) where navigationModifiers.isEmpty:
@@ -1268,6 +1309,14 @@ struct RootPaletteView: View {
 
     /// The one activation path for a menu row: run its action, then close.
     private func activateMenuItem(_ index: Int) {
+        if openMenu == .actions, let clipboard = screen as? ClipboardScreen {
+            let rows = clipboard.rows
+            let selected = selection(count: rows.count)
+            guard rows.indices.contains(selected), rows[selected] == actionClipboardResult else {
+                closeMenus()
+                return
+            }
+        }
         guard let content = menuContent, (0..<content.rowCount).contains(index) else { return }
         guard content.isSelectable(index) else { return }
         // Before the action: one opening a window must find the palette key again, or nothing hides it.
@@ -1323,9 +1372,13 @@ struct RootPaletteView: View {
     private func installHeaderArrowHandler(in window: NSWindow?) {
         guard let panel = window as? PalettePanel else { return }
         panel.onHeaderFieldBoundaryArrow = { boundary in
-            guard !menuOpen, !vm.isControlListOpen, !isCollapsed,
-                let accessory = headerAccessory, !accessory.fieldNames.isEmpty
-            else { return false }
+            guard !menuOpen, !vm.isControlListOpen, !isCollapsed, !vm.isComposing else { return false }
+            if boundary == .trailing, searchFocused, argumentFocused == nil,
+                surface.detached, headerAccessory == nil, actionsAvailable {
+                openActions()
+                return true
+            }
+            guard let accessory = headerAccessory, !accessory.fieldNames.isEmpty else { return false }
             switch boundary {
             case .leading:
                 // Query's left edge keeps its normal caret behavior; an argument moves back.

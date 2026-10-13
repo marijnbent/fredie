@@ -12,8 +12,12 @@ final class ClipboardSearchSession {
 
     func search(_ text: String, items: [ClipboardItem], storage: ClipboardStorage, onReady: @escaping @MainActor () -> Void = {}) {
         cancel()
+        let sameQuery = query == text
         query = text
-        self.items = []
+        if sameQuery {
+            let currentItems = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+            self.items = self.items.compactMap { currentItems[$0.id] }
+        } else { self.items = [] }
         let normalized = ClipboardStorage.normalizeSearchText(text.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !text.hasPrefix(":"), !normalized.isEmpty else {
             self.items = text.hasPrefix(":") ? [] : Array(items.prefix(50))

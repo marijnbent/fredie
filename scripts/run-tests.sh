@@ -234,6 +234,7 @@ run palette-escape-test    Fredie/Palette/PaletteMode.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
 run palette-navigation-test Fredie/Palette/PaletteState.swift \
+                           Fredie/Palette/PaletteFieldBoundary.swift \
                            Fredie/Palette/PaletteMode.swift \
                            Fredie/Palette/HoverArming.swift \
                            Fredie/Features/Emoji/Model/EmojiCatalog.swift \

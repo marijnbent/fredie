@@ -600,11 +600,19 @@ is absent from Settings. The clipboard mode keeps two columns even with no match
 
 Clipboard invocation switches mode without dismissing the panel, preserving the original paste target.
 An external target gives Enter a paste action; otherwise it copies. ⌘C copies the selected item unless
-a text view has selected text. ⌘K exposes copy, snippet, image-text and delete actions. Left/Right remain
-caret movement. `:` searches snippets. Snippet creation/editing uses the existing Settings editor.
+a text view has selected text. ⌘K exposes copy, snippet, image-text and delete actions. Left/Right retain caret movement within text; the Floating boundary actions are described below. `:` searches snippets. Snippet creation/editing uses the existing Settings editor.
 
-`ClipboardSearchSession` cancels superseded searches and clears old actionable rows immediately.
+`ClipboardSearchSession` cancels superseded searches and clears old actionable rows immediately when the query changes; same-query refreshes keep surviving rows visible.
 Image previews decode off-main at a bounded 1600 pixels. Text previews begin with an excerpt and load
 2000-character chunks up to 8000; full saved content is used for copy/paste. Truncated captures are
 labelled. Source icons use the clipboard icon cache; rows contain no timestamp or source-name label.
 The standalone HistoryWindow and its competing key monitor have been removed.
+
+## Floating action navigation
+
+The selected launcher row and clipboard preview show `Actions ⌘K →`. The same menu opens with
+⌘K, the button, or a bare Right at the end of the main search field. Inline argument navigation takes
+priority. A bare Left at the beginning of the action search closes that menu, preserving the result
+query and selection; its back button does the same. `PaletteFieldBoundary` protects selections,
+modified arrows, UTF-16 caret positions, and marked text. Other palette modes retain their own arrow
+behavior. The menu field edits normally away from its leading boundary.

@@ -49,6 +49,12 @@ struct LauncherList: View {
                     .contentShape(Rectangle())
                     .onRowTap(drag: drag(for: app)) { onActivate(app) }
                     .onRightClick { onActions(app) }
+                    .overlay(alignment: .trailing) {
+                        if app.id == selectedRowID {
+                            PaletteActionsButton { onActions(app) }
+                                .padding(.trailing, metrics.spacing.md)
+                        }
+                    }
                     .selectionFrame(app.id == selectedRowID)
                 }
             }
@@ -169,6 +175,7 @@ private struct AppRow: View {
                     .foregroundStyle(Theme.Colors.textTertiary)
             }
         }
+        .padding(.trailing, selected ? metrics.scaled(Theme.Size.paletteActionsWidth) : 0)
         .padding(.horizontal, metrics.spacing.md)
         .frame(height: metrics.scaled(settings.paletteDensity.launcherRowHeight))
         .background(

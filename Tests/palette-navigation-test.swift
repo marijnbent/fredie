@@ -26,6 +26,27 @@ struct PaletteNavigationTests {
     }
 
     static func main() {
+        let end = ("a😀" as NSString).length
+        expect(PaletteFieldBoundary.resolve(direction: 1, selection: NSRange(location: end, length: 0),
+            textLength: end, isComposing: false, hasModifiers: false) == .trailing, "Right at UTF-16 end opens actions")
+        expect(PaletteFieldBoundary.resolve(direction: -1, selection: NSRange(location: 0, length: 0),
+            textLength: end, isComposing: false, hasModifiers: false) == .leading, "Left at start returns")
+        for direction in [-1, 1] {
+            expect(PaletteFieldBoundary.resolve(direction: direction, selection: NSRange(location: 1, length: 0),
+                textLength: end, isComposing: false, hasModifiers: false) == nil, "arrows inside text stay with caret")
+            expect(PaletteFieldBoundary.resolve(direction: direction, selection: NSRange(location: 0, length: end),
+                textLength: end, isComposing: false, hasModifiers: false) == nil, "selected text collapses normally")
+            expect(PaletteFieldBoundary.resolve(direction: direction, selection: NSRange(location: 0, length: 0),
+                textLength: 0, isComposing: true, hasModifiers: false) == nil, "IME owns its arrows")
+            expect(PaletteFieldBoundary.resolve(direction: direction, selection: NSRange(location: 0, length: 0),
+                textLength: 0, isComposing: false, hasModifiers: true) == nil, "modified arrows retain editing behavior")
+        }
+        expect(PaletteFieldBoundary.resolve(direction: 1, selection: NSRange(location: 0, length: 0),
+            textLength: 0, isComposing: false, hasModifiers: false, isRepeat: true) == nil,
+            "held Right does not open actions")
+        expect(PaletteFieldBoundary.resolve(direction: -1, selection: NSRange(location: 0, length: 0),
+            textLength: 0, isComposing: false, hasModifiers: false, isRepeat: true) == nil,
+            "held Left does not leave actions")
         let vm = searchingLauncher()
         expect(!vm.canGoBack, "a prepared screen is a root with nothing behind it")
 

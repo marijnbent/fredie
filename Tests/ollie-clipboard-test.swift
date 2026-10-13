@@ -47,6 +47,10 @@ struct OllieClipboardTests {
         check("new search removes stale actionable rows", session.items.isEmpty)
         for _ in 0..<100 where session.isSearching { try await Task.sleep(for: .milliseconds(10)) }
         check("latest search wins", session.items == [beta] && session.query == "beta")
+        session.search("beta", items: [beta], storage: reopened.storage)
+        check("same-query refresh retains the visible selection", session.items == [beta])
+        session.search("beta", items: [], storage: reopened.storage)
+        check("same-query refresh removes deleted rows immediately", session.items.isEmpty)
         session.search("alpha", items: [alpha, beta], storage: reopened.storage)
         session.search("", items: [beta, alpha], storage: reopened.storage)
         try await Task.sleep(for: .milliseconds(100))

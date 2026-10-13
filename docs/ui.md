@@ -19,8 +19,15 @@ Compact or Comfortable spacing independently of text scale. Compact is the defau
 36-point launcher rows, 30-point clipboard rows, and a 6-point gap. Comfortable uses 54-point search,
 44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
-The launcher has no footer; its menu and Actions hang beneath the header. Clipboard actions are in
-the preview footer and ⌘K. Images also expose OCR directly in the preview header; extracted text stays selectable below the image, with copy and refresh actions. The clipboard header icon returns to the launcher when it is enabled.
+The launcher has no footer; the selected row carries a clickable Actions control with ⌘K and →.
+Clipboard uses the same control in the preview footer. Right at the query's end opens Actions;
+Left at the action search's start returns to the same query and selected result. Selected text,
+modified or repeated arrows, IME composition, and arrows inside text retain normal editing behavior. Inline
+command argument fields retain their existing arrow navigation. The action search also has a back
+button. Images expose OCR & Copy in the preview header: recognition automatically copies nonempty
+text and confirms completion, while keeping the extracted text selectable below the image.
+Refresh & Copy reruns recognition. Empty extraction leaves the clipboard unchanged. If another copy happens during OCR, the extracted text is saved without replacing that newer clipboard. The clipboard
+header icon returns to the launcher when it is enabled.
 
 Fredie is an **app launcher**: a borderless floating panel whose surface is just the
 OS behind-window blur under a 40% black scrim — there is no gray chrome. Everything on that surface is

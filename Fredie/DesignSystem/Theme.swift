@@ -69,6 +69,7 @@ enum Theme {
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
         static let launcherWidth: CGFloat = 506
+        static let paletteActionsWidth: CGFloat = 112
         static let clipboardWidth: CGFloat = 620
         static let clipboardListWidth: CGFloat = 260
         static let compactSearchHeight: CGFloat = 40

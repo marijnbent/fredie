@@ -56,14 +56,15 @@ struct ClipboardScreen: PaletteScreen {
                 items.append(PopoverMenuItem(title: "Enlarge Image", systemImage: "arrow.up.left.and.arrow.down.right", shortcut: "⌘Y") {
                     coordinator.expandedImage = item
                 })
-                items.append(PopoverMenuItem(title: item.ocrText == nil ? "Run OCR" : "Refresh OCR", systemImage: "text.viewfinder") {
+                items.append(PopoverMenuItem(title: item.ocrText == nil ? "OCR & Copy" : "Refresh OCR & Copy", systemImage: "text.viewfinder",
+                    isLoading: coordinator.extractingItemID == item.id,
+                    isEnabled: coordinator.extractingItemID == nil) {
                     coordinator.runOCR(item)
                 })
-                if let text = item.ocrText, !text.isEmpty, text != "No text found in this image." {
-                    items.append(PopoverMenuItem(title: "Copy Extracted Text", systemImage: "doc.on.doc") {
-                        coordinator.copyImageText(item)
-                    })
-                }
+                items.append(PopoverMenuItem(title: "Copy Extracted Text", systemImage: "doc.on.doc",
+                    isEnabled: !(item.ocrText ?? "").isEmpty && item.ocrText != "No text found in this image.") {
+                    coordinator.copyImageText(item)
+                })
             }
         case .snippet:
             items.append(PopoverMenuItem(title: "Edit Snippet…", systemImage: "pencil") {
@@ -74,6 +75,18 @@ struct ClipboardScreen: PaletteScreen {
             coordinator.delete(result)
         })
         return PopoverMenuContent(items: items)
+    }
+
+    func menuContent(
+        at selection: Int, searchQuery: ActionMenuSearchQuery, menuSelection: Binding<Int>,
+        onActivate: @escaping (Int) -> Void
+    ) -> PaletteMenuContent? {
+        guard let content = actions(at: selection) else { return nil }
+        let filtered = content.matching(searchQuery)
+        return PaletteMenuContent(
+            popover: filtered.content, selection: menuSelection,
+            search: PopoverMenu.Search(placeholder: "Search for actions…", placement: .top),
+            onActivate: onActivate, preferredSelection: filtered.bestMatch)
     }
 
     func body(selection: Int, scroll: ScrollIntent) -> AnyView {
@@ -182,7 +195,7 @@ private struct ClipboardPalettePreview: View {
                     if case .item(let item) = result, item.type == .image {
                         if coordinator.extractingItemID == item.id { ProgressView().controlSize(.mini) }
                         Button { coordinator.runOCR(item) } label: {
-                            Label(item.ocrText == nil ? "OCR" : "Refresh OCR", systemImage: "text.viewfinder")
+                            Label(item.ocrText == nil ? "OCR & Copy" : "Refresh & Copy", systemImage: "text.viewfinder")
                         }
                         .buttonStyle(.plain)
                         .disabled(coordinator.extractingItemID != nil)
@@ -249,9 +262,7 @@ private struct ClipboardPalettePreview: View {
                     .thinScrollbar()
                 }
                 HStack {
-                    Button(action: openActions) { Label("Actions", systemImage: "ellipsis") }
-                        .buttonStyle(.plain)
-                        .help("Actions (⌘K)")
+                    PaletteActionsButton(action: openActions)
                     Spacer()
                     Button(primaryTitle) { coordinator.activate(result) }
                         .buttonStyle(.plain)

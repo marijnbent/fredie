@@ -595,6 +595,7 @@
 		AEC036A10A8590440E4313CC /* ChatMarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 211D6157C5DBEF6445B70E74 /* ChatMarkdownText.swift */; };
 		AEC0DB83F10BCCAC757E8193 /* MCPOAuthRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1879075CFF593D0FF2F37 /* MCPOAuthRequest.swift */; };
 		AF374A752AD5DFA23644AA31 /* DisabledApplicationsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1FFC1310BB70F5F48D6D3C1 /* DisabledApplicationsSection.swift */; };
+		AFC3359A65CAD605EFC45973 /* PaletteActionsButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558DDBCA34D4A830969D6052 /* PaletteActionsButton.swift */; };
 		AFCE1D0E6CCB31B82C8EA982 /* PaletteDropGuideController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 612D654B2324F4F3657FC36C /* PaletteDropGuideController.swift */; };
 		AFE3AE4144D393CBF9D433D6 /* RaycastScriptImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8685ECB3C3EA72F8894F719 /* RaycastScriptImport.swift */; };
 		B0044E40B0300F5E84E9D73F /* BundleNameCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5556F5CB2D7F37D13E67B92F /* BundleNameCache.swift */; };
@@ -842,6 +843,7 @@
 		F9CBC917F3FBFA729326CCEC /* CalendarAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA592ADA5E6C4FF7B2BEB09 /* CalendarAccess.swift */; };
 		F9F757060DA578A9A247F6DC /* FileSearchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD54EC38506C73C587FD490D /* FileSearchScreen.swift */; };
 		F9FD51AF0E0288DA05669F86 /* CameraButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593655E9F0D1CA8969F00638 /* CameraButton.swift */; };
+		FAA1E5F82390D8DCBF2BDFB2 /* PaletteFieldBoundary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B29F8B45997B2A2B6AC3F7 /* PaletteFieldBoundary.swift */; };
 		FAE6727A937505C8DB7A4C2A /* ExtensionFieldHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF429E896E6DC63D09F206AB /* ExtensionFieldHint.swift */; };
 		FB0327B3E3BD31BD6CA2BD80 /* AccessibilityText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA782010FF35EAFBB240B4D8 /* AccessibilityText.swift */; };
 		FB36BBD4662A54167F09D2C3 /* MCPProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D669ED3D85AD7AA20BE5CF6 /* MCPProtocol.swift */; };
@@ -1122,6 +1124,8 @@
 		5556F5CB2D7F37D13E67B92F /* BundleNameCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleNameCache.swift; sourceTree = "<group>"; };
 		55573F8F8FB1C5D934E38797 /* NotesCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesCoordinator.swift; sourceTree = "<group>"; };
 		556477DB9D02141251603097 /* MenuSearchCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuSearchCoordinator.swift; sourceTree = "<group>"; };
+		558DDBCA34D4A830969D6052 /* PaletteActionsButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteActionsButton.swift; sourceTree = "<group>"; };
+		55B29F8B45997B2A2B6AC3F7 /* PaletteFieldBoundary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteFieldBoundary.swift; sourceTree = "<group>"; };
 		56618BC936C69CE39E3395DA /* DictationGeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationGeneralSettingsView.swift; sourceTree = "<group>"; };
 		566289F418442E08B8D95820 /* CalendarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarStore.swift; sourceTree = "<group>"; };
 		5748663DFB2E77516154039B /* PaletteMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteMode.swift; sourceTree = "<group>"; };
@@ -3486,11 +3490,13 @@
 				FEF2A36CF96CE07E552D073D /* EmptyResults.swift */,
 				5E8788D33A1ADFE7BAB933A0 /* HoverArming.swift */,
 				A77373F57376382FD6728729 /* MenuPanel.swift */,
+				558DDBCA34D4A830969D6052 /* PaletteActionsButton.swift */,
 				69BCBED7CFB0BA6F2243F3F7 /* PaletteCoordinator.swift */,
 				612D654B2324F4F3657FC36C /* PaletteDropGuideController.swift */,
 				6D6D1097E28F8561AB2BD76D /* PaletteDropGuideView.swift */,
 				A7D102DA72517578AFEFCD72 /* PaletteEnvironment.swift */,
 				67F360427D94012FE6AF6425 /* PaletteEscapeAction.swift */,
+				55B29F8B45997B2A2B6AC3F7 /* PaletteFieldBoundary.swift */,
 				C8DEF40C61BA63DEB777B53C /* PaletteFilterAction.swift */,
 				5748663DFB2E77516154039B /* PaletteMode.swift */,
 				88FC370721D37A3FF35475B1 /* PalettePanel.swift */,
@@ -4481,11 +4487,13 @@
 				E86E9DDC3F4EE53CE653D935 /* OverflowFade.swift in Sources */,
 				C0F7E5FE7E74185760DCA42D /* OverlayView.swift in Sources */,
 				9753C48DCBADF2EA08BD61B2 /* PDFSurface.swift in Sources */,
+				AFC3359A65CAD605EFC45973 /* PaletteActionsButton.swift in Sources */,
 				D7428EAF292DF679E150256B /* PaletteCoordinator.swift in Sources */,
 				AFCE1D0E6CCB31B82C8EA982 /* PaletteDropGuideController.swift in Sources */,
 				DCD5488B6F19D4D3F2DCE44F /* PaletteDropGuideView.swift in Sources */,
 				09ED2CD848FC5E99CCF4E62B /* PaletteEnvironment.swift in Sources */,
 				166981A21892BF48DFDFB5F9 /* PaletteEscapeAction.swift in Sources */,
+				FAA1E5F82390D8DCBF2BDFB2 /* PaletteFieldBoundary.swift in Sources */,
 				83E3E1B8F3729388631CEA6C /* PaletteFilterAction.swift in Sources */,
 				6F34D70CF55B44C00F6730BB /* PaletteMode.swift in Sources */,
 				492705A4C38C5598B15D9981 /* PalettePanel.swift in Sources */,
@@ -4843,7 +4851,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4911,7 +4919,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
