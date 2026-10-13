@@ -190,8 +190,6 @@ struct SettingsHistoryTests {
 
     static func catalogFindsKnownRows() {
         let cases: [(String, SettingsTab)] = [
-            ("hyper", .general),
-            ("caps lock", .general),
             ("launch at login", .general),
             ("automatically check for updates", .general),
             ("popup", .general),
@@ -238,12 +236,12 @@ struct SettingsHistoryTests {
         navigation.select(.ai)
         expect(navigation.scrollRequest == nil, "and a plain pane selection asks for no scroll")
 
-        navigation.select(.general, revealing: .section(.generalHyperKey))
+        navigation.select(.general, revealing: .section(.generalAppearance))
         let first = navigation.scrollRequest
-        expect(first?.target == .section(.generalHyperKey), "a result records what it wants revealed")
+        expect(first?.target == .section(.generalAppearance), "a result records what it wants revealed")
         expect(navigation.tab == .general, "and navigates to that section's pane")
 
-        navigation.select(.general, revealing: .section(.generalHyperKey))
+        navigation.select(.general, revealing: .section(.generalAppearance))
         expect(navigation.scrollRequest != first, "asking twice is two distinct requests")
 
         // A stale request must not clear the one that replaced it.
@@ -260,7 +258,7 @@ struct SettingsHistoryTests {
         navigation.beginFlash(.row(.aiSystemPrompt, "System prompt"))
         expect(navigation.flashing == .row(.aiSystemPrompt, "System prompt"), "the revealed row is lit")
 
-        navigation.endFlash(.section(.generalHyperKey))
+        navigation.endFlash(.section(.generalAppearance))
         expect(navigation.flashing != nil, "another target can't put it out")
         navigation.endFlash(.row(.aiSystemPrompt, "System prompt"))
         expect(navigation.flashing == nil, "its own owner can")

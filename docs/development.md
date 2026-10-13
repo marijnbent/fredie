@@ -60,8 +60,6 @@ Consequences worth knowing:
   and onboarding unseen. Grant and bind once; it persists across rebuilds, because the fixed build path
   and the Apple Development identity keep the TCC grant alive.
 - Don't bind the same global hotkey in both — whichever registered first wins.
-- The Hyper Key's Caps Lock remap is `hidutil` state, which is **system-wide, not per-bundle**: quitting
-  one build clears the remap for the other, which then needs a rebind or a relaunch to restore it.
 
 ## Editor
 

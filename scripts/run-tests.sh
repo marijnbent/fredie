@@ -156,7 +156,6 @@ run launcher-settings-file-test \
                            Fredie/Features/HotKeys/Model/HotKeySpelling.swift \
                            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
                            Fredie/Features/HotKeys/Model/ModifierKey.swift \
-                           Fredie/Features/HotKeys/Model/HyperKey.swift \
                            Fredie/Platform/ASCIIKeyboardLayout.swift \
                            Fredie/Features/QuickActions/Model/BuiltInQuickAction.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
@@ -277,7 +276,6 @@ run hotkey-test            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift
                            Fredie/Features/HotKeys/Model/DoubleTapDetector.swift \
                            Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
                            Fredie/Features/HotKeys/Model/HotKeySpelling.swift \
-                           Fredie/Features/HotKeys/Model/HyperKey.swift \
                            Fredie/Platform/ASCIIKeyboardLayout.swift \
                            Fredie/Features/HotKeys/Service/KeyShortcut.swift \
                            Fredie/Features/HotKeys/Model/HotKeyAction.swift \
@@ -335,7 +333,6 @@ run window-preset-test     Fredie/Features/WindowManagement/Model/WindowCommand.
                            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
                            Fredie/Features/HotKeys/Model/ModifierKey.swift \
                            Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
-                           Fredie/Features/HotKeys/Model/HyperKey.swift \
                            Fredie/Platform/ASCIIKeyboardLayout.swift \
                            Fredie/Features/HotKeys/Service/KeyShortcut.swift
 run space-gesture-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \

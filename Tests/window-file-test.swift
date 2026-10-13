@@ -60,13 +60,13 @@ struct WindowFileTest {
         let size = CustomWindowSize(
             name: "Reading", width: .init(60, .percent), height: .init(900, .points),
             anchor: .bottomLeft, offset: .init(x: 10, y: -20))
-        let json = WindowManagementFileFormat.json(size, shortcut: "hyper+r", alias: "rd")
+        let json = WindowManagementFileFormat.json(size, shortcut: "ctrl+option+shift+cmd+r", alias: "rd")
         check("units are spelled with the number", json["width"] == "60%" && json["height"] == "900pt")
         check("the id is lower case", json["id"] == .string(size.id.uuidString.lowercased()))
 
         let decoded = WindowManagementFileFormat.customSizes(from: .array([json]))
         check("a custom size round-trips", decoded?.records == [size])
-        check("with its shortcut", decoded?.shortcuts == [size.id: "hyper+r"])
+        check("with its shortcut", decoded?.shortcuts == [size.id: "ctrl+option+shift+cmd+r"])
         check("and its alias", decoded?.aliases == [size.id: "rd"])
 
         let handWritten: SettingsFileJSON = .array([

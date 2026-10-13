@@ -80,9 +80,6 @@ enum SettingsFileSchema {
         case .launcherTileStyle: return bind(settings, \.launcherTileStyle)
         case .openOnCursorScreen: return bind(settings, \.openOnCursorScreen)
         case .paletteDraggable: return bind(settings, \.paletteDraggable)
-        case .hyperKey: return bind(settings, \.hyperKey)
-        case .hyperKeyIncludesShift: return bind(settings, \.hyperKeyIncludesShift)
-        case .hyperKeyQuickPress: return bind(settings, \.hyperKeyQuickPress)
         case .calcNumberStyle: return bind(settings, \.calcNumberStyle)
         case .rootSearchSensitivity: return bind(settings, \.rootSearchSensitivity)
         case .applicationsEnabled: return launcher.kindBinding(for: key, kind: .application)
@@ -176,8 +173,6 @@ extension EscapeKeyBehavior: SettingsFileRawValue {}
 extension AppAppearance: SettingsFileRawValue {}
 extension InterfaceSize: SettingsFileRawValue {}
 extension LauncherTileStyle: SettingsFileRawValue {}
-extension HyperKeyPhysicalKey: SettingsFileRawValue {}
-extension HyperKeyQuickPress: SettingsFileRawValue {}
 extension CalcNumberStyle: SettingsFileRawValue {}
 extension SearchSensitivity: SettingsFileRawValue {}
 extension QuicklinkSelectionFallback: SettingsFileRawValue {}

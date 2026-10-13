@@ -18,7 +18,7 @@ struct LauncherFileTest {
     private typealias Record = LauncherFileFormat.Record
 
     private static func testRoundTrip() {
-        let safari = Record(shortcut: "hyper+s", alias: "web", showInLauncher: true)
+        let safari = Record(shortcut: "ctrl+option+shift+cmd+s", alias: "web", showInLauncher: true)
         let hidden = Record(shortcut: nil, alias: nil, showInLauncher: false)
         let json = LauncherFileFormat.json([("com.apple.Safari", safari), ("com.example.hidden", hidden)])
         check(
@@ -40,7 +40,7 @@ struct LauncherFileTest {
     }
 
     private static func testHandEdits() {
-        let current = Record(shortcut: "hyper+l", alias: "old", showInLauncher: false)
+        let current = Record(shortcut: "ctrl+option+shift+cmd+l", alias: "old", showInLauncher: false)
         let decoded = LauncherFileFormat.records(
             from: .object([
                 "lock-screen": .object(["alias": "lock"]),
@@ -52,7 +52,7 @@ struct LauncherFileTest {
         check(
             "a field left out keeps its value",
             decoded?.records["lock-screen"]
-                == Record(shortcut: "hyper+l", alias: "lock", showInLauncher: false))
+                == Record(shortcut: "ctrl+option+shift+cmd+l", alias: "lock", showInLauncher: false))
         check("a field of the wrong type keeps its value", decoded?.records["sleep"] == current)
         check("null clears", decoded?.records["log-out"] == Record())
         check("a record that isn't an object keeps its value", decoded?.records["restart"] == current)

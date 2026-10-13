@@ -11,7 +11,7 @@ struct PermissionsSettingsView: View {
         Form {
             Section {
                 SettingsPermissionRow(title: "Accessibility",
-                    subtitle: "Window switching, snippets, Hyper Key and pasting",
+                    subtitle: "Window switching, snippets and pasting",
                     status: accessibilityTrusted ? "Granted" : "Not granted", isGranted: accessibilityTrusted,
                     actionTitle: "Open Settings…", anchor: .permissionsAccessibility) {
                         Permissions.openAccessibilitySettings()

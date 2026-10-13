@@ -27,7 +27,6 @@ final class AppCore {
     @ObservationIgnored private(set) lazy var dictation = DictationCoordinator(core: self, ticker: healthTicker)
     let network = NetworkCoordinator()
     let hotKeys = HotKeyManager()
-    let hyperKeyTap = HyperKeyTap()
     let windowMover = WindowMover()
     let spaceSwitcher = SpaceSwitcher()
     let inputSourceSwitcher = InputSourceSwitcher()
@@ -324,7 +323,6 @@ final class AppCore {
             supportReminders.onDue = { [weak self] in self?.supportCoordinator.presentIfDue() }
             supportReminders.start()
 
-            hyperKeyTap.healthTicker = healthTicker
             hotKeys.modifierTapMonitor.healthTicker = healthTicker
 
             hotKeys.onTogglePalette = { [weak self] in self?.paletteCoordinator.togglePalette() }
@@ -386,10 +384,6 @@ final class AppCore {
                 guard case .command(let id) = action else { return true }
                 return appIndex.isCommandEnabled(id)
             }
-            KeyShortcut.displayedHyperChord = { [settings] in
-                guard settings.hyperKey != .none else { return nil }
-                return KeyShortcut.hyperChord(includesShift: settings.hyperKeyIncludesShift)
-            }
             SystemActionRunner.onAsyncFailure = { [weak self] id, failure in
                 self?.systemActionCoordinator.presentSystemActionFailure(id: id, failure: failure)
             }
@@ -400,8 +394,6 @@ final class AppCore {
                 windowRoomIDs: Set(rooms.rooms.map(\.id)),
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)),
                 quickActionIDs: Set(customQuickActions.actions.map(\.id)))
-            // Keeps running while Carbon pauses: the recorder needs its rewritten flags.
-            hyperKeyTap.start(settings: settings)
             applyLauncherEnabled()
             windowSwitcher.apply()
             dictation.apply()
@@ -505,8 +497,6 @@ final class AppCore {
         launcherRefreshTask?.cancel()
         currencyRates.stop()
         settingsFile?.flush()
-        // Caps Lock first: its remap is the one teardown that outlives the process.
-        hyperKeyTap.prepareForTermination()
         windowLayoutCoordinator.prepareForTermination()
         roomCoordinator.prepareForTermination()
         inputSourceSwitcher.endSession()
@@ -699,7 +689,6 @@ final class AppCore {
             }, reproject: { $0.fileSearchCoordinator.applyPolicy() })
 
         // Not a feature switch, but the same re-projection: a combo has the chord's ⇧ bit baked in.
-        track({ _ = $0.hyperKeyIncludesShift }, reproject: { $0.applyHyperChord() })
 
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
         track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
@@ -763,12 +752,6 @@ final class AppCore {
         defer { chatsRunTheirOwnTools = runsOwnTools }
         guard let previous = chatsRunTheirOwnTools, previous != runsOwnTools else { return }
         mcpCoordinator.applyEnabled()
-    }
-
-    /// Without a Hyper key the chord means nothing, so a literal ⌃⌥⌘ combo is left as recorded.
-    private func applyHyperChord() {
-        guard settings.hyperKey != .none else { return }
-        hotKeys.retargetHyperBindings(includesShift: settings.hyperKeyIncludesShift)
     }
 
     private func applyNotesFolder() {

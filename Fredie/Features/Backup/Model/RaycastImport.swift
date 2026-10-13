@@ -53,17 +53,6 @@ enum RaycastImport {
                 settings.compactMode = compact
                 hasSettings = true
             }
-            if options.contains(.shortcuts) {
-                if let shift = backup.settings?.hyperKeyIncludesShift {
-                    settings.hyperKeyIncludesShift = shift
-                    hasSettings = true
-                }
-                if let key = backup.settings?.hyperKey {
-                    settings.hyperKey = key
-                    hasSettings = true
-                }
-            }
-
             if hasSettings { trimmed.settings = settings }
 
             return Result(

@@ -53,7 +53,6 @@
 		0B92DD2AFDCA9367BCB7C620 /* WindowLayoutInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F72BCADB0A69015F7DE0E2 /* WindowLayoutInspector.swift */; };
 		0BFBEFBFD9A93937B4D4AAF3 /* MeetingLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6646149866126B29611F31 /* MeetingLauncher.swift */; };
 		0C83298E835C9027D14723EC /* CalcToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = CECB454315F668FEE71D655A /* CalcToken.swift */; };
-		0CE498B16415A3768008A11C /* HyperKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D0948595D25925F06719B5 /* HyperKey.swift */; };
 		0D393B9517A68982E85A1B17 /* SettingsFileValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD2C46BD05AABCD13963C9E /* SettingsFileValue.swift */; };
 		0D6931BD70682466B85FFD28 /* AITool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191F2FBB606A7A1416B9091A /* AITool.swift */; };
 		0D9F25767B76FE3CFDC2EE1F /* ExtensionCleanup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C39DCF44B7E0713C283D95C /* ExtensionCleanup.swift */; };
@@ -761,7 +760,6 @@
 		E445083B1C2B8DCA0DDA6752 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E441D806EF712D163D7009 /* ScheduleView.swift */; };
 		E44D32E82C441B2B93DD872A /* RunningAppsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1AB47738D73044D18BF36F /* RunningAppsMonitor.swift */; };
 		E49143E57C331C7FEB00D217 /* WindowTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 125827C4065D5886F3151629 /* WindowTarget.swift */; };
-		E4FB51F63574AB064408AD6D /* HyperKeyTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02FAE8A2FB716B61DCBBE895 /* HyperKeyTap.swift */; };
 		E53DFAAD2FC999344D2AE758 /* AIProvidersPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E474B193EF348EF5F932AD34 /* AIProvidersPanel.swift */; };
 		E79277F5C2B538FE217629CB /* InjectableTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18FA7CB43FC7CFE83514A229 /* InjectableTextView.swift */; };
 		E7B3EF23C76ACB5A518014D0 /* MessageHUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75C160D7B67BFF2062DA32C /* MessageHUDController.swift */; };
@@ -867,7 +865,6 @@
 		01A1E14F296290154B781D26 /* WindowPlacementEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPlacementEngine.swift; sourceTree = "<group>"; };
 		024C090C9CEE2BE8F221FBA0 /* ActivationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationPolicy.swift; sourceTree = "<group>"; };
 		025070986946048123676900 /* NoteMarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteMarkdownRenderer.swift; sourceTree = "<group>"; };
-		02FAE8A2FB716B61DCBBE895 /* HyperKeyTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperKeyTap.swift; sourceTree = "<group>"; };
 		02FC357A9A5C1277D7CACECF /* ChatToolScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatToolScope.swift; sourceTree = "<group>"; };
 		03016AFB5368018FE004AFC3 /* CustomQuickActionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomQuickActionStore.swift; sourceTree = "<group>"; };
 		0442AF4F4CB0910F47CB7E73 /* LauncherFileFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherFileFormat.swift; sourceTree = "<group>"; };
@@ -1303,7 +1300,6 @@
 		88DB29DF79223190EF99B43A /* LauncherOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherOrder.swift; sourceTree = "<group>"; };
 		88FC370721D37A3FF35475B1 /* PalettePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PalettePanel.swift; sourceTree = "<group>"; };
 		8974D62EB20F6AB4CCD12E2C /* PaletteRowIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteRowIndex.swift; sourceTree = "<group>"; };
-		89D0948595D25925F06719B5 /* HyperKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperKey.swift; sourceTree = "<group>"; };
 		89E5CAF0ACF9E3942D6542E3 /* CalcNumberBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcNumberBase.swift; sourceTree = "<group>"; };
 		89EBE228DEC51F17DD6CC5AD /* FocusRelease.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusRelease.swift; sourceTree = "<group>"; };
 		89F7D674CCC3748B1AAE9862 /* MCPServerEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServerEditor.swift; sourceTree = "<group>"; };
@@ -2565,7 +2561,6 @@
 				6B13FC8D594D43539D798932 /* HotKeyAction.swift */,
 				F1C4791D1C9D853BA09FFEC5 /* HotKeyBinding.swift */,
 				A8C7CF55231DF93D1BAD13A4 /* HotKeySpelling.swift */,
-				89D0948595D25925F06719B5 /* HyperKey.swift */,
 				2AF2571184640C6E722FED5E /* ModifierKey.swift */,
 				23601D55C606D093C6CBE286 /* ModifierKeyDetector.swift */,
 			);
@@ -3708,7 +3703,6 @@
 				A630A9F385969F6B7E660A3D /* HotKeyCenter.swift */,
 				BE5BD290637D2317E3EF69BE /* HotKeyManager.swift */,
 				CC925C36B37180051D0C0D93 /* HotKeySettingsFile.swift */,
-				02FAE8A2FB716B61DCBBE895 /* HyperKeyTap.swift */,
 				BEA4698294E411C87B9B5D86 /* KeyShortcut.swift */,
 				723D1C63FF8B2CE540B6E5A9 /* ModifierTapMonitor.swift */,
 				3CF454D2230D55A012B5242A /* ShortcutCaptureSession.swift */,
@@ -4262,8 +4256,6 @@
 				5FA187CB16750303F26DF4C5 /* HotKeySpelling.swift in Sources */,
 				837E00B0BC57C7C15E26744D /* Hotkey.swift in Sources */,
 				7EABE0AA00DB4BE742F59DC9 /* HoverArming.swift in Sources */,
-				0CE498B16415A3768008A11C /* HyperKey.swift in Sources */,
-				E4FB51F63574AB064408AD6D /* HyperKeyTap.swift in Sources */,
 				C12CBA248E9ACFFBD5F01567 /* IconCache.swift in Sources */,
 				6A8F61A4AFDE687B5B9ADE02 /* IconStyleMonitor.swift in Sources */,
 				B86C24FB8732A94ABEFB1009 /* ImageThumbnail.swift in Sources */,
@@ -4795,7 +4787,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4863,7 +4855,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -4,9 +4,6 @@ import Foundation
 enum SettingsBackupCoverage {
     /// Each `SettingsData` field paired with the `AppSettings` key it mirrors.
     static let mirrored: [String: AppSettingsKey] = [
-        "hyperKey": .hyperKey,
-        "hyperKeyIncludesShift": .hyperKeyIncludesShift,
-        "hyperKeyQuickPress": .hyperKeyQuickPress,
         "showInMenuBar": .showInMenuBar,
         "automaticallyCheckForUpdates": .automaticallyCheckForUpdates,
         "emojiSkinTone": .emojiSkinTone,

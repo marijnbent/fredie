@@ -8,7 +8,7 @@ between them are both gone, deleted rather than carried, as of **v0.10.5**.
 
 - **`RaycastDecoder` stays platform-UI-free** so `raycast-test` compiles it standalone. Which is why the
   decoder returns the payload's own bytes and `RaycastImportReader`, not the decoder, validates them
-  against `PopToRootTimeout` / `EmojiSkinTone` / `HyperKeyPhysicalKey` / `KeyShortcut`.
+  against `PopToRootTimeout` / `EmojiSkinTone` / `KeyShortcut`.
 - **Recognition is the container signature and nothing else.** `RaycastDecoder.isExport` needs no
   passphrase, so the Backup pane runs it the moment a file is chosen and a wrong passphrase reports a
   wrong passphrase instead of "not a Raycast export".

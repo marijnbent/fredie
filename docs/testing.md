@@ -89,7 +89,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift`, `Extensions/Model/ExtensionFormMetrics.swift` |
 | `palette-surface-test` | Compact launcher and full-panel sizing, stable anchors across modes, and the transparent gap between search and results |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
-| `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
+| `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
 | `dictionary-test` | `Dictionary/Model/DictionaryEntry.swift`, `DictionaryMarkup.swift` — a real XHTML record and the plain-text fallback, read into page blocks |
 | `callout-test` | `DesignSystem/Theme.swift`, `HotKeys/UI/CalloutPlacement.swift` |
@@ -369,7 +369,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   toggles that app
 - Recording captures a shortcut, and the old binding does not fire while recording
 - A conflicting binding is rejected and names its current owner
-- A double-tap binding fires; Hyper Key remaps and its status dot is green
+- A double-tap binding fires; externally remapped modifier chords record and fire literally
 - Every binding survives quit and relaunch
 - `Enable Commands` off leaves every pane-owned command listed, searchable and firing — Notes,
   Emoji, File Search, Quicklinks, Calendar, AI and the two layout commands
@@ -603,7 +603,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   gain and output audio stay unchanged. Switch the default input and repeat; an unavailable or
   externally controlled mute reports failure. Rapid repeats while a change is pending are ignored
 - Holding a bound hotkey does **not** stack dialogs
-- Lock Screen locks from a global hotkey with the palette closed, including a Hyper-key binding
+- Lock Screen locks from a global hotkey with the palette closed, including a combined ⌃⌥⇧⌘ binding
 - Window commands move the window you were last in; cycle-on-repeat steps ½ → ⅓ → ⅔
 - "Top Half" lands flush with the top of the visible frame, on a secondary display too
 - A command with the Notes window focused places Notes, not the app behind it

@@ -57,9 +57,7 @@ struct DoubleTapDetectorTests {
         modifierGlyphs()
         commandActions()
         layoutCharacters()
-        hyperChord()
-        hyperRetargeting()
-        hyperModifierIsolation()
+        combinedModifierIsolation()
         recorderKeycaps()
         spelling()
         globeTap()
@@ -83,11 +81,10 @@ struct DoubleTapDetectorTests {
         kVK_ANSI_K: "k", kVK_ANSI_1: "1", kVK_ANSI_Keypad1: "1", kVK_ANSI_Slash: "/",
         kVK_ANSI_Equal: "="
     ]
-    private static let hyperModifiers = controlKey | optionKey | shiftKey | cmdKey
+    private static let combinedModifiers = controlKey | optionKey | shiftKey | cmdKey
 
     static func spelling() {
-        let plain = HotKeySpelling(characters: usKeys, hyperModifiers: nil)
-        let hyper = HotKeySpelling(characters: usKeys, hyperModifiers: hyperModifiers)
+        let plain = HotKeySpelling(characters: usKeys)
         func combo(_ keyCode: Int, _ modifiers: Int) -> HotKeyBinding {
             .combo(KeyShortcut(carbonKeyCode: keyCode, carbonModifiers: modifiers))
         }
@@ -109,8 +106,8 @@ struct DoubleTapDetectorTests {
         roundTrips(.doubleTap(.control), as: "double-tap ctrl", plain)
         roundTrips(.globe, as: "globe", plain)
         roundTrips(.doubleGlobe, as: "double-tap globe", plain)
-        roundTrips(combo(kVK_ANSI_K, hyperModifiers), as: "hyper+k", hyper)
-        roundTrips(combo(kVK_ANSI_K, controlKey | optionKey | cmdKey), as: "ctrl+option+cmd+k", hyper)
+        roundTrips(combo(kVK_ANSI_K, combinedModifiers), as: "ctrl+option+shift+cmd+k", plain)
+        roundTrips(combo(kVK_ANSI_K, controlKey | optionKey | cmdKey), as: "ctrl+option+cmd+k", plain)
 
         expect(
             plain.binding(from: " Command+Shift+K ") == combo(kVK_ANSI_K, shiftKey | cmdKey),
@@ -120,12 +117,7 @@ struct DoubleTapDetectorTests {
         expect(
             plain.binding(from: "double-tap command") == .doubleTap(.command),
             "a double-tap reads its modifier's alias")
-        expect(
-            plain.text(for: combo(kVK_ANSI_K, hyperModifiers)) == "ctrl+option+shift+cmd+k",
-            "without a Hyper key the chord is spelled out")
-        expect(plain.binding(from: "hyper+k") == nil, "without a Hyper key, hyper means nothing")
-
-        let plusKey = HotKeySpelling(characters: [kVK_ANSI_Equal: "+"], hyperModifiers: nil)
+        let plusKey = HotKeySpelling(characters: [kVK_ANSI_Equal: "+"])
         expect(
             plusKey.binding(from: "cmd++") == combo(kVK_ANSI_Equal, cmdKey),
             "a layout's plus key is spelled after the separator")
@@ -208,7 +200,7 @@ struct DoubleTapDetectorTests {
     }
 
     static func sidedModifiers() {
-        let spelling = HotKeySpelling(characters: usKeys, hyperModifiers: nil)
+        let spelling = HotKeySpelling(characters: usKeys)
         let physicalMasks: [(UInt64, ModifierKey)] = [
             (0x1, .leftControl), (0x2000, .rightControl),
             (0x20, .leftOption), (0x40, .rightOption),
@@ -370,98 +362,12 @@ struct DoubleTapDetectorTests {
             "no two built-in actions share a defaults key, which would bind them together")
     }
 
-    // MARK: - The Hyper chord
+    // MARK: - The combined modifiers chord
 
     /// A combo on the G key, spelled in Carbon like the on-disk shape.
     private static func combo(_ flags: NSEvent.ModifierFlags) -> KeyShortcut {
         KeyShortcut(
             carbonKeyCode: kVK_ANSI_G, carbonModifiers: KeyShortcut.carbonModifiers(from: flags))
-    }
-
-    private static func caps(_ flags: NSEvent.ModifierFlags, includesShift: Bool?) -> [String] {
-        KeyShortcut.collapsedModifierSymbols(
-            from: flags,
-            hyperChord: includesShift.map { KeyShortcut.hyperChord(includesShift: $0) })
-    }
-
-    static func hyperChord() {
-        expect(
-            KeyShortcut.hyperChord(includesShift: false) == [.control, .option, .command],
-            "Hyper without Include Shift is exactly ⌃⌥⌘")
-        expect(
-            KeyShortcut.hyperChord(includesShift: true) == [.control, .option, .shift, .command],
-            "Include Shift adds ⇧ and nothing else")
-
-        for includesShift in [false, true] {
-            let chord = KeyShortcut.hyperChord(includesShift: includesShift)
-            expect(
-                caps(chord, includesShift: includesShift) == ["✦"],
-                "the chord itself collapses to a lone ✦ (shift \(includesShift))")
-            expect(
-                caps(chord.union(.capsLock), includesShift: includesShift) == ["✦"],
-                "a stray non-shortcut flag doesn't defeat the collapse (shift \(includesShift))")
-            expect(
-                caps(chord, includesShift: nil) == KeyShortcut.modifierSymbols(from: chord),
-                "with no Hyper key configured the chord renders literally (shift \(includesShift))")
-        }
-
-        // ⌃⌥⌘ is a subset of ⌃⌥⇧⌘, so only the shift-off chord can collapse under the wider set.
-        expect(
-            caps([.control, .option, .command], includesShift: true) == ["⌃", "⌥", "⌘"],
-            "the narrower chord doesn't collapse while Include Shift is on")
-        expect(
-            caps([.control, .option, .shift, .command], includesShift: false) == ["✦", "⇧"],
-            "an extra modifier trails ✦ in canonical order")
-        expect(
-            caps([.command, .shift], includesShift: false) == ["⇧", "⌘"],
-            "an ordinary combo is untouched, and stays in ⌃⌥⇧⌘ order rather than press order")
-
-        expect(
-            KeyShortcut(
-                keyCode: kVK_ANSI_G,
-                modifierFlags: KeyShortcut.hyperChord(
-                    includesShift: true))?.carbonModifiers
-                == combo([.control, .option, .shift, .command]).carbonModifiers,
-            "recording while Hyper is held captures exactly the chord")
-    }
-
-    static func hyperRetargeting() {
-        let narrow = combo([.control, .option, .command])
-        let wide = combo([.control, .option, .shift, .command])
-
-        expect(narrow.retargetingHyper(includesShift: true) == wide, "⌃⌥⌘G follows ⇧ going on")
-        expect(wide.retargetingHyper(includesShift: false) == narrow, "⌃⌥⇧⌘G follows ⇧ going off")
-        expect(
-            narrow.retargetingHyper(includesShift: true).retargetingHyper(includesShift: false)
-                == narrow,
-            "the chord round-trips across a flip and back")
-        for includesShift in [false, true] {
-            let target = includesShift ? wide : narrow
-            expect(
-                target.retargetingHyper(includesShift: includesShift) == target,
-                "retargeting is idempotent, so an import can't corrupt a matching chord")
-        }
-
-        expect(
-            narrow.retargetingHyper(includesShift: true).carbonKeyCode == kVK_ANSI_G,
-            "only the modifiers move; the key is preserved")
-        expect(
-            combo([.control, .option, .command, .capsLock]).retargetingHyper(includesShift: true)
-                == wide,
-            "the masking initializer keeps a stray flag out of the retargeted chord")
-
-        // Anything that isn't the other chord is left exactly as recorded.
-        for flags in [[.command, .shift], [.option], [.control, .option], []]
-            as [NSEvent
-            .ModifierFlags]
-        {
-            let shortcut = combo(flags)
-            for includesShift in [false, true] {
-                expect(
-                    shortcut.retargetingHyper(includesShift: includesShift) == shortcut,
-                    "\(KeyShortcut.modifierSymbols(from: flags).joined()) is not a Hyper chord")
-            }
-        }
     }
 
     static func recorderKeycaps() {
@@ -486,29 +392,25 @@ struct DoubleTapDetectorTests {
         }
     }
 
-    static func hyperModifierIsolation() {
-        let previousChord = KeyShortcut.displayedHyperChord
-        defer { KeyShortcut.displayedHyperChord = previousChord }
+    static func combinedModifierIsolation() {
         for includesShift in [false, true] {
-            let chord = KeyShortcut.hyperChord(includesShift: includesShift)
-            KeyShortcut.displayedHyperChord = { chord }
-            // Hyper adds left device bits; a remapped right key may retain its own bit too.
+            let chord: NSEvent.ModifierFlags = includesShift
+                ? [.control, .option, .shift, .command] : [.control, .option, .command]
             let leftBits: UInt64 = includesShift ? 0x2B : 0x29
-            let residues: [(HyperKeyPhysicalKey, UInt64)] = [
-                (.capsLock, 0), (.rightControl, 0x2000), (.rightOption, 0x40),
-                (.rightCommand, 0x10), (.rightShift, includesShift ? 0x4 : 0)
-            ]
-            for (physicalKey, residue) in residues {
+            let residues: [UInt64] = [0, 0x2000, 0x40, 0x10, includesShift ? 0x4 : 0]
+            for residue in residues {
                 let flags = NSEvent.ModifierFlags(rawValue: chord.rawValue | UInt(leftBits | residue))
                 let keys = ModifierKey.held(in: UInt64(flags.rawValue), globeDown: false)
-                let context = "\(physicalKey), Include Shift \(includesShift)"
-                expect(keys.count >= 3, "\(context): Hyper never looks like a lone physical key")
+                let context = "device bits \(residue), shift \(includesShift)"
+                expect(keys.count >= 3, "\(context): combined modifiers never look like a lone physical key")
                 let recorded = KeyShortcut(keyCode: kVK_ANSI_G, modifierFlags: flags)
                 expect(recorded == combo(chord), "\(context): recording discards all device bits")
                 if let recorded {
                     let binding = HotKeyBinding.combo(recorded)
-                    expect(binding.recorderKeycaps == ["✦", "G"], "\(context): Hyper keeps its glyph")
-                    expect(binding.recorderPrefix == nil, "\(context): Hyper has no L/R prefix")
+                    expect(
+                        binding.recorderKeycaps == KeyShortcut.modifierSymbols(from: chord) + ["G"],
+                        "\(context): all modifiers remain visible")
+                    expect(binding.recorderPrefix == nil, "\(context): combined modifiers have no L/R prefix")
                 }
 
                 for duration in [0.05, 0.8] {
@@ -518,21 +420,21 @@ struct DoubleTapDetectorTests {
                     for time in [0.0, 1.0] {
                         expect(
                             sided.handle(keys, at: time) == .cancelled,
-                            "\(context): Hyper cannot start dictation's lone-key hold")
+                            "\(context): combined modifiers cannot start dictation's lone-key hold")
                         expect(
                             sided.handle(keys, at: time + 0.01) == nil,
-                            "\(context): repeated Hyper flags cannot start a hold")
+                            "\(context): repeated combined modifiers flags cannot start a hold")
                         expect(
                             sided.handle([], at: time + duration) == nil,
-                            "\(context): Hyper release cannot complete a single or double tap")
+                            "\(context): combined modifiers release cannot complete a single or double tap")
                         expect(
                             generic.handle(
                                 .modifiers(modifiers, hasOtherModifiers: false),
-                                at: time) == nil, "\(context): Hyper is not a generic modifier tap")
+                                at: time) == nil, "\(context): combined modifiers are not a generic modifier tap")
                         expect(
                             generic.handle(
                                 .modifiers([], hasOtherModifiers: false),
-                                at: time + duration) == nil, "\(context): Hyper release never double-taps")
+                                at: time + duration) == nil, "\(context): combined modifiers release never double-taps")
                     }
                 }
 
@@ -541,25 +443,25 @@ struct DoubleTapDetectorTests {
                     _ = detector.handle([survivor], at: 0)
                     expect(
                         detector.handle(keys.union([survivor]), at: 0.05) == .cancelled,
-                        "\(context): adding Hyper cancels \(survivor)'s pending hold")
+                        "\(context): adding combined modifiers cancels \(survivor)'s pending hold")
                     expect(
                         detector.handle([survivor], at: 0.1) == .cancelled,
-                        "\(context): releasing Hyper cannot restart \(survivor)'s hold")
+                        "\(context): releasing combined modifiers cannot restart \(survivor)'s hold")
                     expect(
                         detector.handle([], at: 0.15) == nil,
-                        "\(context): unwinding Hyper cannot fire \(survivor)'s tap")
+                        "\(context): unwinding combined modifiers cannot fire \(survivor)'s tap")
                     _ = detector.handle([survivor], at: 0.2)
                     expect(
                         detector.handle([], at: 0.25)
                             == .released(survivor, doubleTap: false, held: false),
-                        "\(context): a fresh \(survivor) tap still works after Hyper")
+                        "\(context): a fresh \(survivor) tap still works after combined modifiers")
                     _ = detector.handle(keys, at: 0.3)
                     _ = detector.handle([], at: 0.35)
                     _ = detector.handle([survivor], at: 0.4)
                     expect(
                         detector.handle([], at: 0.45)
                             == .released(survivor, doubleTap: false, held: false),
-                        "\(context): Hyper interrupts an awaiting \(survivor) double tap")
+                        "\(context): combined modifiers interrupt an awaiting \(survivor) double tap")
                 }
             }
         }

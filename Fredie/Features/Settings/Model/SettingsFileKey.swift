@@ -43,9 +43,6 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case launcherTileStyle = "appearance.tileStyle"
     case openOnCursorScreen = "appearance.followCursorAcrossDisplays"
     case paletteDraggable = "appearance.dragToReposition"
-    case hyperKey = "hyperKey.key"
-    case hyperKeyIncludesShift = "hyperKey.includesShift"
-    case hyperKeyQuickPress = "hyperKey.quickPress"
     case calcNumberStyle = "calculator.numberStyle"
     case rootSearchSensitivity = "search.sensitivity"
     case applicationsEnabled = "applications.enabled"
@@ -128,7 +125,7 @@ enum SettingsFileKey: String, CaseIterable, Sendable {
     case typingMouseVolume = "sounds.typingMouseVolume"
 
     static let available = allCases.filter {
-        ["mediaImport", "dictation", "clipboard", "windowSwitcher", "sounds", "general", "appearance", "hyperKey", "search", "applications", "emoji", "ai"].contains($0.section)
+        ["mediaImport", "dictation", "clipboard", "windowSwitcher", "sounds", "general", "appearance", "search", "applications", "emoji", "ai"].contains($0.section)
     }
 
     /// The top-level object the key sits in.

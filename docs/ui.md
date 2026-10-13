@@ -768,7 +768,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   ⌘F focuses the field, Escape clears it.
 - **`SettingsSearchCatalog` is hand-written, and that is the only option.** A `Form` cannot be asked
   what rows it holds, so a new row is searchable only once it is listed there — with its anchor, its
-  title and the keywords the title doesn't contain ("caps lock" for Hyper Key).
+  title and the keywords the title doesn't contain ("logging" for Diagnostics).
   Matching reuses `FuzzyMatch` (`Launcher/Model/SearchRelevance.swift`), multi-term like `NoteSearch`:
   every term must hit the title, the breadcrumb or a keyword, a title hit outranks the rest, and a
   pane outranks its own rows so a bare "quicklinks" lands on the pane. `Tests/settings-history-test.swift`

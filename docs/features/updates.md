@@ -35,7 +35,7 @@ no appcast: the release feed the website already reads is the feed the app reads
 - **Nothing is installed unless every check passes.** Bundle id, version and signature are all checked
   on the expanded copy before `replaceItemAt` runs, and the running app survives any failure untouched.
 - **Relaunching goes through `NSApp.terminate`, never `exit`.** That is what flushes a pending note
-  draft and hands back the Hyper Key's HID-level caps remap, which outlives the process.
+  draft and performs the normal app cleanup.
 - **An automatic prompt defers to whatever the user is doing, and is never spent unshown.**
   `UpdateReadiness` withholds it while text insertion is in progress, an extension command is running, an
   uninstall is trashing, a shortcut is being recorded, a prompt or dialog is up, or the palette is

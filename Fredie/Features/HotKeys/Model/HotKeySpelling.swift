@@ -3,13 +3,11 @@ import Foundation
 
 /// A binding as a person types it into settings.json. See docs/features/settings-file.md.
 struct HotKeySpelling: Sendable {
-    /// The Hyper chord in Carbon bits while a Hyper key is set, so it spells as `hyper` again.
-    let hyperModifiers: Int?
     private let characterByCode: [Int: String]
     private let codeByCharacter: [String: Int]
 
     /// `characters` is each key's base character on this Mac, the one its keycap shows.
-    init(characters: [Int: String], hyperModifiers: Int?) {
+    init(characters: [Int: String]) {
         var characterByCode: [Int: String] = [:]
         var codeByCharacter: [String: Int] = [:]
         // Ascending, so a character two keys type is spelled by the lower one both ways.
@@ -22,7 +20,6 @@ struct HotKeySpelling: Sendable {
         }
         self.characterByCode = characterByCode
         self.codeByCharacter = codeByCharacter
-        self.hyperModifiers = hyperModifiers
     }
 
     func text(for binding: HotKeyBinding) -> String {
@@ -53,12 +50,8 @@ struct HotKeySpelling: Sendable {
     // MARK: - Combos
 
     private func text(for shortcut: KeyShortcut) -> String {
-        var modifiers = shortcut.carbonModifiers
+        let modifiers = shortcut.carbonModifiers
         var parts: [String] = []
-        if let hyperModifiers, modifiers & hyperModifiers == hyperModifiers {
-            parts.append(Self.hyperName)
-            modifiers &= ~hyperModifiers
-        }
         for (mask, name) in Self.writtenModifiers where modifiers & mask != 0 {
             parts.append(name)
         }
@@ -79,9 +72,7 @@ struct HotKeySpelling: Sendable {
         }
         var modifiers = 0
         for token in tokens {
-            if token == Self.hyperName, let hyperModifiers {
-                modifiers |= hyperModifiers
-            } else if let mask = Self.modifierMasks[token] {
+            if let mask = Self.modifierMasks[token] {
                 modifiers |= mask
             } else {
                 return nil
@@ -106,7 +97,6 @@ struct HotKeySpelling: Sendable {
 
     // MARK: - Vocabulary
 
-    private static let hyperName = "hyper"
     private static let doubleTapPrefix = "double-tap "
     private static let rawKeyPrefix = "key-"
     private static let keyCodes = 0..<128

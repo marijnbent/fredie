@@ -139,22 +139,6 @@ final class AppSettings {
         }
     }
 
-    /// The physical key remapped to the Hyper chord; `HyperKeyTap` reacts via its observer.
-    var hyperKey: HyperKeyPhysicalKey {
-        didSet { defaults.set(hyperKey.rawValue, forKey: Key.hyperKey.rawValue) }
-    }
-
-    /// Whether Hyper is ⌃⌥⇧⌘ (on) or ⌃⌥⌘ (off).
-    var hyperKeyIncludesShift: Bool {
-        didSet { defaults.set(hyperKeyIncludesShift, forKey: Key.hyperKeyIncludesShift.rawValue) }
-    }
-
-    var hyperKeyQuickPress: HyperKeyQuickPress {
-        didSet {
-            defaults.set(hyperKeyQuickPress.rawValue, forKey: Key.hyperKeyQuickPress.rawValue)
-        }
-    }
-
     /// Preferred skin tone applied to modifier-capable emoji at render and copy time.
     var emojiSkinTone: EmojiSkinTone {
         didSet { defaults.set(emojiSkinTone.rawValue, forKey: Key.emojiSkinTone.rawValue) }
@@ -661,17 +645,6 @@ final class AppSettings {
         automaticallyCheckForUpdates =
             defaults.object(forKey: Key.automaticallyCheckForUpdates.rawValue) == nil
             || defaults.bool(forKey: Key.automaticallyCheckForUpdates.rawValue)
-        hyperKey =
-            defaults.string(forKey: Key.hyperKey.rawValue).flatMap(HyperKeyPhysicalKey.init)
-            ?? .none
-        // Defaults to true, so absence must be distinguished from a stored `false`.
-        hyperKeyIncludesShift =
-            defaults.object(forKey: Key.hyperKeyIncludesShift.rawValue) == nil
-            || defaults.bool(forKey: Key.hyperKeyIncludesShift.rawValue)
-        hyperKeyQuickPress =
-            defaults.string(forKey: Key.hyperKeyQuickPress.rawValue)
-            .flatMap(HyperKeyQuickPress.init)
-            ?? .none
         emojiSkinTone =
             defaults.string(forKey: Key.emojiSkinTone.rawValue).flatMap(EmojiSkinTone.init) ?? .none
         emojiGridColumns =

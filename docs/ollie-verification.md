@@ -1,5 +1,33 @@
 # Ollie verification
 
+## Build 18 remove built-in Hyper Key — 13 October 2026
+
+Removed the Hyper Key event tap, Caps Lock HID remapping, lifecycle hooks and health checks.
+Removed the General section, search rows, preference/schema keys, backup fields and Raycast
+remapper import. Shortcuts preserve their literal modifier sets through recording, display,
+persistence and import; there is no chord rewriting or shorthand. External remappers can
+continue supplying ordinary combined modifier chords. No dotfiles or external remapper settings
+were changed.
+
+Signed Debug build and lint pass with no new warnings. Model import and diff checks pass.
+The full suite passed 90 of 91 harnesses in 195 seconds. The unrelated extension helper-spawn
+check was still pending after its fixed 1.2-second wait while Debug was compiling; the isolated
+extension rerun passed all 299 assertions in 37 seconds including compilation. The retained
+shortcut tests cover explicit modifier spelling, recording, display and isolation from single-key
+holds and modifier taps. Tests of the deleted remapper and chord-rewriting behavior were removed.
+
+Signed Release build 18 was installed and opened from `/Applications/Ollie.app`. Deep strict
+signature verification passes with the existing Apple Development identity and team X44F5HTS6P.
+The installed executable matches the release output:
+`960fbc70e2568c14501240e532381ff4e49fd2c2abfee7b14b352c3dde756540` (SHA-256).
+Ollie's old Hyper Key preference was unset, and `hidutil property --get UserKeyMapping` returned
+`(null)` both before and after installation. No external keyboard mapping was changed.
+
+Native inspection returned `cgWindowNotFound` repeatedly after installation, including when trying
+to open Settings through the previously working app handle. Ollie remained running from its
+installed path, with no new crash report. The final installed Settings page and physical Karabiner
+key presses were not visually verified in this round.
+
 ## Build 17 app-wide diagnostics — 13 October 2026
 
 General owns the sole Diagnostics switch. It defaults off and immediately controls optional

@@ -130,8 +130,8 @@ Where a number has a special case, the case is a word:
 ## Shortcut chords
 
 `[fn+][ctrl+][option+][shift+][cmd+]key`, written in that order and read in any; `control`, `opt`,
-`alt` and `command` also read. While a Hyper key is set, its chord is written `hyper+key`, as the app
-shows ✦. The key is the lowercase character this Mac's keyboard types, or a name: `space`, `return`,
+`alt` and `command` also read. All modifiers are written explicitly, including chords emitted by
+an external remapper. The key is the lowercase character this Mac's keyboard types, or a name: `space`, `return`,
 `enter`, `tab`, `delete`, `forward-delete`, `escape`, `left`, `right`, `up`, `down`, `home`, `end`,
 `page-up`, `page-down`, `help`, `f1`–`f20`, `keypad-0`…; any other key is `key-<code>`. `cmd++` is the
 plus key. Keyless bindings are `left|right ctrl|option|shift|cmd`, their `double-tap` forms,

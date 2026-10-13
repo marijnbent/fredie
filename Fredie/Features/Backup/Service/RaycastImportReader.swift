@@ -22,30 +22,12 @@ enum RaycastImportReader {
             quicklinks: quicklinks)
     }
 
-    /// Raycast's hyper key code → ours; nothing maps to `.none`, so none is cleared.
-    private static let hyperKeyCodes: [String: HyperKeyPhysicalKey] = [
-        "caps_lock": .capsLock,
-        "right_control": .rightControl,
-        "right_shift": .rightShift,
-        "right_option": .rightOption,
-        "right_command": .rightCommand
-    ]
-
     private static func mapSettings(_ json: [String: Any]) -> SettingsBackup.SettingsData? {
         let general = (json["settings"] as? [String: Any])?["general"] as? [String: Any]
         var data = SettingsBackup.SettingsData()
         var mapped = false
         if let openAtLogin = general?["openAtLogin"] as? Bool {
             data.launchAtLogin = openAtLogin
-            mapped = true
-        }
-        if let includeShift = general?["hyperKeyIncludeShift"] as? Bool {
-            data.hyperKeyIncludesShift = includeShift
-            mapped = true
-        }
-        // Without the physical key the imported chord shortcuts can't be triggered.
-        if let code = general?["hyperKeyCode"] as? String, let key = hyperKeyCodes[code] {
-            data.hyperKey = key.rawValue
             mapped = true
         }
         if let showInMenuBar = general?["showInMenuBar"] as? Bool {

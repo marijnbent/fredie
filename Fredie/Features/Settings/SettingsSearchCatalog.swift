@@ -47,7 +47,7 @@ struct SettingsSearchEntry: Identifiable, Hashable, Sendable {
 
     var id: String { "\(tab.title)/\(anchor?.title ?? "")/\(title)" }
 
-    /// The result row's second line — "General", or "General › Hyper Key".
+    /// The result row's second line — "General", or "General › Appearance".
     var breadcrumb: String {
         guard let anchor, anchor.title != tab.title else { return tab.title }
         return "\(tab.title) › \(anchor.title)"
@@ -171,15 +171,6 @@ enum SettingsSearchCatalog {
         .init(
             .generalAppearance, "Drag to reposition",
             keywords: ["move", "position", "window"]),
-        .init(
-            .generalHyperKey, "Hyper Key",
-            keywords: ["modifier", "remap", "caps lock", "capslock"]),
-        .init(
-            .generalHyperKey, "Quick Press",
-            keywords: ["tap", "escape", "single press"]),
-        .init(
-            .generalHyperKey, "Include Shift (⇧)",
-            keywords: ["modifier", "chord"]),
         .init(
             .generalSearch, "Search sensitivity",
             keywords: ["fuzzy", "strict", "loose", "matching", "typo", "root search"]),

@@ -41,7 +41,7 @@ Independently of the folder tree, every mature subsystem has converged on the sa
 │ IconCache · WindowMover · UninstallScanner · UninstallRunner ·            │
 │ SystemActionRunner · QuicklinkLauncher · TextInjector ·                   │
 │ NotesRepository · CurrencyRateStore · Paster ·                            │
-│ HotKeyCenter · HyperKeyTap · ModifierTapMonitor · RunningAppsMonitor ·    │
+│ HotKeyCenter · ModifierTapMonitor · RunningAppsMonitor ·                  │
 │ CalendarStore · MeetingLauncher · MeetingClock · CameraSession ·          │
 │ SupportReminderStore · AXMenuAccess ·                                     │
 │ AppleShortcutRunner · SettingsFileRepository · SettingsFileMonitor ·      │
@@ -90,7 +90,7 @@ app: the stores (`AppIndex`, `QuicklinkStore`, `CustomCommandStore`,
 `FavoritesStore`, `VisibilityStore`, `AliasStore`, `LauncherRankingStore`, `CalculatorHistoryStore`,
 `CurrencyRateStore`, `FrequentEmojiStore`, `CalendarStore`), the managers, monitors and clocks
 (the opt-in `SettingsFileRepository`,
-`HotKeyManager`, `HyperKeyTap`, `RunningAppsMonitor`), the shared state
+`HotKeyManager`, `RunningAppsMonitor`), the shared state
 (`AppSettings`, `PaletteState`, `FileSearchSession`, `MenuSearchSession`, `UninstallSession`,
 `MeetingClock`), `NotesStore`, the feature coordinators, and the
 window controllers.

@@ -220,7 +220,6 @@ final class ModifierTapMonitor: HealthCheckable {
         guard
             let port = CGEvent.tapCreate(
                 tap: .cgSessionEventTap,
-                // Appended, so `HyperKeyTap`'s rewrite lands first. See docs/features/hotkeys.md.
                 place: .tailAppendEventTap,
                 options: .listenOnly,
                 eventsOfInterest: mask,

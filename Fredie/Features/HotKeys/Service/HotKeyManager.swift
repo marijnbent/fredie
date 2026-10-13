@@ -192,19 +192,6 @@ final class HotKeyManager {
         }
     }
 
-    /// Include Shift redefines the chord, and a stored combo has the old one baked in.
-    func retargetHyperBindings(includesShift: Bool) {
-        for action in candidateActions {
-            guard let shortcut = bindings[action]?.shortcut else { continue }
-            let retargeted = shortcut.retargetingHyper(includesShift: includesShift)
-            guard retargeted != shortcut else { continue }
-            let binding = HotKeyBinding.combo(retargeted)
-            // Skip a collision rather than clobber it: the second registration would fail silently.
-            guard conflictOwner(of: binding, excluding: action) == nil else { continue }
-            setBinding(binding, for: action)
-        }
-    }
-
     /// A hold reserves its physical modifier across both tap gestures.
     func conflictOwner(of binding: HotKeyBinding, excluding action: HotKeyAction? = nil, includeReservations: Bool = true) -> String? {
         if includeReservations, let owner = reservedBindingOwner?(binding) { return owner }

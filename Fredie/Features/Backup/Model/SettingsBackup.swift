@@ -20,9 +20,6 @@ struct SettingsBackup: Codable {
     struct SettingsData: Codable {
         // Adding a field here means adding it to SettingsBackupCoverage too, or the harness fails.
         var launchAtLogin: Bool?
-        var hyperKey: String?
-        var hyperKeyIncludesShift: Bool?
-        var hyperKeyQuickPress: String?
         var emojiSkinTone: String?
         var emojiGridColumns: Int?
         var showInMenuBar: Bool?
@@ -124,9 +121,6 @@ extension SettingsBackup {
         var backup = SettingsBackup()
         backup.settings = SettingsData(
             launchAtLogin: s.launchAtLogin,
-            hyperKey: s.hyperKey.rawValue,
-            hyperKeyIncludesShift: s.hyperKeyIncludesShift,
-            hyperKeyQuickPress: s.hyperKeyQuickPress.rawValue,
             emojiSkinTone: s.emojiSkinTone.rawValue,
             emojiGridColumns: s.emojiGridColumns.rawValue,
             showInMenuBar: s.showInMenuBar,
@@ -288,18 +282,6 @@ extension SettingsBackup {
         var count = 0
         if let launch = s.launchAtLogin {
             settings.launchAtLogin = launch
-            count += 1
-        }
-        if let raw = s.hyperKey, let key = HyperKeyPhysicalKey(rawValue: raw) {
-            settings.hyperKey = key
-            count += 1
-        }
-        if let flag = s.hyperKeyIncludesShift {
-            settings.hyperKeyIncludesShift = flag
-            count += 1
-        }
-        if let raw = s.hyperKeyQuickPress, let quick = HyperKeyQuickPress(rawValue: raw) {
-            settings.hyperKeyQuickPress = quick
             count += 1
         }
         if let raw = s.emojiSkinTone, let tone = EmojiSkinTone(rawValue: raw) {
