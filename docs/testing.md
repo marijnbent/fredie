@@ -679,3 +679,9 @@ images prove mounting, not settings visual quality. Build it with
 `PRODUCT_BUNDLE_IDENTIFIER=nl.bentjes.ollie.verification PRODUCT_NAME='Ollie Verification'`.
 It does not start capture services or use the installed app’s data. These layout renders do not
 replace testing permission prompts, real microphone capture, or actual cross-app input.
+
+The same isolated verification identity supports `--preview-ollie-settings` for native visual and
+interaction checks. It enables every feature pane in that identity's preferences and opens Settings
+without calling `AppCore.start()`, so capture services do not start. Use it to inspect grouped forms,
+recorders and editor dismissal without changing the installed app's preferences. Release builds
+contain neither verification entry point.

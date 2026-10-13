@@ -59,9 +59,9 @@ private struct PickerEmptyState: View {
     let message: String
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Theme.Spacing.xl) {
             Image(systemName: systemImage)
-                .font(.system(size: 28, weight: .medium))
+                .font(.system(size: SettingsListMetrics.iconSize, weight: .medium))
                 .foregroundStyle(.secondary)
             Text(title)
                 .font(.headline)
@@ -76,21 +76,15 @@ private struct PickerEmptyState: View {
     }
 }
 
-struct RunningAppPickerSheet: View {
+struct RunningAppPickerPanel: View {
     @Bindable var model: DictationAppPickerState
     let onPick: (RunningApplicationOption) -> Void
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.settingsEditorDismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Pick Running Application")
-                        .font(.title3.weight(.semibold))
-                    Text("Only applications that are running right now can be selected.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+        VStack(alignment: .leading, spacing: Theme.Spacing.dialogInset) {
+            HStack(alignment: .top, spacing: Theme.Spacing.xl) {
+                SettingsEditorHeader(title: "Choose App", subtitle: "Running applications")
 
                 Spacer()
 
@@ -100,8 +94,7 @@ struct RunningAppPickerSheet: View {
                 .buttonStyle(.bordered)
             }
 
-            TextField("Search running apps", text: $model.searchText)
-                .textFieldStyle(.roundedBorder)
+            SettingsFilterField(prompt: "Search running apps", query: $model.searchText)
 
             Group {
                 if !model.hasLoadedSnapshot {
@@ -128,11 +121,11 @@ struct RunningAppPickerSheet: View {
                             onPick(app)
                             dismiss()
                         } label: {
-                            HStack(spacing: 12) {
+                            HStack(spacing: Theme.Spacing.xl) {
                                 BundleIconView(
                                     bundleIdentifier: app.bundleIdentifier,
                                     bundleURL: app.bundleURL,
-                                    size: 28
+                                    size: SettingsListMetrics.iconSize
                                 )
 
                                 VStack(alignment: .leading, spacing: 3) {
@@ -155,17 +148,15 @@ struct RunningAppPickerSheet: View {
             .frame(minHeight: 320)
 
             HStack {
-                Text("Search is local to the current running-app snapshot.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 Spacer()
                 Button("Cancel") {
                     dismiss()
                 }
             }
         }
-        .padding(24)
-        .frame(width: 560, height: 520)
+        .padding(Theme.Spacing.dialogInset)
+        .frame(width: Theme.Size.editorSheetWidth, height: Theme.Size.settingsPickerHeight)
+        .settingsEditorPanelSurface(controlsOnGlass: false)
         .onAppear {
             model.prepareForPresentation()
         }

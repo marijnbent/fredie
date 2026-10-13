@@ -3,7 +3,6 @@ import SwiftUI
 struct AISettingsView: View {
     @Environment(AppCore.self) private var core
     @Environment(AISettingsStore.self) private var settings
-    @Environment(AppSettings.self) private var appSettings
     @Environment(ChatGPTSubscriptionManager.self) private var subscription
     @Environment(InstalledAIManager.self) private var installedAI
 
@@ -23,7 +22,6 @@ struct AISettingsView: View {
             }
 
             FeatureCommandsSection(owner: .ai, anchor: .aiCommands)
-                .settingsEnabled(appSettings.aiEnabled)
 
             Group {
                 defaultModelSection
@@ -32,7 +30,6 @@ struct AISettingsView: View {
                 systemPromptSection
                 MCPSettingsSection()
             }
-            .settingsEnabled(appSettings.aiEnabled)
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.ai)
@@ -42,8 +39,6 @@ struct AISettingsView: View {
         .onAppear {
             core.applyInstalledAILifecycle()
         }
-        // Switched on with the pane already open, provider status would otherwise stay empty.
-        .onChange(of: appSettings.aiEnabled) { core.applyInstalledAILifecycle() }
         .onChange(of: settings.enabledInstalledProviders) {
             core.applyInstalledAILifecycle()
             syncSelection()

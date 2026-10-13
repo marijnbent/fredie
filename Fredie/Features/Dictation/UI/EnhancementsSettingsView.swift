@@ -18,81 +18,43 @@ private extension PromptConfig {
     }
 }
 
-private struct PromptEditorSheet: View {
+private struct PromptEditorPanel: View {
     @Binding var prompt: PromptConfig
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.settingsEditorDismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(prompt.displayName)
-                .font(.title3.weight(.semibold))
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Name")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                TextField("Prompt name", text: $prompt.name)
-                    .textFieldStyle(.roundedBorder)
-            }
-
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Provider")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+            SettingsEditorHeader(title: "Edit Prompt")
+            Form {
+                Section {
+                    TextField("Name", text: $prompt.name)
                     Picker("Provider", selection: $prompt.provider) {
                         ForEach(EnhancementProvider.allCases) { provider in
                             Text(provider.displayName).tag(provider)
                         }
                     }
-                    .labelsHidden()
-                    .onChange(of: prompt.provider) { _, provider in
-                        prompt.model = provider.defaultModel
-                    }
+                    .onChange(of: prompt.provider) { _, provider in prompt.model = provider.defaultModel }
+                    TextField("Model", text: $prompt.model, prompt: Text("Model ID"))
                 }
-                .frame(width: 160, alignment: .leading)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Model")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-                    TextField("Model ID", text: $prompt.model)
-                        .textFieldStyle(.roundedBorder)
+                Section {
+                    TextEditor(text: $prompt.content)
+                        .frame(minHeight: Theme.Size.editorTextHeight * 1.5)
+                        .accessibilityLabel("Prompt instructions")
+                } header: {
+                    Text("Instructions")
+                } footer: {
+                    Text("The transcript is appended inside <transcription> tags.")
                 }
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Instructions")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                TextEditor(text: $prompt.content)
-                    .font(.body)
-                    .frame(minHeight: 220)
-                    .padding(8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(nsColor: .textBackgroundColor))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.secondary.opacity(0.18))
-                    )
-            }
-
-            Text("The transcript is appended automatically inside <transcription> tags before the enhancement request is sent.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            HStack {
-                Spacer()
-                Button("Done") {
-                    dismiss()
-                }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            Button("Done") { dismiss() }
+                .buttonStyle(.modalAction(.primary))
                 .keyboardShortcut(.defaultAction)
-            }
         }
-        .padding(24)
-        .frame(width: 560, height: 550)
+        .padding(Theme.Spacing.dialogInset)
+        .frame(width: Theme.Size.editorSheetWidth, height: Theme.Size.settingsPickerHeight)
+        .settingsEditorPanelSurface(controlsOnGlass: false)
     }
 }
 
@@ -104,43 +66,26 @@ struct EnhancementsSettingsView: View {
     @State private var overridePickerRequest: OverridePickerRequest?
 
     var body: some View {
-        Form {
+        Group {
             providerSection
             promptLibrarySection
             routingSections
         }
-        .formStyle(.grouped)
-        .sheet(item: $promptEditorRequest) { request in
-            Group {
-                if let promptBinding = viewModel.bindingForPromptID(request.id) {
-                    PromptEditorSheet(prompt: promptBinding)
-                } else {
-                    Text("Prompt not found.")
-                        .padding(24)
-                }
-            }
-        }
-        .sheet(item: $overridePickerRequest) { request in
-            RunningAppPickerSheet(model: pickerModel) { app in
-                viewModel.upsertAppPromptOverride(
-                    shortcutID: request.shortcutID,
-                    appBundleIdentifier: app.bundleIdentifier,
-                    appDisplayName: app.displayName
-                )
-            }
-        }
+
     }
 
     @ViewBuilder
     private var providerSection: some View {
         Section {
-            LabeledContent("OpenRouter") {
-                SecureField("API Key", text: viewModel.binding(for: \.openRouterApiKey))
-                    .frame(width: 320)
+            SettingsRow(title: "OpenRouter") {
+                RevealableSecureField(title: "OpenRouter API key", text: viewModel.binding(for: \.openRouterApiKey), prompt: Text("API key"))
+                    .labelsHidden()
+                    .frame(width: Theme.Size.settingsSecretWidth)
             }
-            LabeledContent("Celeris") {
-                SecureField("API Key", text: viewModel.binding(for: \.celerisApiKey))
-                    .frame(width: 320)
+            SettingsRow(title: "Celeris") {
+                RevealableSecureField(title: "Celeris API key", text: viewModel.binding(for: \.celerisApiKey), prompt: Text("API key"))
+                    .labelsHidden()
+                    .frame(width: Theme.Size.settingsSecretWidth)
             }
         } header: {
             Text("Providers")
@@ -149,57 +94,47 @@ struct EnhancementsSettingsView: View {
         }
     }
 
-    @ViewBuilder
     private var promptLibrarySection: some View {
-        Section {
+        Section("Prompt Library") {
             if viewModel.prompts.isEmpty {
-                Text("No prompts yet. Add a prompt first, then assign it as a default or app-specific override.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(viewModel.prompts) { prompt in
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(prompt.displayName)
-                                .font(.headline)
-                            Text(prompt.previewText)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                            Text("\(prompt.provider.displayName) · \(prompt.model.trimmed.isEmpty ? "No model" : prompt.model.trimmed)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(viewModel.promptUsageSummary(for: prompt.id))
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-
-                        Spacer(minLength: 12)
-
-                        HStack(spacing: 8) {
-                            Button("Edit") {
-                                promptEditorRequest = PromptEditorRequest(id: prompt.id)
-                            }
-                            Button("Delete", role: .destructive) {
-                                viewModel.deletePrompt(id: prompt.id)
-                            }
-                        }
-                        .buttonStyle(.bordered)
+                Text("No prompts yet").foregroundStyle(.secondary)
+            }
+            ForEach(viewModel.prompts) { prompt in
+                SettingsRow(title: prompt.displayName,
+                    subtitle: "\(prompt.provider.displayName) · \(prompt.model.trimmed.isEmpty ? "No model" : prompt.model.trimmed)\n\(prompt.previewText)",
+                    subtitleLineLimit: 2) {
+                    Button("Edit…") { promptEditorRequest = PromptEditorRequest(id: prompt.id) }
+                    SettingsRemoveButton(label: "Delete \(prompt.displayName)", deletesContent: true) {
+                        viewModel.deletePrompt(id: prompt.id)
                     }
-                    .padding(.vertical, 4)
+                }
+                .help(prompt.previewText + "\n" + viewModel.promptUsageSummary(for: prompt.id))
+            }
+            Button("Add Prompt…") {
+                let prompt = viewModel.addPrompt()
+                promptEditorRequest = PromptEditorRequest(id: prompt.id)
+            }
+            .settingsEditorPanel(item: $promptEditorRequest) { request in
+                Group {
+                    if let promptBinding = viewModel.bindingForPromptID(request.id) {
+                        PromptEditorPanel(prompt: promptBinding)
+                    } else {
+                        Text("Prompt not found.")
+                            .padding(Theme.Spacing.dialogInset)
+                            .frame(width: Theme.Size.editorSheetWidth)
+                            .settingsEditorPanelSurface()
+                    }
                 }
             }
-        } header: {
-            HStack {
-                Text("Prompt Library")
-                Spacer()
-                Button("Add Prompt") {
-                    let prompt = viewModel.addPrompt()
-                    promptEditorRequest = PromptEditorRequest(id: prompt.id)
+            .settingsEditorPanel(item: $overridePickerRequest) { request in
+                RunningAppPickerPanel(model: pickerModel) { app in
+                    viewModel.upsertAppPromptOverride(
+                        shortcutID: request.shortcutID,
+                        appBundleIdentifier: app.bundleIdentifier,
+                        appDisplayName: app.displayName
+                    )
                 }
-                .font(.caption.weight(.medium))
             }
-        } footer: {
-            Text("Create reusable prompts, then route them per shortcut and per running application.")
         }
     }
 
@@ -208,7 +143,7 @@ struct EnhancementsSettingsView: View {
         ForEach(viewModel.shortcuts) { shortcut in
             if let shortcutBinding = viewModel.bindingForShortcutID(shortcut.id) {
                 Section {
-                    Picker("Default Prompt", selection: shortcutBinding.promptID) {
+                    Picker("Default prompt", selection: shortcutBinding.promptID) {
                         Text("None").tag(UUID?.none)
                         ForEach(viewModel.prompts) { prompt in
                             Text(prompt.displayName).tag(Optional(prompt.id))
@@ -216,16 +151,16 @@ struct EnhancementsSettingsView: View {
                     }
 
                     ForEach(Array(shortcutBinding.wrappedValue.appPromptOverrides.indices), id: \.self) { index in
-                        HStack(alignment: .center, spacing: 12) {
+                        HStack(alignment: .center, spacing: Theme.Spacing.xl) {
                             BundleIconView(
                                 bundleIdentifier: shortcutBinding.wrappedValue.appPromptOverrides[index].appBundleIdentifier,
                                 bundleURL: nil,
-                                size: 28
+                                size: SettingsListMetrics.iconSize
                             )
 
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                                 Text(shortcutBinding.wrappedValue.appPromptOverrides[index].appDisplayName)
-                                    .font(.headline)
+                                    .font(.body)
                                 Text(shortcutBinding.wrappedValue.appPromptOverrides[index].appBundleIdentifier)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -252,20 +187,16 @@ struct EnhancementsSettingsView: View {
                             .frame(width: 200)
                             .labelsHidden()
 
-                            Button(role: .destructive) {
+                            SettingsRemoveButton(label: "Remove app prompt") {
                                 var updated = shortcutBinding.wrappedValue
                                 updated.appPromptOverrides.remove(at: index)
                                 shortcutBinding.wrappedValue = updated
-                            } label: {
-                                Image(systemName: "trash")
                             }
-                            .buttonStyle(.borderless)
-                            .help("Remove override")
                         }
                         .padding(.vertical, 2)
                     }
 
-                    Button("Add App Override...") {
+                    Button("Add App…") {
                         overridePickerRequest = OverridePickerRequest(shortcutID: shortcut.id)
                     }
                     .disabled(viewModel.prompts.isEmpty)

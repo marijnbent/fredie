@@ -11,53 +11,46 @@ struct HistoryView: View {
             if entries.isEmpty {
                 emptyState
             } else {
-                List(entries) { entry in
-                    HistoryEntryCard(
-                        entry: entry,
-                        isExpanded: viewModel.isExpanded(entry.id),
-                        isRetrying: viewModel.isRetrying(entry.id),
-                        retryError: viewModel.retryError(for: entry.id),
-                        retryLanguages: retryLanguages,
-                        onToggleExpansion: {
-                            withAnimation(.easeInOut(duration: 0.18)) {
-                                viewModel.toggleExpansion(entry.id)
-                            }
-                        },
-                        onCopy: viewModel.copy,
-                        onRetryTranscription: { language in
-                            viewModel.retryTranscription(for: entry, language: language)
-                        },
-                        onRetryEnhancement: {
-                            viewModel.retryEnhancement(for: entry)
+                Section {
+                    LazyVStack(spacing: Theme.Spacing.xl) {
+                        ForEach(entries) { entry in
+                            HistoryEntryCard(
+                                entry: entry,
+                                isExpanded: viewModel.isExpanded(entry.id),
+                                isRetrying: viewModel.isRetrying(entry.id),
+                                retryError: viewModel.retryError(for: entry.id),
+                                retryLanguages: retryLanguages,
+                                onToggleExpansion: {
+                                    withAnimation(.easeInOut(duration: 0.18)) {
+                                        viewModel.toggleExpansion(entry.id)
+                                    }
+                                },
+                                onCopy: viewModel.copy,
+                                onRetryTranscription: { language in
+                                    viewModel.retryTranscription(for: entry, language: language)
+                                },
+                                onRetryEnhancement: {
+                                    viewModel.retryEnhancement(for: entry)
+                                }
+                            )
+                            if entry.id != entries.last?.id { Divider() }
                         }
-                    )
-                    .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+                    }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            Image(systemName: viewModel.historyLimit == .none ? "clock.badge.xmark" : "text.bubble")
-                .font(.system(size: 30, weight: .light))
-                .foregroundStyle(.tertiary)
+        Section {
             Text(viewModel.historyLimit == .none ? "History is off" : "No transcriptions yet")
-                .font(.headline)
+                .foregroundStyle(.secondary)
             if viewModel.historyLimit == .none {
-                Text("Choose a history limit in General settings to save transcriptions.")
-                    .font(.subheadline)
+                Text("Choose a history limit in Recording to save transcriptions.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity, minHeight: 360)
-        .padding(24)
     }
 }
 
@@ -102,13 +95,7 @@ private struct HistoryEntryCard: View {
                 retryActions
             }
         }
-        .padding(14)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(Color(nsColor: .separatorColor).opacity(0.7), lineWidth: 1)
-        }
+
     }
 
     private var header: some View {

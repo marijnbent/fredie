@@ -660,10 +660,11 @@ built the field, so `DialogPanel.focusFirstTextField` lays the content out first
 
 ## Settings
 
-Fredie exposes General, Applications, Emoji & Symbols, AI, Permissions, Backup and About. `SettingsTab.available`
-is the navigation boundary; old feature identifiers remain internal command metadata, but cannot
-open a pane or appear in search. AI command rows offer shortcuts only. Emoji commands also offer aliases and launcher visibility.
-Backup offers configuration and launcher learning; the Raycast picker excludes Quicklinks and emoji.
+Ollie exposes Features, General, Shortcuts and the enabled feature pages, plus Permissions,
+Backup and About. Features owns every master switch. Disabled feature panes disappear from
+navigation and search. `SettingsTab.available` defines supported panes; `enabledSettingsTabs`
+filters that list. AI command rows offer shortcuts only; Emoji commands also offer aliases and
+launcher visibility. Backup offers configuration and launcher learning.
 
 Source: `DesignSystem/SettingsComponents.swift`.
 
@@ -699,6 +700,15 @@ system-drawn and a pane reads exactly as macOS System Settings does.
   the way `SystemPromptEditor` does; dimming an editor that still accepts input is the bug, not the fix.
 - **A group is a `Section`**, with `header:` for its name and `footer:` for the caption that used to
   ride under the last row.
+- **Feature pages share one order:** conditional permission/error rows, named setting groups,
+  content lists, then storage or advanced controls. Empty attention sections are omitted. Actions
+  sit at the trailing edge of a `SettingsRow`; add actions are the last row of their list.
+  Reference removal uses `SettingsRemoveButton`; authored-content deletion uses its trash variant.
+- **Dictation owns one grouped Form.** Its segmented navigation stays pinned above the scrolling form; child
+  Recording, Shortcuts, Prompts, History and Logs views supply sections without nested Forms.
+  Snippets use a draft editor with Save/Cancel. Dictation prompt and language editors retain their
+  live-binding behavior and use the shared editor presenter and `settingsEditorDismiss`.
+
 - **Interface size and Emoji Skin Tone use `settingsOptionSegment`** for the same square selection
   shape, while keeping their own content sizes.
 - **A pane scans as section → setting → control, so its words are rationed.** A subtitle is a short
@@ -729,7 +739,7 @@ system-drawn and a pane reads exactly as macOS System Settings does.
 - `SettingsComponents.swift` holds only what more than one pane or editor needs: **`SettingsRow`**,
   **`SettingsTabIcon`** (the sidebar tile reused by feature switches),
   **`SettingsFeatureToggleLabel`** (the icon, title and subtitle of a feature's master switch),
-  **`FeatureSwitchSection`** (a feature's master switch plus its launcher-visibility companion),
+  **`SettingsPermissionRow`**, **`SettingsNotice`**, **`SettingsRemoveButton`**,
   **`SettingsFilterField`** (the filter row above a long list), **`launcherVisibilityHelp()`**, and the
   Settings editor header, fields and surface. `ModalActionButtonStyle.swift` keeps every borderless surface's actions on one
   implementation — dialogs, Settings editors, the camera footers and the Quick Action panel. `Onboarding/OnboardingCard.swift` keeps the older hand-drawn card,

@@ -57,7 +57,7 @@ for (const m of catalog.matchAll(/\.init\(\s*\.(\w+),\s*"((?:[^"\\]|\\.)*)"/g)) 
     source.includes(`SettingsRowTitle(.${anchor}, "${title}")`) ||
     new RegExp(`SettingsFeatureToggleLabel\\(\\s*anchor: \\.${anchor}, title: "${quoted}"`).test(source) ||
     // A `SettingsRow` renders the pill from its own title.
-    new RegExp(`SettingsRow\\(\\s*title: "${quoted}",[\\s\\S]*?anchor: \\.${anchor}`).test(source) ||
+    new RegExp(`(?:SettingsRow|SettingsPermissionRow)\\(\\s*title: "${quoted}",[\\s\\S]*?anchor: \\.${anchor}`).test(source) ||
     // A feature pane's master switch, rendered by `FeatureSwitchSection`.
     new RegExp(`anchor: \\.${anchor},\\s*\\n\\s*enableTitle: "${quoted}"`).test(source) ||
     // A launcher category's switch, whose title `LauncherItemsSection` derives.

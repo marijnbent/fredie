@@ -2,7 +2,6 @@ import AppKit
 import SwiftUI
 
 struct MediaImportSettingsContent: View {
-    @Environment(AppSettings.self) private var appSettings
     @Environment(MediaImportCoordinator.self) private var mediaImport
     @Bindable var settings: MediaImportSettingsStore
     let ffmpeg: FFmpegService
@@ -11,33 +10,29 @@ struct MediaImportSettingsContent: View {
 
     var body: some View {
         Form {
-            Section {
-                Button("Open Importer") { mediaImport.show() }
-                    .disabled(!appSettings.mediaImportEnabled)
+            Section("Import") {
+                SettingsRow(title: "Camera and SD cards") {
+                    Button("Open Importer") { mediaImport.show() }
+                }
+                Toggle("Open when a camera or SD card is found", isOn: $settings.openOnDetection)
             }
-            Section("Preferred Locations") {
+            Section {
                 if settings.preferredLocations.isEmpty {
-                    Text("Add one or more folders on your external storage.")
+                    Text("No locations yet")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(Array(settings.preferredLocations.enumerated()), id: \.element.id) { index, location in
                         locationRow(location, index: index)
                     }
                 }
-                HStack {
-                    Button("Add Location…", action: addLocation)
-                    Spacer()
-                    Text("The first connected location is used by default.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Button("Add Location…", action: addLocation)
+            } header: {
+                Text("Locations")
+            } footer: {
+                Text("The first connected location is used by default.")
             }
 
-            Section("Behavior") {
-                Toggle("Open when a camera or SD card is found", isOn: $settings.openOnDetection)
-            }
-
-            Section("Conversion") {
+            Section {
                 LabeledContent("Output", value: "MP4")
                 LabeledContent("FFmpeg") {
                     if let path = ffmpeg.executablePath {
@@ -48,14 +43,10 @@ struct MediaImportSettingsContent: View {
                             .foregroundStyle(.red)
                     }
                 }
-                Text("Keeps compatible video streams unchanged. It converts unsupported video to high-quality H.264 and audio to AAC.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Folders") {
-                Text("Imported files use: Year / Month / Day / Date and time.mp4")
-                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Conversion")
+            } footer: {
+                Text("Compatible video stays unchanged; other formats convert to H.264 and AAC. Files are grouped by year, month and day.")
             }
         }
         .formStyle(.grouped)
@@ -63,11 +54,11 @@ struct MediaImportSettingsContent: View {
     }
 
     private func locationRow(_ location: PreferredLocation, index: Int) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Theme.Spacing.lg) {
             Circle()
                 .fill(location.resolvedURL() == nil ? Color.secondary : Color.green)
-                .frame(width: 8, height: 8)
-            VStack(alignment: .leading, spacing: 2) {
+                .frame(width: Theme.Spacing.md, height: Theme.Spacing.md)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                 Text(location.name)
                 Text(location.resolvedURL()?.path ?? location.lastKnownPath)
                     .font(.caption)
@@ -95,14 +86,10 @@ struct MediaImportSettingsContent: View {
             .disabled(index == settings.preferredLocations.count - 1)
             .help("Move down")
 
-            Button(role: .destructive) {
+            SettingsRemoveButton(label: "Remove \(location.name)") {
                 settings.removeLocations(at: IndexSet(integer: index))
                 onLocationsChanged()
-            } label: {
-                Image(systemName: "minus.circle")
             }
-            .buttonStyle(.borderless)
-            .help("Remove")
         }
     }
 
@@ -114,6 +101,7 @@ struct MediaImportSettingsContent: View {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.canCreateDirectories = true
+        NSApp.activate(ignoringOtherApps: true)
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             try settings.addPreferredLocation(url)

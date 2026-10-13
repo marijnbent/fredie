@@ -8,47 +8,22 @@ struct DictationGeneralSettingsView: View {
     @State private var isPresentingAutomaticLanguagePicker = false
 
     var body: some View {
-        Form {
+        Group {
             Section("Permissions") {
-                LabeledContent {
-                    Button(viewModel.microphonePermissionButtonTitle()) {
+                SettingsPermissionRow(title: "Microphone", status: viewModel.microphonePermission.rawValue,
+                    isGranted: viewModel.microphonePermission.isGranted,
+                    actionTitle: viewModel.microphonePermission.isGranted ? "Open Settings…" : "Grant Access…") {
                         viewModel.requestMicrophonePermission()
                     }
-                    .disabled(viewModel.microphonePermission.isGranted)
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Recording")
-                            Text(viewModel.microphonePermission.rawValue)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                SettingsPermissionRow(title: "Accessibility", subtitle: "Paste transcriptions",
+                    status: viewModel.accessibilityPermission.rawValue,
+                    isGranted: viewModel.accessibilityPermission.isGranted, actionTitle: "Open Settings…") {
+                        if viewModel.accessibilityPermission.isGranted {
+                            Permissions.openAccessibilitySettings()
+                        } else {
+                            viewModel.requestAccessibilityPermission()
                         }
-                    } icon: {
-                        Circle()
-                            .fill(viewModel.microphonePermission.color)
-                            .frame(width: 8, height: 8)
                     }
-                }
-
-                LabeledContent {
-                    Button(viewModel.accessibilityPermissionButtonTitle()) {
-                        viewModel.requestAccessibilityPermission()
-                    }
-                    .disabled(viewModel.accessibilityPermission.isGranted)
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Pasting")
-                            Text(viewModel.accessibilityPermission.rawValue)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Circle()
-                            .fill(viewModel.accessibilityPermission.color)
-                            .frame(width: 8, height: 8)
-                    }
-                }
             }
 
             Section {
@@ -74,20 +49,19 @@ struct DictationGeneralSettingsView: View {
                         Text(provider.displayName).tag(provider)
                     }
                 }
-                .pickerStyle(.segmented)
 
                 switch viewModel.transcriptionProvider {
                 case .deepgram:
-                    SecureField("Deepgram API Key", text: viewModel.binding(for: \.apiKey))
+                    secret("Deepgram API key", text: viewModel.binding(for: \.apiKey))
                 case .elevenLabs:
-                    SecureField("ElevenLabs API Key", text: viewModel.binding(for: \.elevenLabsApiKey))
+                    secret("ElevenLabs API key", text: viewModel.binding(for: \.elevenLabsApiKey))
                 case .assemblyAI:
-                    SecureField("AssemblyAI API Key", text: viewModel.binding(for: \.assemblyAIApiKey))
+                    secret("AssemblyAI API key", text: viewModel.binding(for: \.assemblyAIApiKey))
                     if let error = viewModel.assemblyAIKeyError {
-                        Text(error).foregroundStyle(.red)
+                        SettingsNotice(error)
                     }
                 case .muse:
-                    SecureField("Muse API Key", text: viewModel.binding(for: \.museApiKey))
+                    secret("Muse API key", text: viewModel.binding(for: \.museApiKey))
                 }
 
                 Picker("Current language", selection: viewModel.languageBinding()) {
@@ -98,7 +72,7 @@ struct DictationGeneralSettingsView: View {
 
                 if viewModel.supportsAutomaticLanguageCandidates {
                     LabeledContent("Automatic languages") {
-                        HStack(spacing: 10) {
+                        HStack(spacing: Theme.Spacing.lg) {
                             Text(viewModel.automaticLanguageCandidatesSummary)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
@@ -106,31 +80,33 @@ struct DictationGeneralSettingsView: View {
                             Button("Edit…") {
                                 isPresentingAutomaticLanguagePicker = true
                             }
+                            .settingsEditorPanel(isPresented: $isPresentingAutomaticLanguagePicker) {
+                                AutomaticLanguagePickerPanel(viewModel: viewModel)
+                            }
                         }
                     }
                 }
             } header: {
-                Text("Speech to text")
+                Text("Speech to Text")
             } footer: {
                 Text(viewModel.transcriptionLanguageHelpText)
             }
 
             Section {
-                Toggle("Show selected language in menu bar", isOn: viewModel.binding(for: \.showSelectedLanguageInMenuBar))
-                Text("When Automatic is selected, no language text is shown.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Toggle(isOn: viewModel.binding(for: \.showSelectedLanguageInMenuBar)) {
+                    Text("Show selected language in menu bar")
+                    Text("Hidden when Automatic is selected.")
+                }
                 Toggle("Show language button in recorder widget", isOn: viewModel.binding(for: \.showLanguageInRecorderWidget))
 
-                TextField("Search languages", text: $languageSearchText)
-                    .textFieldStyle(.roundedBorder)
+                SettingsFilterField(prompt: "Search languages", query: $languageSearchText)
 
                 if viewModel.menuBarLanguages(matching: languageSearchText).isEmpty {
                     Text("No languages found")
                         .foregroundStyle(.secondary)
                 } else {
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 10) {
+                        LazyVStack(alignment: .leading, spacing: Theme.Spacing.lg) {
                             ForEach(viewModel.menuBarLanguages(matching: languageSearchText)) { language in
                                 MenuBarLanguageSettingsRow(
                                     language: language,
@@ -147,7 +123,7 @@ struct DictationGeneralSettingsView: View {
                     .frame(minHeight: 160, maxHeight: 220)
                 }
             } header: {
-                Text("Menu bar languages")
+                Text("Menu Bar Languages")
             } footer: {
                 Text("Only starred languages appear in the menu bar language submenu.")
             }
@@ -175,20 +151,14 @@ struct DictationGeneralSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
-        .sheet(isPresented: $isPresentingAppLanguageOverridePicker) {
-            RunningAppPickerSheet(model: pickerModel) { app in
-                viewModel.upsertAppTranscriptionLanguageOverride(
-                    appBundleIdentifier: app.bundleIdentifier,
-                    appDisplayName: app.displayName
-                )
-            }
-        }
-        .sheet(isPresented: $isPresentingAutomaticLanguagePicker) {
-            AutomaticLanguagePickerSheet(viewModel: viewModel)
-        }
-        .onAppear {
-            viewModel.refreshPermissions()
+
+    }
+
+    private func secret(_ title: String, text: Binding<String>) -> some View {
+        SettingsRow(title: "API key") {
+            RevealableSecureField(title: title, text: text, prompt: Text("API key"))
+                .labelsHidden()
+                .frame(width: Theme.Size.settingsSecretWidth)
         }
     }
 
@@ -196,7 +166,7 @@ struct DictationGeneralSettingsView: View {
     private var appLanguageOverridesSection: some View {
         Section {
             if viewModel.appTranscriptionLanguageOverrides.isEmpty {
-                Text("No app-specific languages yet.")
+                Text("No app languages")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.appTranscriptionLanguageOverrides) { override in
@@ -212,20 +182,28 @@ struct DictationGeneralSettingsView: View {
                 }
             }
 
-            Button("Add App Override...") {
+            Button("Add App…") {
                 isPresentingAppLanguageOverridePicker = true
             }
+            .settingsEditorPanel(isPresented: $isPresentingAppLanguageOverridePicker) {
+                RunningAppPickerPanel(model: pickerModel) { app in
+                    viewModel.upsertAppTranscriptionLanguageOverride(
+                        appBundleIdentifier: app.bundleIdentifier,
+                        appDisplayName: app.displayName
+                    )
+                }
+            }
         } header: {
-            Text("App language overrides")
+            Text("App Languages")
         } footer: {
             Text("Apps without an override use the default language: \(viewModel.selectedLanguage.displayName).")
         }
     }
 }
 
-private struct AutomaticLanguagePickerSheet: View {
+private struct AutomaticLanguagePickerPanel: View {
     @Bindable var viewModel: DictationSettingsController
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.settingsEditorDismiss) private var dismiss
     @State private var searchText = ""
 
     private var filteredLanguages: [DeepgramLanguage] {
@@ -233,17 +211,15 @@ private struct AutomaticLanguagePickerSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Automatic languages")
-                    .font(.title3.weight(.semibold))
+        VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                SettingsEditorHeader(title: "Automatic Languages")
                 Text("Select at least two languages. Automatic detection will ignore other languages.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
-            TextField("Search languages", text: $searchText)
-                .textFieldStyle(.roundedBorder)
+            SettingsFilterField(prompt: "Search languages", query: $searchText)
 
             if filteredLanguages.isEmpty {
                 Text("No languages found")
@@ -255,7 +231,7 @@ private struct AutomaticLanguagePickerSheet: View {
                     Button {
                         viewModel.toggleAutomaticLanguageCandidate(language)
                     } label: {
-                        HStack(spacing: 10) {
+                        HStack(spacing: Theme.Spacing.lg) {
                             Text(language.displayName)
                                 .foregroundStyle(.primary)
                             Spacer()
@@ -283,8 +259,9 @@ private struct AutomaticLanguagePickerSheet: View {
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(24)
-        .frame(width: 500, height: 580)
+        .padding(Theme.Spacing.dialogInset)
+        .frame(width: Theme.Size.editorSheetWidth, height: Theme.Size.settingsPickerHeight)
+        .settingsEditorPanelSurface(controlsOnGlass: false)
     }
 }
 
@@ -296,8 +273,8 @@ private struct MenuBarLanguageSettingsRow: View {
     let onToggleStar: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: Theme.Spacing.lg) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                 Text(language.displayName)
 
                 if isCurrent {
@@ -327,16 +304,16 @@ private struct AppLanguageOverrideRow: View {
     let onRemove: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: Theme.Spacing.xl) {
             BundleIconView(
                 bundleIdentifier: overrideBinding.appBundleIdentifier,
                 bundleURL: nil,
-                size: 28
+                size: SettingsListMetrics.iconSize
             )
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                 Text(overrideBinding.appDisplayName)
-                    .font(.headline)
+                    .font(.body)
                 Text(overrideBinding.appBundleIdentifier)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -353,11 +330,7 @@ private struct AppLanguageOverrideRow: View {
             .frame(width: 220)
             .labelsHidden()
 
-            Button(role: .destructive, action: onRemove) {
-                Image(systemName: "trash")
-            }
-            .buttonStyle(.borderless)
-            .help("Remove override")
+            SettingsRemoveButton(label: "Remove app language", action: onRemove)
         }
         .padding(.vertical, 2)
     }

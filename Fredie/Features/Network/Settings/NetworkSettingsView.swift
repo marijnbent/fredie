@@ -3,25 +3,23 @@ import SwiftUI
 
 struct NetworkSettingsView: View {
     @Environment(NetworkCoordinator.self) private var network
-    @Environment(AppSettings.self) private var settings
     @State private var search = ""
 
     var body: some View {
-        @Bindable var settings = settings
         @Bindable var network = network
         Form {
             Section {
-                if settings.networkEnabled {
-                    LabeledContent("Status", value: network.status)
-                }
-                LabeledContent("Protection", value: "Not active")
+                LabeledContent("Status", value: network.status)
                 if let error = network.error {
-                    Text(error).foregroundStyle(.red)
-                    Button("Restart monitoring") { network.restart() }
-                        .disabled(!settings.networkEnabled)
+                    SettingsNotice(error)
+                    Button("Restart Monitoring") { network.restart() }
                 }
+            } header: {
+                Text("Monitoring")
+            } footer: {
+                Text("Usage monitoring does not block connections.")
             }
-            Section {
+            Section("Usage") {
                 Picker("Period", selection: $network.period) {
                     Text("Day").tag(UsagePeriod.today)
                     Text("7 days").tag(UsagePeriod.week)
@@ -49,20 +47,20 @@ struct NetworkSettingsView: View {
                             }
                         }
                     }
-                    .frame(height: 140)
+                    .frame(height: Theme.Size.settingsChartHeight)
                 }
                 if network.selectedAppID != nil {
-                    Button("Show all apps") { network.selectedAppID = nil }
+                    Button("Show All Apps") { network.selectedAppID = nil }
                 }
             }
-            Section {
-                TextField("Search apps", text: $search)
+            Section("Apps") {
+                SettingsFilterField(prompt: "Search apps", query: $search)
                 ForEach(network.apps.filter { search.isEmpty || $0.app.name.localizedCaseInsensitiveContains(search) }) { usage in
                     Button {
                         network.selectedAppID = network.selectedAppID == usage.id ? nil : usage.id
                     } label: {
                         HStack {
-                            Image(nsImage: network.icon(usage.app)).resizable().frame(width: 24, height: 24)
+                            Image(nsImage: network.icon(usage.app)).resizable().frame(width: SettingsListMetrics.iconSize, height: SettingsListMetrics.iconSize)
                             Text(usage.app.name).foregroundStyle(.primary)
                             Spacer()
                             Text(NetworkCoordinator.bytes(usage.traffic.total)).monospacedDigit()

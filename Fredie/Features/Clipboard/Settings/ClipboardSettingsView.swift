@@ -7,33 +7,43 @@ struct ClipboardSettingsView: View {
     var body: some View {
         @Bindable var settings = settings
         Form {
-            Section {
-                LabeledContent("Shortcut") { ShortcutRecorder(action: .command(.clipboardHistory)) }
+            if clipboard.watcher.captureError != nil || clipboard.store.error != nil {
+                Section {
+                    if let error = clipboard.watcher.captureError { SettingsNotice(error) }
+                    if let error = clipboard.store.error { SettingsNotice(error) }
+                }
+            }
+            Section("Capture") {
+                SettingsRow(title: "Shortcut") { ShortcutRecorder(action: .command(.clipboardHistory)) }
+                SettingsRow(title: "Capture", subtitle: clipboard.watcher.isPaused ? "Paused" : "Active") {
+                    Button(clipboard.watcher.isPaused ? "Resume" : "Pause") {
+                        if clipboard.watcher.isPaused { clipboard.watcher.resume() } else { clipboard.watcher.pause() }
+                    }
+                }
+            }
+            Section("History") {
                 Picker("Keep history", selection: $settings.clipboardHistoryDays) {
                     ForEach(ClipboardHistoryLimit.allCases, id: \.rawValue) { limit in
                         Text(limit.label).tag(limit.rawValue)
                     }
                 }
-                HStack {
+                SettingsRow(title: "Saved items", subtitle: "\(clipboard.store.items.count)") {
                     Button("Open History") { clipboard.show() }
-                        .disabled(!settings.clipboardEnabled && !settings.snippetsEnabled)
-                    if settings.clipboardEnabled {
-                        Button(clipboard.watcher.isPaused ? "Resume" : "Pause") {
-                            if clipboard.watcher.isPaused { clipboard.watcher.resume() } else { clipboard.watcher.pause() }
-                        }
-                    }
                 }
-                if let error = clipboard.watcher.captureError { Text(error).foregroundStyle(.red) }
-                if let error = clipboard.store.error { Text(error).foregroundStyle(.red) }
+                SettingsRow(title: "Export history") {
+                    Button("Export JSON…") { Task { await clipboard.exportHistory() } }
+                }
             }
-            Section {
-                LabeledContent("Saved items", value: "\(clipboard.store.items.count)")
-                Button("Export as JSON…") { Task { await clipboard.exportHistory() } }
-                Button("Delete Images and Large Text…", role: .destructive) {
-                    Task { await clipboard.clearHistory(largeFilesOnly: true) }
-                }.disabled(!clipboard.store.hasImagesOrLargeText)
-                Button("Clear History…", role: .destructive) { Task { await clipboard.clearHistory() } }
-                    .disabled(clipboard.store.items.isEmpty)
+            Section("Storage") {
+                SettingsRow(title: "Images and large text") {
+                    Button("Delete…", role: .destructive) {
+                        Task { await clipboard.clearHistory(largeFilesOnly: true) }
+                    }.disabled(!clipboard.store.hasImagesOrLargeText)
+                }
+                SettingsRow(title: "All history") {
+                    Button("Clear…", role: .destructive) { Task { await clipboard.clearHistory() } }
+                        .disabled(clipboard.store.items.isEmpty)
+                }
             }
         }
         .formStyle(.grouped)
@@ -42,68 +52,97 @@ struct ClipboardSettingsView: View {
 }
 
 struct SnippetsSettingsView: View {
-    @Environment(AppSettings.self) private var settings
     @Environment(ClipboardCoordinator.self) private var clipboard
-    @State private var selected: UUID?
-    @State private var title = ""
-    @State private var trigger = ""
-    @State private var content = ""
-    @State private var error: String?
+    @State private var editor: SnippetEditorTarget?
+
+    private var needsAccess: Bool {
+        !clipboard.snippetsRunning && !clipboard.isRecording && !clipboard.isCapturingShortcut
+    }
 
     var body: some View {
-        @Bindable var settings = settings
         Form {
-            Section {
-                if settings.snippetsEnabled, !clipboard.snippetsRunning, !clipboard.isRecording, !clipboard.isCapturingShortcut {
-                    Button("Grant Accessibility Access…") { Permissions.openAccessibilitySettings() }
+            if needsAccess || clipboard.snippets.persistenceError != nil {
+                Section {
+                    if needsAccess {
+                        SettingsPermissionRow(title: "Accessibility") { Permissions.openAccessibilitySettings() }
+                    }
+                    if let error = clipboard.snippets.persistenceError { SettingsNotice(error) }
                 }
-                if let error = clipboard.snippets.persistenceError { Text(error).foregroundStyle(.red) }
             }
             Section {
+                if clipboard.snippets.snippets.isEmpty {
+                    Text("No snippets yet").foregroundStyle(.secondary)
+                }
                 ForEach(clipboard.snippets.snippets) { snippet in
-                    HStack {
-                        Button {
-                            selected = snippet.id
-                            title = snippet.title
-                            trigger = snippet.trigger
-                            content = snippet.content
-                            error = nil
-                        } label: {
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(":\(snippet.trigger)").fontWeight(.medium)
-                                Text(snippet.content).lineLimit(1).foregroundStyle(.secondary)
-                            }
-                        }.buttonStyle(.plain)
-                        Spacer()
-                        Button(role: .destructive) { Task { await clipboard.deleteSnippet(snippet) } } label: {
-                            Image(systemName: "trash")
-                        }.buttonStyle(.borderless).accessibilityLabel("Delete :\(snippet.trigger)")
+                    SettingsRow(title: snippet.displayTitle, subtitle: snippet.content) {
+                        Text(":\(snippet.trigger)").font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
+                        Button("Edit…") { editor = SnippetEditorTarget(snippet: snippet) }
+                        SettingsRemoveButton(label: "Delete \(snippet.displayTitle)", deletesContent: true) {
+                            Task { await clipboard.deleteSnippet(snippet) }
+                        }
                     }
                 }
-                Button("New Snippet") { reset() }
-            }
-            Section(selected == nil ? "New Snippet" : "Edit Snippet") {
-                TextField("Title", text: $title)
-                TextField("Trigger", text: $trigger, prompt: Text(":trigger"))
-                TextEditor(text: $content).frame(minHeight: 120).accessibilityLabel("Snippet text")
-                if let error { Text(error).foregroundStyle(.red) }
-                Button("Save") {
-                    do {
-                        try clipboard.snippets.saveSnippet(id: selected, title: title, trigger: trigger, content: content)
-                        reset()
-                    } catch { self.error = error.localizedDescription }
-                }.disabled(trigger.isEmpty || content.isEmpty)
+                Button("New Snippet…") { editor = SnippetEditorTarget(snippet: nil) }
             }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.snippets)
+        .settingsEditorPanel(item: $editor) { target in
+            SnippetEditorPanel(target: target, onDone: { editor = nil })
+        }
+    }
+}
+
+private struct SnippetEditorTarget: Identifiable {
+    let id = UUID()
+    let snippet: Snippet?
+}
+
+private struct SnippetEditorPanel: View {
+    @Environment(ClipboardCoordinator.self) private var clipboard
+    let target: SnippetEditorTarget
+    let onDone: () -> Void
+    @State private var title: String
+    @State private var trigger: String
+    @State private var content: String
+    @State private var error: String?
+
+    init(target: SnippetEditorTarget, onDone: @escaping () -> Void) {
+        self.target = target
+        self.onDone = onDone
+        _title = State(initialValue: target.snippet?.title ?? "")
+        _trigger = State(initialValue: target.snippet?.trigger ?? "")
+        _content = State(initialValue: target.snippet?.content ?? "")
     }
 
-    private func reset() {
-        selected = nil
-        title = ""
-        trigger = ""
-        content = ""
-        error = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+            SettingsEditorHeader(title: target.snippet == nil ? "New Snippet" : "Edit Snippet")
+            TextField("Title", text: $title, prompt: Text("Title"))
+                .settingsEditorTextField()
+            TextField("Trigger", text: $trigger, prompt: Text(":trigger"))
+                .settingsEditorTextField()
+            TextEditor(text: $content)
+                .settingsEditorTextArea(height: Theme.Size.editorTextHeight)
+                .accessibilityLabel("Snippet text")
+            if let error { SettingsNotice(error) }
+            HStack(spacing: Theme.Spacing.md) {
+                Button("Cancel", action: onDone).buttonStyle(.modalAction(.cancel))
+                    .keyboardShortcut(.cancelAction)
+                Button("Save", action: save).buttonStyle(.modalAction(.primary))
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(trigger.isEmpty || content.isEmpty)
+            }
+        }
+        .padding(Theme.Spacing.dialogInset)
+        .frame(width: Theme.Size.editorSheetWidth)
+        .settingsEditorPanelSurface()
+    }
+
+    private func save() {
+        do {
+            try clipboard.snippets.saveSnippet(id: target.snippet?.id, title: title, trigger: trigger, content: content)
+            onDone()
+        } catch { self.error = error.localizedDescription }
     }
 }

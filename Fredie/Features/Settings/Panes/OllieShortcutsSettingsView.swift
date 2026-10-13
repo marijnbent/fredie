@@ -24,7 +24,7 @@ struct OllieShortcutsSettingsView: View {
         Form {
             Section {
                 ForEach(primary.filter(isEnabled), id: \.self) { action in
-                    LabeledContent(hotKeys.displayName(of: action)) { ShortcutRecorder(action: action) }
+                    SettingsRow(title: hotKeys.displayName(of: action)) { ShortcutRecorder(action: action) }
                 }
             }
             if settings.dictationEnabled {
@@ -33,7 +33,7 @@ struct OllieShortcutsSettingsView: View {
                         LabeledContent(shortcut.key.displayName, value: shortcut.mode.displayName)
                     }
                     if let conflict = dictation.conflict {
-                        Text("Already used by \(conflict)").foregroundStyle(.orange)
+                        SettingsNotice("Already used by \(conflict)", isError: false)
                     }
                     Button("Edit Dictation Shortcuts…") { navigation.select(.dictation) }
                 }
@@ -44,7 +44,7 @@ struct OllieShortcutsSettingsView: View {
                     if settings.switcherCommandBacktick { LabeledContent("Current app", value: "⌘ `") }
                     LabeledContent("Previous window", value: "⇧ ⌘ `")
                     if let conflict = switcher.conflict {
-                        Text("Already used by \(conflict)").foregroundStyle(.orange)
+                        SettingsNotice("Already used by \(conflict)", isError: false)
                     }
                     Button("Edit Window Switcher…") { navigation.select(.windowSwitcher) }
                 }
@@ -53,7 +53,7 @@ struct OllieShortcutsSettingsView: View {
             if !other.isEmpty {
                 Section("Other Shortcuts") {
                     ForEach(other, id: \.self) { action in
-                        LabeledContent(hotKeys.displayName(of: action)) { ShortcutRecorder(action: action) }
+                        SettingsRow(title: hotKeys.displayName(of: action)) { ShortcutRecorder(action: action) }
                     }
                 }
             }

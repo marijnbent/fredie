@@ -93,6 +93,60 @@ enum SettingsListMetrics {
     static let iconSize = Theme.Size.settingsRowIcon + Theme.Spacing.xs
 }
 
+struct SettingsNotice: View {
+    let message: String
+    var isError = true
+
+    init(_ message: String, isError: Bool = true) {
+        self.message = message
+        self.isError = isError
+    }
+
+    var body: some View {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+            .foregroundStyle(isError ? Color.red : Color.orange)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+struct SettingsPermissionRow: View {
+    let title: String
+    var subtitle: String?
+    var status = "Not granted"
+    var isGranted = false
+    var actionTitle = "Grant Access…"
+    var anchor: SettingsAnchor?
+    let action: () -> Void
+
+    var body: some View {
+        SettingsRow(title: title, subtitle: subtitle, anchor: anchor) {
+            HStack(spacing: Theme.Spacing.lg) {
+                Label(status, systemImage: isGranted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .foregroundStyle(isGranted ? Color.secondary : Color.orange)
+                Button(actionTitle, action: action)
+            }
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+}
+
+struct SettingsRemoveButton: View {
+    let label: String
+    var deletesContent = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(role: .destructive, action: action) {
+            Image(systemName: deletesContent ? "trash" : "xmark.circle.fill")
+                .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(label)
+        .help(label)
+    }
+}
+
 extension SettingsRow where Icon == EmptyView {
     init(
         title: String, subtitle: String? = nil, subtitleLineLimit: Int = 1,
@@ -282,44 +336,6 @@ private struct SettingsEditorPanelSurface: ViewModifier {
             draggable.background {
                 shape.fill(Theme.Colors.panelScrim).glassEffect(.regular, in: shape)
             }
-        }
-    }
-}
-
-/// A feature pane's opening section: the master switch, then its launcher-visibility companion.
-struct FeatureSwitchSection: View {
-    let anchor: SettingsAnchor
-    let enableTitle: String
-    var enableSubtitle: String?
-    @Binding var isEnabled: Bool
-    @Binding var showsInLauncher: Bool
-    var showsIcon = false
-    var showsHeader = true
-
-    var body: some View {
-        if showsHeader {
-            section
-        } else {
-            section.settingsAnchor(anchor)
-        }
-    }
-
-    private var section: some View {
-        Section {
-            Toggle(isOn: $isEnabled) {
-                if showsIcon, let enableSubtitle {
-                    SettingsFeatureToggleLabel(
-                        anchor: anchor, title: enableTitle, subtitle: enableSubtitle)
-                } else {
-                    SettingsRowTitle(anchor, enableTitle)
-                    if let enableSubtitle { Text(enableSubtitle) }
-                }
-            }
-            Toggle("Show in launcher", isOn: $showsInLauncher)
-                // The switch above stays live so the feature can always be turned back on.
-                .settingsEnabled(isEnabled)
-        } header: {
-            if showsHeader { SettingsSectionHeader(anchor) }
         }
     }
 }

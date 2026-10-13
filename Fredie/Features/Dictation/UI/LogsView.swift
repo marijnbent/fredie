@@ -4,10 +4,10 @@ struct LogsView: View {
     @Bindable var viewModel: DictationLogsController
 
     var body: some View {
-        Form {
+        Group {
             if viewModel.logs.isEmpty {
                 Section {
-                    Text("No logs yet.")
+                    Text("No logs yet")
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -42,6 +42,5 @@ struct LogsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 }

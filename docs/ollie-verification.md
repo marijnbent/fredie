@@ -1,5 +1,35 @@
 # Ollie verification
 
+## Build 16 feature settings consistency — 13 October 2026
+
+Feature pages now use shared permission, notice, removal and setting rows, named native Form
+sections, and consistent secret fields. Snippets use the shared editor panel. Dictation uses one
+grouped Form with pinned tabs and shared prompt, language and app picker panels; prompt previews
+and lazy history loading are retained. Prompt bindings resolve their identity on every access.
+Features remains the only place for master switches. No stored preference or credential keys changed.
+
+Two Opus source reviews informed the changes. The second caught editor modifiers attached to a
+Group, which could present multiple panels; each is now attached to one view. It also informed
+the pinned tabs, history loading, prompt binding and permission status layout fixes.
+
+All 90 harnesses passed in 109 seconds. The final signed Debug build has no new compiler warnings.
+Host lint passes with existing/nonblocking warnings; settings-search, model import and diff checks
+pass. The isolated native harness mounted all 17 settings panes in light and dark and exited 0.
+This mounting check does not prove native Form rendering or every Dictation subtab interaction.
+
+Native testing in the isolated verification app confirmed the Clipboard layout, shortcut recorder
+opening and Escape cancellation, and the new Snippet editor layout with Save disabled for empty
+input. After Cancel, native capture returned `cgWindowNotFound` for both the preview and installed
+app, including after reconnecting and restarting the preview. The preview process remained alive.
+Further page/editor interaction checks were blocked by capture failure. No OS grants, real feature
+switches, credentials or user snippets were changed. The verification app was closed afterward.
+
+Signed Release build 16 was installed and launched from `/Applications/Ollie.app`. Deep strict
+signature verification passes, and its executable matches the release output:
+`ee5cb768218ed8a3cef40fe04e993774b69dbbb67decd2d52e734c155b8141eb` (SHA-256).
+The installed process was verified running. Native capture still returned `cgWindowNotFound`
+after installation, so the final installed window was not visually confirmed.
+
 ## Build 15 Launcher disable focus fix — 13 October 2026
 
 Disabling Launcher called the palette dismissal path even when its panel was already hidden.

@@ -298,12 +298,13 @@ final class DictationEnhancementsController {
     }
 
     func bindingForPromptID(_ promptID: UUID) -> Binding<PromptConfig>? {
-        guard let index = settingsStore.prompts.firstIndex(where: { $0.id == promptID }) else {
-            return nil
-        }
+        guard let prompt = settingsStore.prompts.first(where: { $0.id == promptID }) else { return nil }
         return Binding(
-            get: { self.settingsStore.prompts[index] },
-            set: { self.settingsStore.prompts[index] = $0 }
+            get: { self.settingsStore.prompts.first(where: { $0.id == promptID }) ?? prompt },
+            set: { updated in
+                guard let index = self.settingsStore.prompts.firstIndex(where: { $0.id == promptID }) else { return }
+                self.settingsStore.prompts[index] = updated
+            }
         )
     }
 
