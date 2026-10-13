@@ -17,7 +17,6 @@ struct PaletteActionsButton: View {
             Button(action: action) {
                 HStack(spacing: metrics.scaled(5)) {
                     Text("Actions").foregroundStyle(Theme.Colors.textSecondary)
-                    KeyCapChip(text: "⌘K", style: .outline, scale: .compact)
                     if arrowAvailable {
                         Image(systemName: "chevron.right").font(.system(size: metrics.scaled(9), weight: .medium))
                             .foregroundStyle(Theme.Colors.textTertiary)
@@ -33,7 +32,7 @@ struct PaletteActionsButton: View {
             .fixedSize()
             .onHover { hovered = $0 }
             .accessibilityLabel("Actions")
-            .help(arrowAvailable ? "Actions (⌘K or → at the end of search)" : "Actions (⌘K)")
+            .help(arrowAvailable ? "Actions (→ at the end of search)" : "Actions")
         }
     }
 }

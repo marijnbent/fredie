@@ -20,9 +20,9 @@ Compact or Comfortable spacing independently of text scale. Compact is the defau
 44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
 Launcher and clipboard search fields have no leading icon; other modes retain their back button.
-The launcher has no footer; the selected row carries a clickable Actions control with ⌘K and →.
-The Actions control uses a compact keycap and a hover-only background. Selected launcher titles
-use medium weight, with a 100-point trailing action lane. Clipboard uses the same control in a
+The launcher has no footer; the selected row carries a clickable Actions control with a right chevron.
+The Actions control uses a hover-only background; ⌘K remains supported without a visible shortcut hint. Selected launcher titles
+use medium weight, with a 72-point trailing action lane. Clipboard uses the same control in a
 40-point preview footer, without a redundant paste label or button. Enter activates the selected item. Its 36-point metadata
 header and framed image preview share a 12-point inset. Right at the query's end opens Actions;
 Left at the action search's start returns to the same query and selected result. Selected text,
