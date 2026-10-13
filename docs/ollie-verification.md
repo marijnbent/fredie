@@ -1,5 +1,21 @@
 # Ollie verification
 
+## Build 15 Launcher disable focus fix — 13 October 2026
+
+Disabling Launcher called the palette dismissal path even when its panel was already hidden.
+That path restored the previously focused external app and put Settings behind it; the window
+was still open, with Launcher off. Disabling now dismisses only a visible launcher palette and
+does not restore another app's focus.
+
+All 90 harnesses passed in one full run. Signed Debug builds with no new warnings; lint,
+settings-search consistency, model import and diff checks pass.
+
+Signed build 15 was installed and opened from `/Applications/Ollie.app`. Native testing enabled
+Launcher, observed Applications and Emoji appear in the sidebar, then disabled it and observed
+both panes disappear while Features stayed open with the Launcher switch focused. Launcher was
+left off and Settings open. One native capture failure and one stale-state rejection required
+refreshing accessibility state; neither caused an app crash.
+
 ## Build 14 Settings crash fix — 13 October 2026
 
 Opening Settings in build 13 crashed with `EXC_BAD_ACCESS` inside the optimized

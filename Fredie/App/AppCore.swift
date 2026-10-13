@@ -580,7 +580,9 @@ final class AppCore {
         hotKeys.refreshRegistrations()
         guard settings.launcherEnabled else {
             currencyRates.stop()
-            if palette.mode == .launcher { paletteCoordinator.hidePalette() }
+            if paletteCoordinator.isShowing(.launcher) {
+                paletteCoordinator.hidePalette(restoreFocus: false)
+            }
             appIndex.clearDiscoveredApps()
             return
         }

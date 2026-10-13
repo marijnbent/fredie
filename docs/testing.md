@@ -632,6 +632,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   checks resume. Settings search for "updates" reveals the toggle; settings.json edits and a backup
   round trip preserve the choice.
 - Every pane renders and the sidebar switches without flicker
+- Disabling Launcher from Features keeps Settings in front and removes Applications and Emoji;
+  enabling it restores those panes. Leave the switch in its original state after testing.
 - A feature switch takes effect in the launcher immediately; every setting survives relaunch
 - Export produces a `.fredie`; import applies it and reports a per-category summary
 - Untick a category on export, and the import picker greys that row out rather than offering it
