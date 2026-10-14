@@ -3,11 +3,13 @@ import SwiftUI
 struct CompactMenuView: View {
     let core: AppCore
     let close: () -> Void
+    @State private var optionsHovered = false
+    @State private var notificationsHovered = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text(Bundle.main.appDisplayName).font(.system(size: 13, weight: .semibold))
+                Text(Bundle.main.appDisplayName).font(.system(size: 13, weight: .medium))
                 Spacer()
                 Menu {
                     Button("Check for Updates…") { perform { core.updateCoordinator.checkForUpdates() } }
@@ -15,16 +17,22 @@ struct CompactMenuView: View {
                     Divider()
                     Button("Quit \(Bundle.main.appDisplayName)") { NSApp.terminate(nil) }
                 } label: {
-                    Image(systemName: "ellipsis").frame(width: 26, height: 24)
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(width: 28, height: 28)
+                        .background(optionsHovered ? Theme.Colors.rowHover : .clear,
+                            in: RoundedRectangle(cornerRadius: Theme.Radius.barControl))
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .fixedSize()
                 .accessibilityLabel("App options")
+                .onHover { optionsHovered = $0 }
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 10)
-            .padding(.bottom, 6)
+            .padding(.leading, 16)
+            .padding(.trailing, 10)
+            .frame(height: 42)
             if core.dictation.isBusy {
                 HStack(spacing: 10) {
                     Image(systemName: core.dictation.session.isRecording ? "waveform" : "ellipsis").foregroundStyle(.red)
@@ -34,7 +42,7 @@ struct CompactMenuView: View {
                         Button("Stop") { core.dictation.toggleRecording() }.controlSize(.small)
                     }
                     Button("Cancel") { core.dictation.cancelRecording() }.controlSize(.small)
-                }.padding(.horizontal, 14).padding(.vertical, 10)
+                }.padding(.horizontal, 16).padding(.vertical, 10)
             }
             if core.mediaImport.state.isImporting {
                 HStack(spacing: 10) {
@@ -44,7 +52,7 @@ struct CompactMenuView: View {
                     Spacer()
                     Button("Cancel") { core.mediaImport.state.cancelImport() }.controlSize(.small)
                 }
-                .padding(.horizontal, 14).padding(.vertical, 10)
+                .padding(.horizontal, 16).padding(.vertical, 10)
             }
             if core.settings.notificationsEnabled {
                 Button {
@@ -54,22 +62,34 @@ struct CompactMenuView: View {
                         Image(systemName: "bell").frame(width: 22)
                         Text("Notifications").font(.system(size: 12, weight: .medium))
                         Spacer()
-                        Text(core.notifications.unread == 0 ? "No unread" : "\(core.notifications.unread) unread")
-                            .font(.system(size: 10)).foregroundStyle(.secondary)
+                        if core.notifications.unread > 0 {
+                            Text("\(core.notifications.unread)")
+                                .font(.system(size: 11)).monospacedDigit()
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
                         Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
                     }
-                    .contentShape(Rectangle())
+                    .padding(.horizontal, 8)
+                    .frame(height: 40)
+                    .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.barControl))
+                    .background(notificationsHovered ? Theme.Colors.rowHover : .clear,
+                        in: RoundedRectangle(cornerRadius: Theme.Radius.barControl))
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 14).padding(.vertical, 10)
+                .onHover { notificationsHovered = $0 }
+                .padding(.horizontal, 8)
             }
             if core.settings.networkEnabled {
                 NetworkMenuSection(network: core.network) {
                     perform { core.settingsCoordinator.showSettings(tab: .network) }
                 }
-                Divider().padding(.horizontal, 12).padding(.bottom, 6)
             }
-            HStack(spacing: 5) {
+            if core.dictation.isBusy || core.mediaImport.state.isImporting
+                || core.settings.notificationsEnabled || core.settings.networkEnabled {
+                Rectangle().fill(Theme.Colors.separator).frame(height: 0.5)
+                    .padding(.horizontal, 16).padding(.top, 6)
+            }
+            HStack(spacing: 4) {
                 if core.settings.launcherEnabled {
                     action("Launcher", symbol: "square.grid.2x2") { core.paletteCoordinator.showPalette(mode: .launcher) }
                 }
@@ -86,34 +106,50 @@ struct CompactMenuView: View {
                     action("Media Import", symbol: "externaldrive.badge.plus") { core.mediaImport.show() }
                 }
                 Spacer(minLength: 0)
-                Button {
-                    core.settings.typingSoundsEnabled.toggle()
-                } label: {
-                    Image(systemName: core.settings.typingSoundsEnabled ? "speaker.wave.2" : "speaker.slash")
-                        .frame(width: 34, height: 32)
-                        .foregroundStyle(core.settings.typingSoundsEnabled ? Color.accentColor : .secondary)
-                }
-                .help("Typing Sounds")
-                .accessibilityLabel("Typing Sounds")
+                ActionButton(
+                    title: "Typing Sounds",
+                    symbol: core.settings.typingSoundsEnabled ? "speaker.wave.2" : "speaker.slash",
+                    selected: core.settings.typingSoundsEnabled
+                ) { core.settings.typingSoundsEnabled.toggle() }
                 .accessibilityValue(core.settings.typingSoundsEnabled ? "On" : "Off")
                 action("Settings", symbol: "gearshape") { core.settingsCoordinator.showSettings() }
             }
-            .buttonStyle(.borderless)
-            .padding(.horizontal, 9)
-            .padding(.bottom, 9)
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
         }
         .frame(width: 320)
         .fixedSize(horizontal: true, vertical: true)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.primary.opacity(0.1)))
+        .background(HUDGlassBackground().allowsHitTesting(false))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Size.floatingRadius, style: .continuous))
     }
 
     private func action(_ title: String, symbol: String, run: @escaping () -> Void) -> some View {
-        Button { perform(run) } label: {
-            Image(systemName: symbol).frame(width: 34, height: 32)
+        ActionButton(title: title, symbol: symbol) { perform(run) }
+    }
+
+    private struct ActionButton: View {
+        let title: String
+        let symbol: String
+        var selected = false
+        let run: () -> Void
+        @State private var hovered = false
+
+        var body: some View {
+            Button(action: run) {
+                Image(systemName: symbol)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(selected ? Color.accentColor : Theme.Colors.textSecondary)
+                    .frame(width: 34, height: 34)
+                    .background(selected ? Theme.Colors.selection : hovered ? Theme.Colors.rowHover : .clear,
+                        in: RoundedRectangle(cornerRadius: Theme.Radius.barControl))
+                    .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.barControl))
+            }
+            .buttonStyle(.plain)
+            .onHover { hovered = $0 }
+            .help(title)
+            .accessibilityLabel(title)
         }
-        .help(title)
-        .accessibilityLabel(title)
     }
 
     private func perform(_ action: () -> Void) {

@@ -110,6 +110,7 @@
 		1F112DF9867710D62D677278 /* ChatCitations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FB9664C34C189917B94824B /* ChatCitations.swift */; };
 		1F9C5F110D0EB0EDBCE49BD6 /* AIInstructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0FC2930140490A9B0A3435 /* AIInstructions.swift */; };
 		203E4B37781831EB659AF728 /* SpaceSwipeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497792704E4CE350FC2AAFE4 /* SpaceSwipeMonitor.swift */; };
+		211087D7E44FAA308D8C1CFA /* HUDGlassBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A248B44847955CFE01F27E /* HUDGlassBackground.swift */; };
 		214A2407A071118AACAC506A /* AIChatWindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BDBD5908644912430BA990 /* AIChatWindowChrome.swift */; };
 		2157E4D3F13D25A96E2B8404 /* AIEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B56150E01462EFCDE74367 /* AIEmptyState.swift */; };
 		218475D5D2BB8253C13263FB /* SettingsFileMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6203D81EC9F250D11744A55C /* SettingsFileMonitor.swift */; };
@@ -1608,6 +1609,7 @@
 		D81270C047FC8B08F204BE2F /* TypingSoundsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingSoundsSettingsView.swift; sourceTree = "<group>"; };
 		D84ABDE9F1AC36627DCEE33D /* RoomSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomSession.swift; sourceTree = "<group>"; };
 		D883C3C4C034D5807FEC5C2B /* WindowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayout.swift; sourceTree = "<group>"; };
+		D8A248B44847955CFE01F27E /* HUDGlassBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDGlassBackground.swift; sourceTree = "<group>"; };
 		D8AC8FC07852B34FC1F53E5B /* PlainTextSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainTextSurface.swift; sourceTree = "<group>"; };
 		D908D3442356750F137E75E7 /* ChatGPTSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTSubscription.swift; sourceTree = "<group>"; };
 		D9A56F7D87E226F2963FEEA7 /* ExtensionMenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionMenuBarManager.swift; sourceTree = "<group>"; };
@@ -1957,6 +1959,7 @@
 				C90BBE63B766AE8AE435EB6E /* ColorDot.swift */,
 				00499144E448F92F7D2125ED /* EntryIconView.swift */,
 				A464D47851F35E060C423933 /* GlassEffectView.swift */,
+				D8A248B44847955CFE01F27E /* HUDGlassBackground.swift */,
 				61FA3B05DD8CBDE9A630D20F /* InlineArgumentFields.swift */,
 				FB55324C0DC7220EB150D262 /* InterfaceMetrics.swift */,
 				9F57E55FD82B1BD3EB685EC6 /* KeyCapChip.swift */,
@@ -4304,6 +4307,7 @@
 				AE942E8298EB13AE8497EC4A /* GeneralSettingsView.swift in Sources */,
 				ED02E635FF683D6447963660 /* GlassEffectView.swift in Sources */,
 				67687E516E80F0BDDB19B628 /* HTTPAIProvider.swift in Sources */,
+				211087D7E44FAA308D8C1CFA /* HUDGlassBackground.swift in Sources */,
 				A2593B38371E2E315052CF51 /* HUDPanel.swift in Sources */,
 				767DA4A638A547D34DADBBAE /* HUDPresenter.swift in Sources */,
 				4325454F355A7729D2597CF8 /* HealthTicker.swift in Sources */,
@@ -4855,7 +4859,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 28;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
@@ -4923,7 +4927,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 28;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = X44F5HTS6P;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -14,7 +14,7 @@ The unified launcher is 620 points wide, matching Command-Tab, with search and r
 Launcher and clipboard use Tabbie's glass treatment: active within-window HUD material, an 18%
 window-background tint, a 14% white one-point border, and scaled 16-point corners. Search and results share one
 material view and outer border, with a subtle inset divider below search. Reduce Transparency uses the
-window-background material and a 96% tint. `PaletteBackdrop` owns these surfaces.
+window-background material and a 96% tint. `HUDGlassBackground` supplies the same surface to the palette and menu-bar popover.
 Its height follows the result count up to ten visible rows. Clipboard is a scoped mode in the same
 panel, 620 points wide: a 260-point list and a text/image preview. Clipboard rows show only a small
 source application icon at the trailing edge; unknown sources leave no icon. Other modes retain the
@@ -56,6 +56,19 @@ Five load-bearing ideas, in priority order:
 5. **Consistent materials.** Launcher and clipboard use Tabbie HUD glass; other surfaces keep their existing materials.
 
 ---
+
+## Menu-bar popover
+
+The 320-point menu uses `HUDGlassBackground`, matching the launcher and clipboard material,
+tint, border, 16-point corners and Reduce Transparency treatment. The header is 42 points high;
+its app options button remains quiet until hovered. Feature actions stay in one icon strip with
+34-point targets, 4-point gaps and 12-point outer padding. Typing Sounds keeps a selected fill
+while enabled. Tooltips and accessibility labels identify every icon; shortcut labels are omitted.
+
+Notifications and Network use matching inset hover rows. An unread count appears only when nonzero.
+Recording and import controls retain their live status and cancellation actions. An inset divider
+separates visible status rows from the action strip; an idle menu has no empty status section.
+Opening the menu clears control focus. Tab navigation can still focus its controls with a visible ring.
 
 ## Non-negotiable invariants
 

@@ -54,6 +54,7 @@ final class CompactMenuController: NSObject, NSWindowDelegate {
         }
         resize(height: panel?.frame.height ?? 100)
         panel?.makeKeyAndOrderFront(nil)
+        panel?.makeFirstResponder(nil)
         clickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             Task { @MainActor [weak self] in self?.close() }
         }

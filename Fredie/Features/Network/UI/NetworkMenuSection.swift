@@ -4,6 +4,7 @@ struct NetworkMenuSection: View {
     let network: NetworkCoordinator
     let open: () -> Void
     @State private var expanded = false
+    @State private var hovered = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -23,9 +24,14 @@ struct NetworkMenuSection: View {
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 9)).foregroundStyle(.tertiary)
                 }
-                .contentShape(Rectangle())
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.barControl))
+                .background(hovered ? Theme.Colors.rowHover : .clear,
+                    in: RoundedRectangle(cornerRadius: Theme.Radius.barControl))
             }
             .buttonStyle(.plain)
+            .onHover { hovered = $0 }
             .accessibilityLabel("Network, \(network.status)")
             .accessibilityValue(expanded ? "Expanded" : "Collapsed")
             if expanded {
@@ -37,12 +43,14 @@ struct NetworkMenuSection: View {
                         Text(NetworkCoordinator.bytes(usage.traffic.total)).monospacedDigit().foregroundStyle(.secondary)
                     }
                     .font(.system(size: 11))
+                    .padding(.horizontal, 8)
                 }
                 Button("All usage…", action: open).buttonStyle(.link).font(.system(size: 11))
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, 8)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .padding(.bottom, expanded ? 8 : 0)
     }
 }
