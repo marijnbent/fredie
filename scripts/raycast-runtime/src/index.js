@@ -1,4 +1,4 @@
-// Entry point. Installs the polyfills and the module registry, then exposes `__fredie` — the only
+// Entry point. Installs the polyfills and the module registry, then exposes `__ollie` — the only
 // thing Swift calls into.
 
 import "./polyfills.js";
@@ -36,7 +36,7 @@ defineModule("@raycast/api", raycastApi);
 // react-dom only appears in bundles defensively; make the import resolve and the calls explain.
 defineModule("react-dom", {
   render: () => {
-    throw new Error("react-dom is not available — Fredie renders extensions natively.");
+    throw new Error("react-dom is not available — Ollie renders extensions natively.");
   },
   createPortal: (children) => children,
   flushSync: (fn) => fn?.(),
@@ -86,11 +86,11 @@ class Session {
 
 
 const hostCalls = {
-  render: (sessionId, json) => globalThis.__fredieHost.render(sessionId, json),
-  failed: (sessionId, message) => globalThis.__fredieHost.failed(sessionId, message),
+  render: (sessionId, json) => globalThis.__ollieHost.render(sessionId, json),
+  failed: (sessionId, message) => globalThis.__ollieHost.failed(sessionId, message),
   navigationDepthChanged: (sessionId, depth) =>
-    globalThis.__fredieHost.navigationDepthChanged(sessionId, String(depth)),
-  finished: (sessionId) => globalThis.__fredieHost.finished(sessionId),
+    globalThis.__ollieHost.navigationDepthChanged(sessionId, String(depth)),
+  finished: (sessionId) => globalThis.__ollieHost.finished(sessionId),
 };
 
 setUncaughtHandler((error) => {
@@ -105,10 +105,10 @@ setUncaughtHandler((error) => {
 });
 
 setFieldCommandHandler((command, fieldId) => {
-  globalThis.__fredieHost.fieldCommand(String(command), String(fieldId ?? ""));
+  globalThis.__ollieHost.fieldCommand(String(command), String(fieldId ?? ""));
 });
 
-globalThis.__fredie = {
+globalThis.__ollie = {
   /// Called once, before any command runs.
   boot(configJson) {
     const config = JSON.parse(configJson);

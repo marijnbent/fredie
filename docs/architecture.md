@@ -1,6 +1,6 @@
 # Architecture
 
-How Fredie is wired together. Per-feature internals live in [features/](README.md#features);
+How Ollie is wired together. Per-feature internals live in [features/](README.md#features);
 conventions for writing new code live in [standards.md](standards.md).
 
 ## The layering
@@ -112,7 +112,7 @@ New long-lived state belongs on `AppCore`, wired in `start()`. Do not create a c
 
 ## Entry points and windows
 
-`FredieApp` (`@main`) owns the application commands and the optional calendar `MenuBarExtra`.
+`OllieApp` (`@main`) owns the application commands and the optional calendar `MenuBarExtra`.
 `CompactMenuController`, owned by `AppCore`, owns Ollie’s primary status item and its nonactivating
 SwiftUI-backed AppKit panel. The status item stays available when the launcher is disabled.
 The unified feature coordinators also belong to `AppCore`; see [Ollie](ollie.md).
@@ -139,7 +139,7 @@ Extension menu extras remain owned by `ExtensionManager`.
   `NSSplitViewController` with a collapsible sidebar of saved chats beside the open conversation, as
   Settings is built. The conversation lives on `AppCore.aiChats`, not the window, so closing it cancels
   nothing. Quick AI is the same feature's palette screen. See [features/ai.md](features/ai.md).
-- **The main menu** — shaped by `FredieApp`'s `.commands`, which rebinds ⌘Q to Close Window: the AI
+- **The main menu** — shaped by `OllieApp`'s `.commands`, which rebinds ⌘Q to Close Window: the AI
   Chat window when it is key, otherwise Settings. It is only ever on screen while a titled window is
   open, so it is those windows' menu bar. It must stay declarative.
 - **Dialogs** — borderless `DialogPanel`s driven by `DialogController`, the app's only presenter for
@@ -206,7 +206,7 @@ The folder layout is the layering above, made navigable — one folder per featu
 everything that feature owns.
 
 ```
-Fredie/
+Ollie/
   App/              @main, AppDelegate, AppCore — the composition root
   DesignSystem/     Theme (the token source), KeyCapChip, Tooltip, SymbolImage,
                     GlassEffectView, PopoverMenu, SettingsComponents, Scrolling/, Interaction/

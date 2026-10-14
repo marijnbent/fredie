@@ -21,26 +21,26 @@ Use the existing Apple Development identity configured in `release/Release.plist
 ## Build & run
 
 ```sh
-open Fredie.xcodeproj    # then ⌘R
+open Ollie.xcodeproj    # then ⌘R
 ```
 
 Or from the command line:
 
 ```sh
-xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug build
+xcodebuild -project Ollie.xcodeproj -scheme Ollie -configuration Debug build
 ```
 
 `xcodebuild` uses whatever `xcode-select` points at; if that's the Command Line Tools rather than
 Xcode, prefix with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (the SwiftUI
 `@State`/`@FocusState` macros need Xcode's macOS platform).
 
-`Fredie.xcodeproj` is committed and generated from `project.yml` via XcodeGen — after changing
+`Ollie.xcodeproj` is committed and generated from `project.yml` via XcodeGen — after changing
 project settings in `project.yml`, run `xcodegen generate` and commit the result. There is no
 `Package.swift`, and `Bundle.module` must never be used.
 
 ### The dev channel
 
-Debug builds are a separate channel: **`Fredie Dev.app`**, bundle id `nl.bentjes.fredie.dev`. Every
+Debug builds are a separate channel: **`Ollie Dev.app`**, bundle id `nl.bentjes.fredie.dev`. Every
 persisted thing is keyed by bundle id — `~/Library/Preferences/<id>.plist` (settings and hotkey
 bindings), `~/Library/Application Support/<id>/` (the onboarding marker, Notes, quicklinks,
 calculator history, launch ranking and frequent emoji; Notes unless
@@ -72,14 +72,14 @@ and the flag database:
 
 ```sh
 brew install xcode-build-server
-xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug \
-    -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/fredie-build.log
-./scripts/sync-lsp.sh /tmp/fredie-build.log
+xcodebuild -project Ollie.xcodeproj -scheme Ollie -configuration Debug \
+    -derivedDataPath build/DerivedData build 2>&1 | tee /tmp/ollie-build.log
+./scripts/sync-lsp.sh /tmp/ollie-build.log
 ```
 
 Both files are git-ignored because they embed absolute paths, and `sourcekit-lsp` looks for
 `buildServer.json` at the workspace root by name, so it cannot live in a subfolder. After this the
-**Build Fredie.app (debug)** task (⌘⇧B) and **F5** re-run the script on every build, so new and
+**Build Ollie.app (debug)** task (⌘⇧B) and **F5** re-run the script on every build, so new and
 renamed files keep resolving.
 
 **Do not run `xcode-build-server config`.** It writes `kind: xcode`, and in that mode the server ignores
@@ -129,7 +129,7 @@ The comment policy in [standards.md](standards.md#comments) is deliberately not 
 ## Formatting
 
 ```sh
-./scripts/format.sh            # format Fredie/ and Tests/ in place
+./scripts/format.sh            # format Ollie/ and Tests/ in place
 ./scripts/format.sh --check    # report what would change, write nothing (exit 1 if any)
 ```
 
@@ -165,10 +165,10 @@ Three Swift files are emitted by scripts and must never be hand-edited. Each dow
 run them online, then commit the result:
 
 ```sh
-node scripts/gen-emoji.js            # -> Fredie/Features/Emoji/Model/EmojiData.generated.swift
-                                     #    + Fredie/Resources/EmojiKeywords/<language>.txt
-node scripts/gen-currencies.js       # -> Fredie/Features/Calculator/Model/CurrencyData.generated.swift
-node scripts/gen-countries.js        # -> Fredie/Features/Calculator/Model/CountryZoneData.generated.swift
+node scripts/gen-emoji.js            # -> Ollie/Features/Emoji/Model/EmojiData.generated.swift
+                                     #    + Ollie/Resources/EmojiKeywords/<language>.txt
+node scripts/gen-currencies.js       # -> Ollie/Features/Calculator/Model/CurrencyData.generated.swift
+node scripts/gen-countries.js        # -> Ollie/Features/Calculator/Model/CountryZoneData.generated.swift
 ```
 
 `gen-emoji.js` also writes one CLDR keyword pack per language in its `KEYWORD_LOCALES`; adding a

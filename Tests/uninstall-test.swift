@@ -9,7 +9,7 @@ struct UninstallTests {
 
     static let home = "/Users/tester"
     static let ownBundleID = "nl.bentjes.fredie"
-    static let ownBundleURL = URL(fileURLWithPath: "/Applications/Fredie.app")
+    static let ownBundleURL = URL(fileURLWithPath: "/Applications/Ollie.app")
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
         if condition() {
@@ -300,20 +300,20 @@ struct UninstallTests {
     static func testIdentityRefusal() {
         let byID = UninstallTarget(
             bundleURL: URL(fileURLWithPath: "/Applications/Somewhere Else.app"),
-            bundleID: "nl.bentjes.fredie", displayName: "Fredie", bundleName: nil)
+            bundleID: "nl.bentjes.fredie", displayName: "Ollie", bundleName: nil)
         expect(
             UninstallIdentity.make(
                 target: byID, otherAppNames: [], ownBundleID: ownBundleID,
                 ownBundleURL: ownBundleURL) == nil,
-            "Fredie refuses to plan its own uninstall by bundle ID")
+            "Ollie refuses to plan its own uninstall by bundle ID")
 
         let dev = UninstallTarget(
-            bundleURL: URL(fileURLWithPath: "/Applications/Fredie Dev.app"),
-            bundleID: "nl.bentjes.fredie.dev", displayName: "Fredie Dev", bundleName: nil)
+            bundleURL: URL(fileURLWithPath: "/Applications/Ollie Dev.app"),
+            bundleID: "nl.bentjes.fredie.dev", displayName: "Ollie Dev", bundleName: nil)
         expect(
             UninstallIdentity.make(
                 target: dev, otherAppNames: [], ownBundleID: "nl.bentjes.fredie.dev",
-                ownBundleURL: URL(fileURLWithPath: "/Applications/Fredie Dev.app")) == nil,
+                ownBundleURL: URL(fileURLWithPath: "/Applications/Ollie Dev.app")) == nil,
             "the Dev channel refuses itself too — the check is against the running identity")
         expect(
             UninstallIdentity.make(

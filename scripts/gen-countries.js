@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generate Fredie/Features/Calculator/Model/CountryZoneData.generated.swift.
+// Generate Ollie/Features/Calculator/Model/CountryZoneData.generated.swift.
 //
 // Usage: node scripts/gen-countries.js [zone.tab cldr-territories.json]
 // Downloads the sources when paths aren't given. Run occasionally, commit the output.
@@ -116,7 +116,7 @@ async function main() {
   const out = path.resolve(
     __dirname,
     "..",
-    "Fredie/Features/Calculator/Model/CountryZoneData.generated.swift",
+    "Ollie/Features/Calculator/Model/CountryZoneData.generated.swift",
   );
   fs.writeFileSync(
     out,

@@ -1,9 +1,11 @@
 # Ollie integration
 
-Ollie is the temporary product name for the unified native app. The Xcode project, target, scheme,
-repository, stable bundle identifier (`nl.bentjes.fredie`), existing defaults, and URL scheme remain
-Fredie’s. Debug and the rendering harness have separate bundle identifiers and data directories.
-Mailie is excluded.
+Ollie is the unified native app. Its folder, source directory, Xcode project, target, scheme,
+repository, URL scheme (`ollie://`), and backup format name (`.ollie`) use Ollie.
+The stable bundle identifier (`nl.bentjes.fredie`) and its channel suffixes remain the internal
+system identity. Existing defaults, Application Support and caches, Keychain services, permissions,
+login registration, and the `~/.config/fredie/settings.json` mirror retain their data identity.
+Debug and the rendering harness have separate bundle identifiers and data directories. Mailie is excluded.
 
 ## Features and ownership
 
@@ -85,8 +87,7 @@ Network includes Nettie’s existing process traffic monitor, per-app usage, and
 It does not enforce network rules. The configured Personal Team cannot provision the required Network
 Extension capability; settings accurately show monitoring and inactive protection.
 
-The signed local release installs `/Applications/Ollie.app` and removes the previous Fredie bundle
-only after verifying the replacement. A failed open restores the previous installation. An enabled
+The signed local release installs `/Applications/Ollie.app` after verifying the replacement. A failed open restores the previous installation. An enabled
 login item is re-registered after a bundle move. The updater checks the existing repository, signing
 identity and bundle identifier, plus the unified-app marker, so an old launcher-only build cannot
 replace Ollie.

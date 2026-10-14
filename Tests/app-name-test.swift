@@ -5,7 +5,7 @@ struct AppNameTest {
     static func main() {
         let fm = FileManager.default
         let root = fm.temporaryDirectory
-            .appendingPathComponent("fredie-app-name-\(UUID().uuidString)")
+            .appendingPathComponent("ollie-app-name-\(UUID().uuidString)")
 
         var failures = 0
 

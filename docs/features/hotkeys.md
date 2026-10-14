@@ -62,7 +62,7 @@ System Settings panes use `boundPaneBundleIDs`; custom commands, quicklinks, win
 and custom window sizes use their stable UUIDs in `boundCustomCommandIDs`, `boundQuicklinkIDs`,
 `boundWindowLayoutIDs`, `boundWindowRoomIDs` and `boundCustomWindowSizeIDs`. Those five are the per-item case — unlike a fixed catalog, there is no `allCases` to walk — so each needs an index for `start()`
 to re-register from
-and to prune bindings whose record was deleted while Fredie wasn't running. That prune is why
+and to prune bindings whose record was deleted while Ollie wasn't running. That prune is why
 `QuicklinkStore` loads at launch even when the feature is off
 (see [quicklinks.md](quicklinks.md#hotkeys)).
 Apple Shortcuts keep the same kind of index in `boundAppleShortcutIDs`, pruned not at launch but after

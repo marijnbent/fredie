@@ -11,7 +11,7 @@ The mechanical bar, in one place so it cannot drift. All five pass before a chan
 | --- | --- |
 | The harnesses | `./scripts/run-tests.sh` |
 | Lint | `./scripts/lint.sh` |
-| Pure-layer purity | `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Fredie/Features/*/Model/` |
+| Pure-layer purity | `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Ollie/Features/*/Model/` |
 | A clean build | `xcodebuild … -configuration Debug CODE_SIGNING_ALLOWED=NO`, zero **new** warnings |
 | Docs still true | any doc your change made wrong, fixed in the same commit |
 
@@ -26,10 +26,10 @@ what you touched.
 ./scripts/run-tests.sh calc-test    # just one, while iterating
 ```
 
-The suite runs four harnesses at a time by default to reduce CPU usage. `FREDIE_TEST_JOBS` overrides
-that limit; `FREDIE_TEST_JOBS=1` runs one at a time. Each result is numbered
+The suite runs four harnesses at a time by default to reduce CPU usage. `OLLIE_TEST_JOBS` overrides
+that limit; `OLLIE_TEST_JOBS=1` runs one at a time. Each result is numbered
 against the total and shows its run and compile time, a quiet stretch names the harnesses still running, and a harness that runs longer
-than `FREDIE_TEST_TIMEOUT` seconds (default 300) is killed and reported as timed out. Parallelism is safe
+than `OLLIE_TEST_TIMEOUT` seconds (default 300) is killed and reported as timed out. Parallelism is safe
 because each harness already roots its scratch state somewhere of its own — a UUID-suffixed
 `temporaryDirectory`, a `UserDefaults(suiteName:)`, or `NSPasteboard.withUniqueName()` — and a new
 harness must keep doing that rather than reach for a fixed path.
@@ -128,7 +128,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `updates-test` | `Updates/Model/` — version precedence, channel filtering, install route, readiness |
 | `update-check-test` | `UpdateCheckStore` — stopping, in-flight cancellation, cached prompt suppression, restart and independent manual checking |
 | `support-test` | `Support/Model/` — when the support reminder comes due, and a clock moved backwards |
-| `mcp-test` | `MCP/Model/` and `MCPSettingsStore` — JSON-RPC framing, handles, tool names, output flattening, trust, `@server` addressing, the shape a vendor CLI is handed, and which servers Fredie leaves to that CLI |
+| `mcp-test` | `MCP/Model/` and `MCPSettingsStore` — JSON-RPC framing, handles, tool names, output flattening, trust, `@server` addressing, the shape a vendor CLI is handed, and which servers Ollie leaves to that CLI |
 | `mcp-stdio-test` | `MCP/Service/` against a stub server — handshake, listing, calling, and every way one can go away |
 | `mcp-oauth-test` | OAuth parsing, RFC 7636 PKCE, discovery and resource binding, loopback callback validation/cancellation, dynamic registration, supplied client credentials and their token-endpoint authentication, Keychain token rotation, concurrent refresh, the wider margin for a token lent to a CLI, redirects and one-retry 401 handling |
 
@@ -154,7 +154,7 @@ same commit with the reason in the message.
 The layering rule reduces to one grep, and it must return nothing:
 
 ```sh
-grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Fredie/Features/*/Model/
+grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Ollie/Features/*/Model/
 ```
 
 Beyond the imports, the injected-environment half is not mechanically checkable, so it is worth an eye
@@ -175,11 +175,11 @@ A clean build is part of the bar; nothing builds the app for you, so this is on 
 
 ```sh
 xcodegen generate                 # only after editing project.yml
-xcodebuild build -project Fredie.xcodeproj -scheme Fredie -configuration Debug \
+xcodebuild build -project Ollie.xcodeproj -scheme Ollie -configuration Debug \
   CODE_SIGNING_ALLOWED=NO
-xcodebuild build -project Fredie.xcodeproj -scheme Fredie -configuration Release \
+xcodebuild build -project Ollie.xcodeproj -scheme Ollie -configuration Release \
   CODE_SIGNING_ALLOWED=NO
-find ~/Library/Developer/Xcode/DerivedData -name "Fredie*.app" -maxdepth 6 -print -quit
+find ~/Library/Developer/Xcode/DerivedData -name "Ollie*.app" -maxdepth 6 -print -quit
 ```
 
 - Zero **new** warnings. Pre-existing ones are not your problem; new ones are.
@@ -205,7 +205,7 @@ search result that navigates and then sits there.
 
 ## Performance measurement
 
-With General > Diagnostics enabled, `Platform/Signposts.swift` emits eight intervals on the `nl.bentjes.fredie.perf` subsystem: `AppCore.start`,
+With General > Diagnostics enabled, `Platform/Signposts.swift` emits eight intervals on the `nl.bentjes.ollie.perf` subsystem: `AppCore.start`,
 `AppIndex.scan`, `AppIndex.rank`, `PaletteWindowController.show`, `UninstallScanner.discover` and
 `UninstallScanner.measure`, `FileSearchService.search`, and `Notes.search`. Open the Time Profiler or
 `os_signpost` instrument in Instruments and filter to that subsystem; nothing needs recompiling.
@@ -217,10 +217,10 @@ file resolves. Keep the entry's source list matching the command beside it.
 Run the real Spotlight-backed file-search benchmark separately from the deterministic harnesses:
 
 ```sh
-swiftc -O -swift-version 6 Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
-    Fredie/Features/Launcher/Model/SearchRelevance.swift \
-    Fredie/Features/FileSearch/Model/*.swift \
-    Fredie/Features/FileSearch/Service/FileSearchService.swift \
+swiftc -O -swift-version 6 Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
+    Ollie/Features/Launcher/Model/SearchRelevance.swift \
+    Ollie/Features/FileSearch/Model/*.swift \
+    Ollie/Features/FileSearch/Service/FileSearchService.swift \
     Tests/file-search-performance.swift -o /tmp/file-search-performance
 /tmp/file-search-performance
 ```
@@ -232,7 +232,7 @@ The calculator benchmark is deterministic — an injected clock, calendar and ra
 timing harness rather than an assertion one, and stays out of `run-tests.sh` for that reason:
 
 ```sh
-swiftc -O -swift-version 6 Fredie/Features/Calculator/Model/*.swift \
+swiftc -O -swift-version 6 Ollie/Features/Calculator/Model/*.swift \
     Tests/calc-performance.swift -o /tmp/calc-performance
 /tmp/calc-performance          # µs per query, by grammar
 /tmp/calc-performance --probe  # every answer as JSON, to diff two builds
@@ -249,9 +249,9 @@ missing from its own top five results, and `--languages fr,ja` loads those keywo
 from the repo root):
 
 ```sh
-swiftc -O -swift-version 6 Fredie/Features/Emoji/Model/{EmojiCatalog,EmojiData.generated}.swift \
-    Fredie/Features/Emoji/Service/{EmojiIndex,FrequentEmojiStore}.swift \
-    Fredie/Features/Launcher/Model/SearchRelevance.swift Fredie/Platform/{AppPaths,Memo}.swift \
+swiftc -O -swift-version 6 Ollie/Features/Emoji/Model/{EmojiCatalog,EmojiData.generated}.swift \
+    Ollie/Features/Emoji/Service/{EmojiIndex,FrequentEmojiStore}.swift \
+    Ollie/Features/Launcher/Model/SearchRelevance.swift Ollie/Platform/{AppPaths,Memo}.swift \
     Tests/emoji-search-performance.swift -o /tmp/emoji-search-performance
 /tmp/emoji-search-performance --names
 /tmp/emoji-search-performance --languages fr,ja
@@ -263,10 +263,10 @@ the end, middle and start, and a caret move between distant lines. The budget is
 middle) and 4 ms:
 
 ```sh
-N=Fredie/Features/Notes
-swiftc -O -swift-version 6 Fredie/Platform/{Diagnostics,Signposts,Appearance,NotificationToken}.swift \
-    Fredie/DesignSystem/{Theme,InterfaceMetrics}.swift \
-    Fredie/Features/TextInjection/Service/InjectableTextView.swift \
+N=Ollie/Features/Notes
+swiftc -O -swift-version 6 Ollie/Platform/{Diagnostics,Signposts,Appearance,NotificationToken}.swift \
+    Ollie/DesignSystem/{Theme,InterfaceMetrics}.swift \
+    Ollie/Features/TextInjection/Service/InjectableTextView.swift \
     $N/Model/{NoteDocument,NoteMarkdown,NoteMarkdownParser,NoteInlineScanner}.swift \
     $N/Model/{NoteEditPlan,NoteEditAction,NoteFormatting,NoteMarkdownEditing,NoteRevealPolicy}.swift \
     $N/UI/{NoteMarkdownTypography,NoteBlockDecoration,NoteMarkdownStyler,NoteMarkdownRenderer}.swift \
@@ -305,7 +305,7 @@ There is no UI test suite, so this is it. Run the core sweep for any change that
 run the scoped section for whatever feature you touched. Budget about five minutes plus three per
 section.
 
-Run against the **Debug channel** (`Fredie Dev.app`, `nl.bentjes.fredie.dev`). It has its own prefs,
+Run against the **Debug channel** (`Ollie Dev.app`, `nl.bentjes.fredie.dev`). It has its own prefs,
 caches, TCC grants and login item, so this cannot disturb an installed copy.
 
 ### Core
@@ -399,7 +399,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - A row's hotkey runs it with the palette closed; switching the feature off silences it
 - Unchecking a row hides it from search, and its hotkey still fires
 - Deleting a shortcut in Shortcuts frees its alias and hotkey on the next launcher open
-- A shortcut that fails shows Fredie's dialog with the tool's error
+- A shortcut that fails shows Ollie's dialog with the tool's error
 
 ### File Search
 
@@ -441,7 +441,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   autosave — in the browse list; naming it replaces that, and clearing the name brings it back
 - Inline rename updates the Markdown filename without changing source, and starts from that filename
   even where the row shows a derived title; collisions receive a suffix
-- Delete confirms through Fredie, moves the file to Trash, and selecting another note never loses an
+- Delete confirms through Ollie, moves the file to Trash, and selecting another note never loses an
   unsaved edit
 - An existing `Floating Note.md` appears as an ordinary note without conversion
 - A note using every construct renders in Dark and Light: sized headings, emphasis, strikethrough,
@@ -516,7 +516,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Dragging the title bar moves the window and dragging an edge resizes it; both survive relaunch
 - Clicking another app leaves the panel visible; Escape, Command-W, and the red light hide it
 - Command-Q does nothing anywhere; with Settings in front, Command-W closes Settings
-- Hiding restores the previous external app or Fredie window
+- Hiding restores the previous external app or Ollie window
 - Open Notes Folder opens Finder with the active Markdown file selected, or the folder with no note
 - Hide a saved checklist, reset its boxes in another editor, and reopen: the boxes match the file
 - Reopen an unchanged note: Undo still works; an external content change starts fresh history
@@ -556,7 +556,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Two upcoming meetings with titles in reverse alphabetical order appear earliest first in the
   launcher's Meetings section and the `Meetings` category listing, even after opening the later one
 - Import a backup taken with Calendar on: it comes back **off**, and no calendar toggle travels
-- Calendar in Menu Bar on Disabled: the calendar item is gone and Fredie's own item is unaffected;
+- Calendar in Menu Bar on Disabled: the calendar item is gone and Ollie's own item is unaffected;
   turning `Show in menu bar` off leaves an enabled calendar item in place, and both off leaves neither
 - On Meeting Title with Show Upcoming Events at 5 minutes, the title and countdown appear at T-5 and
   step on the minute boundary, not on a keystroke
@@ -636,7 +636,7 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Disabling Launcher from Features keeps Settings in front and removes Applications and Emoji;
   enabling it restores those panes. Leave the switch in its original state after testing.
 - A feature switch takes effect in the launcher immediately; every setting survives relaunch
-- Export produces a `.fredie`; import applies it and reports a per-category summary
+- Export produces a `.ollie`; import applies it and reports a per-category summary
 - Untick a category on export, and the import picker greys that row out rather than offering it
 - Untick a category on **import** and confirm it did not arrive, while the ticked ones did
 - A file whose `manifest.json` `format` was hand-edited is refused **with a message naming it**

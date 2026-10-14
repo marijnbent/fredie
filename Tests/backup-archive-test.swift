@@ -2,7 +2,7 @@ import AppleArchive
 import Foundation
 import System
 
-/// Compiles the shipped bundle and archive layer, so a `.fredie` can't quietly change shape.
+/// Compiles the shipped bundle and archive layer, so a `.ollie` can't quietly change shape.
 @main
 @MainActor
 struct BackupArchiveTest {
@@ -60,7 +60,7 @@ struct BackupArchiveTest {
             counts: ["notes": 1])
         try? bundle.writeManifest(manifest)
 
-        let archive = root.appendingPathComponent("out.fredie")
+        let archive = root.appendingPathComponent("out.ollie")
         let opened = root.appendingPathComponent("open")
         do {
             try BackupArchive.seal(directory: source, into: archive)
@@ -126,7 +126,7 @@ struct BackupArchiveTest {
     }
 
     static func rejectsGarbage(in root: URL) {
-        let file = root.appendingPathComponent("garbage.fredie")
+        let file = root.appendingPathComponent("garbage.ollie")
         try? Data("not an archive".utf8).write(to: file)
         let into = root.appendingPathComponent("garbage-out")
         do {
@@ -149,7 +149,7 @@ struct BackupArchiveTest {
     /// A hostile archive must not write outside the directory the caller chose.
     static func refusesTraversal(in root: URL) {
         // Header-by-header: `writeDirectoryContents` refuses to emit the `..` path we need here.
-        let archive = root.appendingPathComponent("evil.fredie")
+        let archive = root.appendingPathComponent("evil.ollie")
         let payload = Data("escaped".utf8)
         guard
             let destination = ArchiveByteStream.fileStream(
@@ -195,7 +195,7 @@ struct BackupArchiveTest {
 
     /// A link entry names no `..` at all, and reading through it would leave the extract.
     static func refusesSymbolicLinks(in root: URL) {
-        let archive = root.appendingPathComponent("linked.fredie")
+        let archive = root.appendingPathComponent("linked.ollie")
         guard
             let destination = ArchiveByteStream.fileStream(
                 path: FilePath(archive.path), mode: .writeOnly, options: [.create, .truncate],

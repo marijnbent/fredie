@@ -33,7 +33,7 @@ enum EmojiSearchBenchmark {
             .split(separator: ",").map(String.init) ?? []
         let index = EmojiIndex()
         let loadStart = ContinuousClock.now
-        await index.load(languages: languages, bundle: Bundle(path: "Fredie/Resources") ?? .main)
+        await index.load(languages: languages, bundle: Bundle(path: "Ollie/Resources") ?? .main)
         var output: [String: Any] = [
             "loaded": memory(), "load_ms": milliseconds(loadStart), "languages": languages
         ]

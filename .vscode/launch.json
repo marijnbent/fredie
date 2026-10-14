@@ -7,10 +7,10 @@
       // -derivedDataPath used by the build task.
       "type": "swift",
       "request": "launch",
-      "name": "Run Fredie Dev (bundled .app)",
-      "program": "${workspaceFolder}/build/DerivedData/Build/Products/Debug/Fredie Dev.app/Contents/MacOS/Fredie Dev",
+      "name": "Run Ollie Dev (bundled .app)",
+      "program": "${workspaceFolder}/build/DerivedData/Build/Products/Debug/Ollie Dev.app/Contents/MacOS/Ollie Dev",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Build Fredie.app (debug)"
+      "preLaunchTask": "Build Ollie.app (debug)"
     }
   ]
 }

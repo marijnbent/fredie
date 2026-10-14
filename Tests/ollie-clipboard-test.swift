@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-enum Paster { static let fredieEventTag: Int64 = 0x465245444945 }
+enum Paster { static let ollieEventTag: Int64 = 0x465245444945 }
 
 @main
 @MainActor

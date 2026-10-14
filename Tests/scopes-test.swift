@@ -5,7 +5,7 @@ struct ScopesTest {
     static func main() {
         let fm = FileManager.default
         let root = fm.temporaryDirectory
-            .appendingPathComponent("fredie-scopes-\(UUID().uuidString)")
+            .appendingPathComponent("ollie-scopes-\(UUID().uuidString)")
 
         var failures = 0
 

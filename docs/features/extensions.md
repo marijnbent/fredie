@@ -1,6 +1,6 @@
 # Raycast extensions
 
-Fredie runs Raycast extensions: the same `package.json` + prebuilt CommonJS bundles Raycast itself
+Ollie runs Raycast extensions: the same `package.json` + prebuilt CommonJS bundles Raycast itself
 produces, rendered natively into the palette. No Electron, no browser, no Node.js.
 
 - [How it works](#how-it-works) · [The JS runtime](#the-js-runtime) ·
@@ -42,7 +42,7 @@ produces, rendered natively into the palette. No Electron, no browser, no Node.j
 ## How it works
 
 A Raycast extension command is a **single prebuilt CommonJS file** that keeps `react`,
-`react/jsx-runtime`, `@raycast/api` and the Node built-ins external. Fredie supplies exactly those,
+`react/jsx-runtime`, `@raycast/api` and the Node built-ins external. Ollie supplies exactly those,
 runs the bundle, and renders the React tree it produces:
 
 ```
@@ -85,13 +85,13 @@ timers, `fetch`, `URL`, `URLSearchParams`, `Blob`/`File`/`FormData`, `DOMExcepti
 
 ## The JS runtime
 
-`Fredie/Resources/RaycastRuntime.generated.js` (~200 KB minified) is **generated and committed**, the
-same arrangement as `EmojiData.generated.swift`: building Fredie never needs Node. Sources live in
+`Ollie/Resources/RaycastRuntime.generated.js` (~200 KB minified) is **generated and committed**, the
+same arrangement as `EmojiData.generated.swift`: building Ollie never needs Node. Sources live in
 [`scripts/raycast-runtime/`](../../scripts/raycast-runtime):
 
 | File                                             | What it is                                                                                                             |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `src/index.js`                                   | the `__fredie` object Swift calls into (`boot`, `start`, `dispatch`, `popNavigation`, `settle`, `fireTimer`, `stop`) |
+| `src/index.js`                                   | the `__ollie` object Swift calls into (`boot`, `start`, `dispatch`, `popNavigation`, `settle`, `fireTimer`, `stop`) |
 | `src/host.js`                                    | the JS→Swift seam: async `hostCall`, blocking `hostCallSync`, logging                                                  |
 | `src/reconciler.js`                              | `react-reconciler` host config that commits into a JSON tree                                                           |
 | `src/api/components.js`                          | every `@raycast/api` component                                                                                         |
@@ -106,7 +106,7 @@ same arrangement as `EmojiData.generated.swift`: building Fredie never needs Nod
 Two host-call flavours:
 
 - **Async** (`invoke`) for anything that needs the main actor — clipboard, toasts, window control,
-  `fetch`, `exec`, `oauth`. Swift answers later through `__fredie.settle`, so the JS thread never blocks on the
+  `fetch`, `exec`, `oauth`. Swift answers later through `__ollie.settle`, so the JS thread never blocks on the
   UI.
 - **Blocking** (`invokeSync`) for the synchronous Node shims only — `fs.readFileSync`,
   `execSync`, `createHash`, `gunzipSync`. Safe because Swift services these entirely on the JS queue;
@@ -114,7 +114,7 @@ Two host-call flavours:
 
 ## The Swift host
 
-`Fredie/Features/Extensions/`, split the same way as every other feature:
+`Ollie/Features/Extensions/`, split the same way as every other feature:
 
 | File                                          | Role                                                                                                       |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -252,7 +252,7 @@ screens hold (see [palette.md](palette.md)).
   `ExtensionSearchAccessoryButton` at the header's trailing edge and drop `ExtensionPickerList` as one
   of the palette's `OpenMenu` cases, so the arrows, ↵, Escape and the click-away come from the one menu
   path and no second key handler exists to disagree with it. `PaletteFilterAction` routes ⌘P, so a
-  command's own dropdown answers before Fredie's clipboard filter can. The list is
+  command's own dropdown answers before Ollie's clipboard filter can. The list is
   `listWidth` (240) rather than a form picker's 360: it hangs off a chip, not a field.
   Its native search field sits above the choices and uses the palette menu's fuzzy matcher.
   **Swift owns the selection** — the runtime keeps `makeSearchDropdown` hook-free so an extension may
@@ -300,7 +300,7 @@ screens hold (see [palette.md](palette.md)).
   its `.task` on `ExtensionImage.LoadKey`, since the URL alone no longer says what will be drawn.
   The feature's own fills live in `ExtensionColors` — never in `Theme`.
 - **Form** — label-left/control-right rows. Field values live in the extension (React owns them); every
-  edit dispatches `onFredieChange` and the resulting re-render is what updates the control, so
+  edit dispatches `onOllieChange` and the resulting re-render is what updates the control, so
   `defaultValue`, a controlled `value`, and `ref.reset()` all behave. **A form takes the whole
   keyboard**: its fields _are_ the palette's rows, so the search field is hidden and the header left
   empty. `ExtensionFormField` says what each `Form.*` node is —
@@ -470,7 +470,7 @@ Settings → Extensions offers four routes, under **Install New**:
 2. **Install from GitHub** — builds one extension from its source on this Mac. See below.
 3. **Import from Raycast** — copies the already-built bundles out of a local Raycast. Nothing is
    compiled, so no Node, npm or network is involved. The pane also scans whenever it opens, and says
-   so when Raycast has something Fredie doesn't — installing in Raycast otherwise leaves no trace
+   so when Raycast has something Ollie doesn't — installing in Raycast otherwise leaves no trace
    here. **Both channels are searched**: `~/.config/raycast` and `~/.config/raycast-x`, the latter
    being Raycast Beta v2. Checking only the first reported "no Raycast install" to every Beta user,
    whose stable directory is present but empty. The same extension in both is offered once.
@@ -587,7 +587,7 @@ global Show in launcher switch, or this extension's — because the ranker never
 ## Deeplinks
 
 `raycast://extensions/<owner>/<extension>/<command>` runs an installed command from outside the app —
-a browser link, another app, a Shortcut — and `fredie://` mirrors it so our own links never depend
+a browser link, another app, a Shortcut — and `ollie://` mirrors it so our own links never depend
 on Raycast winning the scheme. Both accept Raycast's query parameters: `arguments` as URL-encoded
 JSON, `fallbackText`, and `launchType=background`, which only a no-view command receives — a view
 command always takes over the palette, so it launches as `userInitiated`. The owner is a hint: a
@@ -659,24 +659,24 @@ interval floor instead of sixty.
 tokens in the login Keychain (service `nl.bentjes.fredie.extensions.oauth`, `kSecAttrAccessibleWhenUnlocked`),
 scoped per extension and dropped on uninstall.
 
-The redirect address belongs to the extension author's OAuth app registration, so Fredie cannot choose
-it — it can only be there to catch it. **Fredie therefore claims `raycast`, `com.raycast` and `fredie`
+The redirect address belongs to the extension author's OAuth app registration, so Ollie cannot choose
+it — it can only be there to catch it. **Ollie therefore claims `raycast`, `com.raycast` and `ollie`
 as URL schemes**, which is what makes all three of Raycast's redirect methods land back in the app:
 
 | `RedirectMethod` | Registered address                                   | How it returns                                         |
 | ---------------- | ---------------------------------------------------- | ------------------------------------------------------ |
-| `App`            | `raycast://oauth?package_name=Extension`             | straight to Fredie, no server                        |
-| `AppURI`         | `com.raycast:/oauth?package_name=Extension`          | straight to Fredie, no server                        |
+| `App`            | `raycast://oauth?package_name=Extension`             | straight to Ollie, no server                        |
+| `AppURI`         | `com.raycast:/oauth?package_name=Extension`          | straight to Ollie, no server                        |
 | `Web`            | `https://raycast.com/redirect?packageName=Extension` | through Raycast's page, which reopens a claimed scheme |
 
-Claiming `raycast` means an installed Raycast competes with Fredie for those links and macOS picks the
+Claiming `raycast` means an installed Raycast competes with Ollie for those links and macOS picks the
 winner. That is a deliberate trade: without it, `App` redirects have nowhere to land. `Web` additionally
 depends on a page Raycast can change at any time — `ExtensionOAuthSession` times out after five minutes so
 a redirect that never arrives cannot wedge the palette.
 
 **`raycast://` URLs** — extensions address Raycast by scheme; the most common is a bare
 `open("raycast://")` to bring the window back after something stole focus (1Password's auth flow does
-this). `ExtensionHostBridge` keeps those inside Fredie: `raycast://extensions/<author>/<extension>/<command>`
+this). `ExtensionHostBridge` keeps those inside Ollie: `raycast://extensions/<author>/<extension>/<command>`
 runs that command when it's installed, anything else reopens the palette. Handing them to the workspace
 would launch Raycast itself.
 
@@ -719,7 +719,7 @@ than waiting for room on its readable side, so only a transform nobody reads fro
 
 `url.fileURLToPath` decodes percent-escapes the way Node does on darwin, so an asset path carrying a
 space resolves to a file the image loader can open, and it rejects an encoded separator or a non-local
-host rather than returning a wrong path. Node's `windows` override is absent: Fredie only runs on
+host rather than returning a wrong path. Node's `windows` override is absent: Ollie only runs on
 macOS, so drive-letter and UNC output would be unreachable. `url.pathToFileURL` escapes `?` and `#`
 so a filename holding either survives the round trip.
 
@@ -804,7 +804,7 @@ OAuth extensions it excluded are not counted yet — re-measure before quoting t
 cd scripts/raycast-runtime
 pnpm install
 node gen-enums.mjs        # only after bumping the @raycast/api devDependency
-node build.mjs            # → Fredie/Resources/RaycastRuntime.generated.js (commit it)
+node build.mjs            # → Ollie/Resources/RaycastRuntime.generated.js (commit it)
 node build.mjs --dev       # unminified, React in development mode (better error messages)
 ```
 
@@ -819,7 +819,7 @@ node test.mjs ~/.config/raycast/extensions/<uuid> [command]
 
 # 3. the real Swift engine, against JavaScriptCore
 scripts/run-tests.sh ext-test
-"${TMPDIR:-/tmp}"/fredie-harness/ext-test ~/Library/Application\ Support/nl.bentjes.fredie.dev/extensions/<name> [command]
+"${TMPDIR:-/tmp}"/ollie-harness/ext-test ~/Library/Application\ Support/nl.bentjes.fredie.dev/extensions/<name> [command]
 ```
 
 `ext-test` compiles the real engine sources — there is no copy to keep in sync. `EXT_TEST_VERBOSE=1`
@@ -833,7 +833,7 @@ round-trips and the Provider Usage action, with live fetches but a recorded `lau
 status items stay hidden so a test run cannot interfere with the running app's menus:
 
 ```sh
-EXT_TEST_MENU_BAR=1 "${TMPDIR:-/tmp}/fredie-harness/ext-test" \
+EXT_TEST_MENU_BAR=1 "${TMPDIR:-/tmp}/ollie-harness/ext-test" \
   "$HOME/Library/Application Support/nl.bentjes.fredie.dev/extensions/opencodex-usage" usage-menu-bar
 ```
 
@@ -877,7 +877,7 @@ The last four rows are pruned by `ExtensionCoordinator.removeExtensionReferences
 bundle id, so `extension:<name>/<command>` is what those stores are keyed by. `CustomCommandCoordinator`
 and `QuicklinkCoordinator` prune the same stores the same way; extensions are not a special case.
 
-**Builds happen in `$TMPDIR/fredie-install-<UUID>/`**, named by `ExtensionCleanup.workspace` so the
+**Builds happen in `$TMPDIR/ollie-install-<UUID>/`**, named by `ExtensionCleanup.workspace` so the
 sweep below cannot disagree about what a workspace is called. A `defer` removes it on every exit an
 install can take. A crash mid-build is the one it cannot cover, so `ExtensionManager.start` sweeps
 strays once at launch — deliberately not gated on `extensionsEnabled`, because a stranded

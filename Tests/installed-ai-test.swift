@@ -120,7 +120,7 @@ struct InstalledAITests {
         await cursorDiscoveryRequiresLoginAndListsModels(fixture)
         await oversizedCompleteFrameFailsTheTurn(fixture)
         claudeMCPConfigNamesNoServers(fixture)
-        await claudeRunsFrediesServersAndAnswersTheirConsent(fixture)
+        await claudeRunsOlliesServersAndAnswersTheirConsent(fixture)
         await aDeclinedCallComesBackAsAnErrorResult(fixture)
         await theRoundCapEndsTheTurnTheWayTheLoopDoes(fixture)
         await unlimitedPassesNoTurnCap(fixture)
@@ -325,7 +325,7 @@ struct InstalledAITests {
         expect(
             InstalledAIModel.claudeTitle(
                 #"{"type":"control_response","response":{"subtype":"success","#
-                    + #""request_id":"fredie-title","response":{"title":"Weekend hiking trip plan"}}}"#)
+                    + #""request_id":"ollie-title","response":{"title":"Weekend hiking trip plan"}}}"#)
                 == "Weekend hiking trip plan",
             "Claude's own session namer is read from its control response")
         expect(
@@ -455,9 +455,9 @@ struct InstalledAITests {
                 [.modificationDate: Date().addingTimeInterval(-age)], ofItemAtPath: url.path)
             return url
         }
-        let config = file("fredie-mcp-\(UUID().uuidString).json", age: 60)
-        let prompt = file("fredie-prompt-\(UUID().uuidString).txt", age: 60)
-        let live = file("fredie-mcp-\(UUID().uuidString).json", age: -60)
+        let config = file("ollie-mcp-\(UUID().uuidString).json", age: 60)
+        let prompt = file("ollie-prompt-\(UUID().uuidString).txt", age: 60)
+        let live = file("ollie-mcp-\(UUID().uuidString).json", age: -60)
         let other = file("notes.txt", age: 60)
         _ = InstalledAIManager(supportDirectory: support)
         let removed = await fixture.awaitMissing(config)
@@ -496,8 +496,8 @@ struct InstalledAITests {
         if let index = argv.firstIndex(of: "--prompt-file"), index + 1 < argv.count {
             let name = URL(fileURLWithPath: argv[index + 1]).lastPathComponent
             expect(
-                name.hasPrefix("fredie-prompt-") && name.hasSuffix(".txt")
-                    && name != "fredie-prompt.txt",
+                name.hasPrefix("ollie-prompt-") && name.hasSuffix(".txt")
+                    && name != "ollie-prompt.txt",
                 "Grok prompt file is unique per turn")
         }
         expect(
@@ -527,8 +527,8 @@ struct InstalledAITests {
             "Claude's --mcp-config declares an empty mcpServers record")
     }
 
-    /// The whole route: Fredie's servers go in, the CLI runs the loop, consent comes back here.
-    private static func claudeRunsFrediesServersAndAnswersTheirConsent(_ fixture: Fixture) async {
+    /// The whole route: Ollie's servers go in, the CLI runs the loop, consent comes back here.
+    private static func claudeRunsOlliesServersAndAnswersTheirConsent(_ fixture: Fixture) async {
         let asked = Box()
         let events = await fixture.events(
             kind: .claude, model: "sonnet", effort: nil,
@@ -543,7 +543,7 @@ struct InstalledAITests {
         expect(events.last == .finished, "and the turn finishes on the CLI's own result frame")
         expect(
             asked.calls == [AIToolServerCall(handle: "probe", tool: "safe_echo")],
-            "consent was asked for the call the CLI named, addressed by Fredie's own handle")
+            "consent was asked for the call the CLI named, addressed by Ollie's own handle")
 
         let argv = fixture.lastArguments("claude-args.log")
         for flag in ["--strict-mcp-config", "--mcp-config", "--permission-prompt-tool", "stdio"] {
@@ -571,10 +571,10 @@ struct InstalledAITests {
         let configured = URL(fileURLWithPath: argv[index + 1])
         expect(
             configured.deletingLastPathComponent().path == fixture.workspace.path,
-            "the configuration lives inside Fredie's own workspace, never a CLI's settings")
+            "the configuration lives inside Ollie's own workspace, never a CLI's settings")
         expect(
-            configured.lastPathComponent.hasPrefix("fredie-mcp-")
-                && configured.lastPathComponent != "fredie-mcp-.json",
+            configured.lastPathComponent.hasPrefix("ollie-mcp-")
+                && configured.lastPathComponent != "ollie-mcp-.json",
             "under a name of its own, so a second turn never deletes a live turn's file")
         expect(
             await fixture.awaitMissing(configured),
@@ -612,7 +612,7 @@ struct InstalledAITests {
         expect(
             unknown.contains(#""subtype":"error""#)
                 && unknown.contains(#""request_id":"req_unknown""#),
-            "a control request Fredie does not know is answered with an error, not left waiting")
+            "a control request Ollie does not know is answered with an error, not left waiting")
     }
 
     /// The dialog shows one question at a time, and the second must see what the first granted.
@@ -664,7 +664,7 @@ struct InstalledAITests {
         expect(
             error?.contains("Claude could not finish the response.") == true
                 && error?.contains("Stopped after") == false,
-            "a max-turns result under no cap names no number, since Fredie set none")
+            "a max-turns result under no cap names no number, since Ollie set none")
 
         let nothingToCall = AIToolServerSession(rounds: nil) {
             []
@@ -696,7 +696,7 @@ struct InstalledAITests {
             "a variable the reader set reaches the tool")
         expect(
             fixture.lastLine("opencode-environment.log").contains("\"permission\":\"deny\""),
-            "one Fredie sets to keep the tool inside the chat keeps Fredie's value")
+            "one Ollie sets to keep the tool inside the chat keeps Ollie's value")
     }
 
     private static func aSetCommandPathIsWhatRuns(_ fixture: Fixture) async {
@@ -752,7 +752,7 @@ struct InstalledAITests {
             "the Providers row says whose decision that is")
         expect(
             InstalledAIKind.claude.isolationCaveat(hasManagedMCPPolicy: false) == nil,
-            "and says nothing when it is Fredie's")
+            "and says nothing when it is Ollie's")
     }
 }
 
@@ -816,9 +816,9 @@ private final class Fixture {
             // The locator asks a login shell first; the user's rc files would put real CLIs ahead.
             setenv("ZDOTDIR", root.path, 1)
             // `/etc/zprofile`'s path_helper puts Homebrew's CLIs ahead of the stubs; undo that.
-            try #"export FREDIE_SAVED_PATH="$PATH""#.write(
+            try #"export OLLIE_SAVED_PATH="$PATH""#.write(
                 to: root.appending(path: ".zshenv"), atomically: true, encoding: .utf8)
-            try #"[ -n "$FREDIE_SAVED_PATH" ] && export PATH="$FREDIE_SAVED_PATH""#.write(
+            try #"[ -n "$OLLIE_SAVED_PATH" ] && export PATH="$OLLIE_SAVED_PATH""#.write(
                 to: root.appending(path: ".zprofile"), atomically: true, encoding: .utf8)
             setenv("TC_INSTALLED_STUB_ROOT", root.path, 1)
             setenv("TC_CURSOR_CHATS_ROOT", cursorChats.path, 1)

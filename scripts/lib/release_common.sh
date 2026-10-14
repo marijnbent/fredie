@@ -4,7 +4,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/build/Release/Ollie.app"
 INSTALLED_BUNDLE="/Applications/Ollie.app"
-LEGACY_BUNDLE="/Applications/Fredie.app"
 SIGNING_IDENTITY="$(/usr/libexec/PlistBuddy -c 'Print :SigningIdentity' "$ROOT_DIR/release/Release.plist")"
 
 release::fail() {
@@ -14,7 +13,7 @@ release::fail() {
 
 release::quit_running_app() {
     local path attempt executable
-    for path in "$INSTALLED_BUNDLE" "$APP_BUNDLE" "$LEGACY_BUNDLE"; do
+    for path in "$INSTALLED_BUNDLE" "$APP_BUNDLE"; do
         [[ -d "$path" ]] || continue
         executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$path/Contents/Info.plist")"
         if pgrep -f "^$path/Contents/MacOS/$executable( |$)" >/dev/null; then
@@ -46,7 +45,7 @@ release::build_release_app() {
     cd "$ROOT_DIR"
     xcodegen generate
     rm -rf "$APP_BUNDLE"
-    xcodebuild -jobs 2 -project Fredie.xcodeproj -scheme Fredie -configuration Release -destination "platform=macOS,arch=$(uname -m)" \
+    xcodebuild -jobs 2 -project Ollie.xcodeproj -scheme Ollie -configuration Release -destination "platform=macOS,arch=$(uname -m)" \
         -derivedDataPath "$ROOT_DIR/build/DerivedData" \
         CONFIGURATION_BUILD_DIR="$ROOT_DIR/build/Release" \
         CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" build
@@ -57,7 +56,7 @@ release::build_release_app() {
 release::install_bundle() {
     local stage
     release::verify_bundle "$APP_BUNDLE"
-    stage="$(mktemp -d /Applications/.fredie-install.XXXXXX)"
+    stage="$(mktemp -d /Applications/.ollie-install.XXXXXX)"
     trap 'rm -rf "$stage"' RETURN
     ditto "$APP_BUNDLE" "$stage/Ollie.app"
     release::verify_bundle "$stage/Ollie.app"
@@ -71,16 +70,10 @@ release::install_bundle() {
         fi
         release::fail "Could not install Ollie."
     fi
-    if [[ -e "$LEGACY_BUNDLE" ]]; then
-        mv "$LEGACY_BUNDLE" "$stage/PreviousFredie.app"
-    fi
     if ! open "$INSTALLED_BUNDLE"; then
         mv "$INSTALLED_BUNDLE" "$stage/FailedOllie.app"
         if [[ -d "$stage/Previous.app" ]]; then
             mv "$stage/Previous.app" "$INSTALLED_BUNDLE"
-        fi
-        if [[ -d "$stage/PreviousFredie.app" ]]; then
-            mv "$stage/PreviousFredie.app" "$LEGACY_BUNDLE"
         fi
         release::fail "Ollie could not open; restored the previous installation."
     fi

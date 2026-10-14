@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fredie launcher directions</title>
+<title>Ollie launcher directions</title>
 <style>
 :root{
   --label:#1d1d1f; --label2:#6e6e73; --rule:rgba(0,0,0,.1); --seg:rgba(0,0,0,.06); --segOn:#fff;
@@ -276,8 +276,8 @@ const items = [
   {id:'terminal',title:'Terminal',sub:'Application',kind:'app',icon:A.terminal,kw:'shell',meta:[['Path','/System/Applications/Utilities/Terminal.app']]},
   {id:'importie',title:'Importie',sub:'Application',kind:'app',icon:A.importie,kw:'photos camera import',meta:[['Path','/Applications/Importie.app']]},
   {id:'activity',title:'Activity Monitor',sub:'Application',kind:'app',icon:tile('<rect width="64" height="64" fill="#1f2125"/><path d="M10 36h10l5-12 8 22 6-16 4 6h11" fill="none" stroke="#3ddc84" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>'),kw:'cpu processes',meta:[['Path','/System/Applications/Utilities/Activity Monitor.app']]},
-  {id:'search-files',title:'Search Files',sub:'Fredie',kind:'cmd',glyph:'filesearch',kw:'find spotlight documents',files:true},
-  {id:'ask-ai',title:'Ask AI',sub:'Fredie',kind:'ai',glyph:'ai',kw:'chat claude question'},
+  {id:'search-files',title:'Search Files',sub:'Ollie',kind:'cmd',glyph:'filesearch',kw:'find spotlight documents',files:true},
+  {id:'ask-ai',title:'Ask AI',sub:'Ollie',kind:'ai',glyph:'ai',kw:'chat claude question'},
   {id:'new-note',title:'New Note',sub:'Notes',kind:'note',glyph:'note',kw:'write jot',noteText:'Floating note, opens beside the current window.'},
   {id:'note-trip',title:'Ardennes trip packing',sub:'Edited Tuesday',kind:'note',icon:A.fnote,kw:'notes list',noteText:'Rain jacket, headlamp, two gas canisters, spare tent pegs, offline maps for the Ourthe valley…'},
   {id:'left-half',title:'Left Half',sub:'Window',kind:'win',glyph:'win',kw:'position move snap',area:[0,0,.5,1],key:'⌃⌥ ←'},
@@ -341,8 +341,8 @@ function search(q, scope){
   scored.sort((a,b) => b[0]-a[0]);
   const list = scored.map(x => x[1]).slice(0, 8);
   const fq = q.trim();
-  if(!c && (!scope || scope==='all' || scope==='files')) list.push({id:'fs-q',title:`Search Files for “${fq}”`,sub:'Fredie',kind:'cmd',glyph:'filesearch',files:true,q:fq});
-  if(!scope || scope==='all' || scope==='ai') list.push({id:'ai-q',title:`Ask AI “${fq}”`,sub:'Fredie',kind:'ai',glyph:'ai',q:fq});
+  if(!c && (!scope || scope==='all' || scope==='files')) list.push({id:'fs-q',title:`Search Files for “${fq}”`,sub:'Ollie',kind:'cmd',glyph:'filesearch',files:true,q:fq});
+  if(!scope || scope==='all' || scope==='ai') list.push({id:'ai-q',title:`Ask AI “${fq}”`,sub:'Ollie',kind:'ai',glyph:'ai',q:fq});
   return {calc:c, list};
 }
 function scopeMatch(it, s){

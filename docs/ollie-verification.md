@@ -186,7 +186,7 @@ exact preference and Keychain values without printing secrets. No runtime migrat
   shortcuts, clipboard retention, 11 snippets, switcher options, typing sounds and import destinations.
 - Six configured dictation keys and two notification topics verified in seven Ollie Keychain records.
   New records allow the installed Ollie app and the temporary transfer helper to read them.
-- Fredie's preferences and credentials already use Ollie's stable identity and were retained.
+- Ollie's preferences and credentials already use Ollie's stable identity and were retained.
   Nettie has no persisted feature preferences beyond window/onboarding state to transfer.
 - Feature enable switches were left unchanged. Original preferences, histories and media are intact.
   Ollie's previous preferences were backed up with owner-only permissions beneath
@@ -295,7 +295,7 @@ identifier `nl.bentjes.fredie`, and the unified-app marker. The signing authorit
 The installed executable matches the release output exactly:
 `e3f184da2564ffca53ab16866647770b9c681db037379deedee4d6368ad858d7` (SHA-256).
 The process was verified running from `/Applications/Ollie.app/Contents/MacOS/Ollie`.
-The old `/Applications/Fredie.app` bundle was replaced. Original sibling app repositories remain clean;
+The old `/Applications/Ollie.app` bundle was replaced. Original sibling app repositories remain clean;
 no sibling app data was adopted automatically, and Mailie was not modified.
 
 

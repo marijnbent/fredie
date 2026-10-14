@@ -3,14 +3,14 @@
 # about style a formatter would otherwise own. See docs/standards.md.
 
 included:
-  - Fredie
+  - Ollie
   - Tests
 
 excluded:
-  - Fredie/DesignSystem/Scrolling/EdgeDissolve.swift
-  - Fredie/DesignSystem/Scrolling/ThinScrollbar.swift
-  - Fredie/Features/Emoji/Model/EmojiData.generated.swift
-  - Fredie/Features/Calculator/Model/CurrencyData.generated.swift
+  - Ollie/DesignSystem/Scrolling/EdgeDissolve.swift
+  - Ollie/DesignSystem/Scrolling/ThinScrollbar.swift
+  - Ollie/Features/Emoji/Model/EmojiData.generated.swift
+  - Ollie/Features/Calculator/Model/CurrencyData.generated.swift
 
 # Noisy here, or actively wrong for this codebase.
 disabled_rules:

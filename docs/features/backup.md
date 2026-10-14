@@ -1,6 +1,6 @@
 # Backup
 
-Export and import of Fredie's own data as a single `.fredie` file, plus the entry point for
+Export and import of Ollie's own data as a single `.ollie` file, plus the entry point for
 importing a Raycast export. The feature lives in `Features/Backup/`.
 
 A backup carries three independently selectable categories, ticked on export and again on import:
@@ -35,7 +35,7 @@ A backup carries three independently selectable categories, ticked on export and
 | `Model/BackupCategory.swift` | The categories and the descriptor every one of them must name |
 | `Model/BackupManifest.swift` | The table of contents, the format constant and its guard |
 | `Model/BackupBundle.swift` | The payload directory's layout and part-by-part encode/decode |
-| `Model/BackupArchive.swift` | Directory ⇄ `.fredie`; the only file importing `AppleArchive` |
+| `Model/BackupArchive.swift` | Directory ⇄ `.ollie`; the only file importing `AppleArchive` |
 | `Model/SettingsBackup.swift` | The settings, fixed/per-item hotkey payloads, and their `Codable` shape |
 | `Model/SettingsBackupCoverage.swift` | The coverage declaration the harness checks |
 | `Model/RaycastImport.swift` | The importable categories, the `Result` and its per-category trim |
@@ -45,7 +45,7 @@ A backup carries three independently selectable categories, ticked on export and
 | `Service/BackupApplier.swift` | Staging → stores, returning a per-category summary |
 | `Service/BackupActions.swift` | The effectful half: file pickers, the archive calls, dialogs, the settings-file switch |
 | `Service/RaycastDecoder.swift` | Container recognition, decrypt and decode |
-| `Service/RaycastImportReader.swift` | Raycast → Fredie field mapping |
+| `Service/RaycastImportReader.swift` | Raycast → Ollie field mapping |
 | `Service/Scrypt.swift`, `Platform/Compression/Zlib.swift` | The crypto and decompression primitives |
 | `Settings/BackupCategorySelection.swift` | The category checkboxes, on both halves of the pane |
 | `Settings/BackupSettingsView.swift` | The pane, which also holds the [settings file](settings-file.md) switch |
@@ -107,6 +107,6 @@ Per category:
   already taken rather than overwriting it.
 - **Learning** replaces. Merging two Macs' frecency tables produces a table describing neither.
 
-The old flat `Fredie-Settings-*.json` export is gone rather than deprecated, and nothing reads it.
+The old flat `Ollie-Settings-*.json` export is gone rather than deprecated, and nothing reads it.
 
 Raycast import is documented separately in [raycast-import.md](raycast-import.md).

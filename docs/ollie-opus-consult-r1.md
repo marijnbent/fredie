@@ -1,54 +1,54 @@
 # Consult: unified Ollie — first round
 
-The smallest architecture that works is the one you have already started: sibling sources ported into `Fredie/Features/<Feature>/` inside the single app target, with one coordinator per feature owned by `AppCore`. Network enforcement is not deliverable with the current signing setup; only monitoring is. Nothing was edited, built or installed.
+The smallest architecture that works is the one you have already started: sibling sources ported into `Ollie/Features/<Feature>/` inside the single app target, with one coordinator per feature owned by `AppCore`. Network enforcement is not deliverable with the current signing setup; only monitoring is. Nothing was edited, built or installed.
 
 ## Problems in the code already landed
 
 The tree was changing while I read it, so re-check each of these against the current files.
 
-- **`Fredie/Features/Network/UI/NetworkCoordinator.swift`, `receive(_:start:end:)`:** the `rates = Dictionary(uniqueKeysWithValues: …)` statement ends in a stray `}, center: center))`. It looks like a replace-all meant for the two `NotificationToken` lines. As read, it does not compile.
+- **`Ollie/Features/Network/UI/NetworkCoordinator.swift`, `receive(_:start:end:)`:** the `rates = Dictionary(uniqueKeysWithValues: …)` statement ends in a stray `}, center: center))`. It looks like a replace-all meant for the two `NotificationToken` lines. As read, it does not compile.
 - **Same file, `fail(_:)`:** the logger subsystem is still `"nl.bentjes.nettie"`.
-- **`scripts/lib/release_common.sh` and `scripts/build-dmg.sh:12`:** still hard-code `Fredie.app` and `MacOS/Fredie` (see section 1).
+- **`scripts/lib/release_common.sh` and `scripts/build-dmg.sh:12`:** still hard-code `Ollie.app` and `MacOS/Ollie` (see section 1).
 - **`CompactMenuController.applyVisibility()`:** it obeys only `showInMenuBar`. With Launcher off and that setting off, nothing opens Settings. Treat the item as visible whenever the Launcher is off.
 - **`SettingsTab.swift:67`:** the section title is a literal `"Ollie"`. `Bundle.main.appDisplayName` keeps "Ollie Dev" correct.
 - **`TypingSounds/Service/KeystrokeMonitor.swift`:** the tap callback hops with `Task { @MainActor }` for every key. The source is on the main run loop, so `MainActor.assumeIsolated` (as in `ModifierTapMonitor`) removes a scheduling hop from every key sound.
-- **`TypingSoundsCoordinator.apply()`:** it requires `CGPreflightListenEventAccess()`. Fredie's `ModifierTapMonitor` is listen-only and its code refers only to Accessibility (`needsAccessibility`). I did not test whether the preflight returns true with Accessibility alone. If it does not, try `monitor.start()` first and ask for Input Monitoring only when `tapCreate` fails.
+- **`TypingSoundsCoordinator.apply()`:** it requires `CGPreflightListenEventAccess()`. Ollie's `ModifierTapMonitor` is listen-only and its code refers only to Accessibility (`needsAccessibility`). I did not test whether the preflight returns true with Accessibility alone. If it does not, try `monitor.start()` first and ask for Input Monitoring only when `tapCreate` fails.
 
 ## 1. Heads, identity and release boundary
 
 - **Siblings:** all clean on `main`: clippie `17002ea`, talkie `dbf93dd`, tabbie `83d5533`, typie `0f9ea25`, importie `9a1a3ae`, nfty-notifier `e1fe09f`, nettie `1c5a5ed`. Mailie has two dirty files and is untouched.
-- **Fredie:** `main` at `7775cb92`, clean when I started. It now carries your uncommitted work: 12 modified files plus `Features/TypingSounds/`, `Features/Network/`, `App/CompactMenu*.swift` and 13 `Tool-*` image sets.
-- **Stale plan line:** `PLAN.md` says Fredie has uncommitted Emoji/launcher changes; the tree was clean at `7775cb92` when I started.
+- **Ollie:** `main` at `7775cb92`, clean when I started. It now carries your uncommitted work: 12 modified files plus `Features/TypingSounds/`, `Features/Network/`, `App/CompactMenu*.swift` and 13 `Tool-*` image sets.
+- **Stale plan line:** `PLAN.md` says Ollie has uncommitted Emoji/launcher changes; the tree was clean at `7775cb92` when I started.
 - **Unversioned:** the workspace root and `plans/` are in no git repo.
-- **Running now:** Fredie, Clippie, Talkie, Tabbie, Importie, Ntfy Notifier and Nettie. Typie is not. `/Applications/Ollie.app` does not exist yet.
+- **Running now:** Ollie, Clippie, Talkie, Tabbie, Importie, Ntfy Notifier and Nettie. Typie is not. `/Applications/Ollie.app` does not exist yet.
 
 `PRODUCT_NAME: Ollie` keeps the bundle id `nl.bentjes.fredie`, so the defaults domain, `~/Library/Application Support/nl.bentjes.fredie/` and the Keychain service prefix `nl.bentjes.fredie.<scope>` are unchanged. I expect permission grants to carry over too, since the bundle id and certificate are unchanged, but I did not test that. It does change the bundle path and the executable name, which breaks:
 
 | File | Lines | What is hard-coded |
 | --- | --- | --- |
-| `scripts/lib/release_common.sh` | 5, 6 | `build/Release/Fredie.app`, `/Applications/Fredie.app` |
-| same | 17–23 | `pgrep …/Contents/MacOS/Fredie` |
-| same | 59–65 | staged `Fredie.app` |
-| `scripts/build-dmg.sh` | 12 | `Fredie.app` |
+| `scripts/lib/release_common.sh` | 5, 6 | `build/Release/Ollie.app`, `/Applications/Ollie.app` |
+| same | 17–23 | `pgrep …/Contents/MacOS/Ollie` |
+| same | 59–65 | staged `Ollie.app` |
+| `scripts/build-dmg.sh` | 12 | `Ollie.app` |
 | `docs/release.md` | 5, 7 | both paths |
 
-The `-scheme Fredie` and `Fredie.xcodeproj` references stay valid, and `verify-signature.sh` derives the executable from the bundle name.
+The `-scheme Ollie` and `Ollie.xcodeproj` references stay valid, and `verify-signature.sh` derives the executable from the bundle name.
 
 Two things the install step must also do:
-- Quit and remove `/Applications/Fredie.app` once `Ollie.app` verifies. Otherwise two bundles share one bundle id.
+- Quit and remove `/Applications/Ollie.app` once `Ollie.app` verifies. Otherwise two bundles share one bundle id.
 - Re-register the login item if it was on, since it was registered from the old path. I did not verify how macOS handles the move.
 
-One identity risk I did not read far enough to settle: `Features/Updates/` still checks for releases with a `Fredie` User-Agent. Confirm it cannot install an upstream build over Ollie.
+One identity risk I did not read far enough to settle: `Features/Updates/` still checks for releases with a `Ollie` User-Agent. Confirm it cannot install an upstream build over Ollie.
 
 ## 2. Integration architecture
 
 **Choice: port into `Features/<Feature>/{Model,Service,UI,Settings}` in the one app target.**
 
 - **Collisions are small once the shells go.** I scanned top-level type names. After deleting each sibling's `AppDelegate`, `AppMenuBuilder`, `SettingsWindowController`, `SettingsView`, `MainWindowController` and `main.swift`, these remain:
-  - Against Fredie: Tabbie's `AppSettings` and `SpaceSwitcher`; Talkie's `SettingsTab`, `GeneralSettingsView` and `AboutView`, which are settings UI you rewrite anyway.
+  - Against Ollie: Tabbie's `AppSettings` and `SpaceSwitcher`; Talkie's `SettingsTab`, `GeneralSettingsView` and `AboutView`, which are settings UI you rewrite anyway.
   - Between siblings: `SettingsStore` (talkie, tabbie, typie, importie), `DiagnosticsLog` (clippie, tabbie), `HistoryLimit` and `ShortcutAction`.
   - That is about ten renames in total.
-- **Per-feature Xcode targets cost more than they save.** Ported UI has to use Fredie's `DesignSystem`, `DialogController`, `HotKeyManager`, `Paster` and `AppSettings`, which live in the app target. A library target cannot import the app, so each would need a public facade and inverted protocols for a dozen host services.
+- **Per-feature Xcode targets cost more than they save.** Ported UI has to use Ollie's `DesignSystem`, `DialogController`, `HotKeyManager`, `Paster` and `AppSettings`, which live in the app target. A library target cannot import the app, so each would need a public facade and inverted protocols for a dozen host services.
 - **Namespace enums** touch every declaration for the same ten renames.
 - **NettieCore as plain source** (what you did) settles the plan's open "target or source group" question without SwiftPM.
 
@@ -77,9 +77,9 @@ Launcher off needs gating in `AppCore.start()`, which today always runs `appInde
 | Nettie | none (ported) | none | none | `~/Library/Application Support/Nettie/usage.sqlite` (+ `-wal`, `-shm`) |
 
 **Clippie**
-- Replace its private synthetic marker (`0x425546464552`, line 17) with `Paster.fredieEventTag`, and subscribe the tap to `HealthTicker`.
+- Replace its private synthetic marker (`0x425546464552`, line 17) with `Paster.ollieEventTag`, and subscribe the tap to `HealthTicker`.
 - Make the shortcut a new `CommandID`. `HotKeyAction.builtInActions` then makes it bindable with no new case.
-- `ClipboardStore.init(storageDirectory:)` already takes a directory. Use a `Clipboard/` subfolder: Fredie's own App Support still holds `clipboard.sqlite3` and `images/` from the feature removed in `0c37d7e0`.
+- `ClipboardStore.init(storageDirectory:)` already takes a directory. Use a `Clipboard/` subfolder: Ollie's own App Support still holds `clipboard.sqlite3` and `images/` from the feature removed in `0c37d7e0`.
 - Teardown order, from `clippie/AppDelegate.swift:53–60`: `stopWatching()`, `finishPendingProcessing()`, `flushPendingHistorySave()`, then stop the tap. All are synchronous, so they fit `prepareForTermination()`.
 - The watcher learns about its own pasteboard writes through `.bufferDidWritePasteboard`. `Paster.pasteString` must report its writes the same way, or the launcher's pastes land in history.
 
@@ -101,7 +101,7 @@ Launcher off needs gating in `AppCore.start()`, which today always runs `appInde
 **Tabbie**
 - It prompts for Input Monitoring itself (`ShortcutMonitor.swift:52–58`) and polls for Accessibility (`WindowDiscovery.swift:77–83`). Remove both and route through the Permissions pane.
 - Replace its private `healthTimer` with `HealthTicker`.
-- Rename `AppSettings` to something like `SwitcherSettings`, and compare its `SpaceSwitcher` with the one in Fredie's `WindowManagement` before renaming.
+- Rename `AppSettings` to something like `SwitcherSettings`, and compare its `SpaceSwitcher` with the one in Ollie's `WindowManagement` before renaming.
 
 **Importie**
 - `FFmpegService.swift:9–10` searches `/opt/homebrew/bin` and `/usr/local/bin`. Use `Platform/ExecutableLocator.swift`.
@@ -112,7 +112,7 @@ Launcher off needs gating in `AppCore.start()`, which today always runs `appInde
 
 **Ntfy**
 - `subscriber.stop()` is `async` (`NtfySubscriber.swift:69`), so it belongs beside `flushNotesForTermination()`, not in `prepareForTermination()`.
-- Topic names are the only access control for a topic on ntfy.sh, and `TopicStore.swift:6–8` hard-codes one in source. Keep topics out of `settings.json` and backup, and do not copy that default into Fredie's repo.
+- Topic names are the only access control for a topic on ntfy.sh, and `TopicStore.swift:6–8` hard-codes one in source. Keep topics out of `settings.json` and backup, and do not copy that default into Ollie's repo.
 
 **Nettie**
 - Keeping Nettie's own pty code was right. `Platform/PseudoTerminal.swift` sends EOF to stdin, and `nettie/docs/evidence/2026-10-10-monitor.md` measured `nettop` spinning on that.
@@ -125,8 +125,8 @@ Launcher off needs gating in `AppCore.start()`, which today always runs `appInde
 
 ## 4. Reusable code and tests
 
-Fredie host pieces to reuse:
-- `HealthTicker`, `NotificationToken`, `Paster.fredieEventTag`, `KeychainSecretStore(scope:)`, `AppPaths.applicationSupport()`, `ExecutableLocator`.
+Ollie host pieces to reuse:
+- `HealthTicker`, `NotificationToken`, `Paster.ollieEventTag`, `KeychainSecretStore(scope:)`, `AppPaths.applicationSupport()`, `ExecutableLocator`.
 - `AppCore.confirm`, `choose` and `showProgress(_:onCancel:)` for dialogs and import progress.
 - `UpdateActivity` (`Features/Updates/Model/UpdateReadiness.swift:4`) for recording and importing blockers.
 - `SettingsTab.ownedCommands` for command ownership.
@@ -145,7 +145,7 @@ Sibling code to lift nearly unchanged, with its tests:
 | Nettie | already ported | `MonitorTests` (87), `AppIdentityTests` (64) |
 | Typie | already ported | `SoundEngineTests` (82), `KeystrokeMonitorTests` (15) |
 
-Fredie has no XCTest target. Each suite becomes one `Tests/<name>.swift` harness plus one `run` line in `scripts/run-tests.sh` listing the shipped sources. Port the Talkie paste and recording suites and their doubles first; they guard the riskiest behaviour. Add one new harness for adoption: fixture plists and folders in a temp directory, asserting that no enabled flag is set and that secrets reach an injected store.
+Ollie has no XCTest target. Each suite becomes one `Tests/<name>.swift` harness plus one `run` line in `scripts/run-tests.sh` listing the shipped sources. Port the Talkie paste and recording suites and their doubles first; they guard the riskiest behaviour. Add one new harness for adoption: fixture plists and folders in a temp directory, asserting that no enabled flag is set and that secrets reach an injected store.
 
 ## 5. Signed install and network enforcement
 
@@ -159,7 +159,7 @@ Evidence as of today:
 The boundary:
 - **Deliverable now:** per-app usage monitoring through `nettop`. The UI must say "Monitoring only" (yours does) and must not carry a protection toggle.
 - **Not deliverable:** any per-app allow/block. It needs a paid Apple Developer Program team and provisioning profiles for the host and the extension. I know of no unprivileged alternative; `pf` cannot filter by application.
-- **Cost of doing it later:** moving Fredie to a paid team changes its signature. Expect permission grants and Keychain access to reset; decide before adoption, not after.
+- **Cost of doing it later:** moving Ollie to a paid team changes its signature. Expect permission grants and Keychain access to reset; decide before adoption, not after.
 - **Recoverable code:** the old filter is at `nettie` commit `8556430` (`NettieFilter/`, `Tests/EngineTests`), all untested.
 
 For the signed install, hardened runtime and manual signing work as they do today. The only entitlement change is the microphone pair, which `verify-signature.sh` checks. Mirror any usage strings from Talkie's and Importie's `Info.plist`; I did not read those.
@@ -194,13 +194,13 @@ Where the risk concentrates:
 2. **The tap stack.** With Hyper key and the palette's escape tap active, up to eight taps share the main run loop with launcher indexing and AI streaming. A busy main actor delays every modifying tap and triggers `tapDisabledByTimeout`. Keep callbacks to scalar decisions, as `HyperKeyTap` does.
 3. **Clippie's conversion** touches the tested 2,690-line `HistoryWindow.swift`. Change isolation and the two alerts only; leave the view's logic alone.
 4. **Adoption data loss.** The Talkie prune is the known case. Copy, never move, and never point old and new at one folder.
-5. **Identity.** The stale `/Applications/Fredie.app`, the login item and the updater.
+5. **Identity.** The stale `/Applications/Ollie.app`, the login item and the updater.
 6. **Secrets.** Five plaintext keys and the topics must never reach `settings.json` or a backup. Follow the `SettingsBackupCoverage.deliberatelyExcluded` pattern you used for typing sounds.
 
 ## Not checked
 
 - Whether Tabbie needs Screen Recording or uses private window-server calls.
 - Whether Importie's bookmarks are security-scoped; if so they will not resolve in Ollie.
-- Whether Fredie already sets a `UNUserNotificationCenter` delegate.
+- Whether Ollie already sets a `UNUserNotificationCenter` delegate.
 - Whether any sibling declares its own actor, which would break the one-actor rule.
 - Which test framework the sibling suites use.

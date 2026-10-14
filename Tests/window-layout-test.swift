@@ -564,7 +564,7 @@ struct WindowLayoutTests {
     // MARK: - Store
 
     static func withStore(_ body: (WindowLayoutStore) -> Void) {
-        let name = "fredie-window-layout-test-\(UUID().uuidString)"
+        let name = "ollie-window-layout-test-\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: name) else {
             expect(false, "a scratch defaults suite opens")
             return
@@ -675,7 +675,7 @@ struct WindowLayoutTests {
     }
 
     static func storePersistence() {
-        let name = "fredie-window-layout-test-\(UUID().uuidString)"
+        let name = "ollie-window-layout-test-\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: name) else {
             return expect(false, "a scratch defaults suite opens")
         }
@@ -908,7 +908,7 @@ struct WindowLayoutTests {
     }
 
     static func withCustomSizeStore(_ body: (UserDefaults) -> Void) {
-        let name = "fredie-custom-window-size-test-\(UUID().uuidString)"
+        let name = "ollie-custom-window-size-test-\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: name) else {
             return expect(false, "a scratch defaults suite opens")
         }

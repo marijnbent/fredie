@@ -5,7 +5,7 @@ struct RankingTest {
     @MainActor
     static func main() async {
         let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("fredie-ranking-\(UUID().uuidString).json")
+            .appendingPathComponent("ollie-ranking-\(UUID().uuidString).json")
 
         var clock = Date(timeIntervalSince1970: 2_000_000_000)
         let store = LauncherRankingStore(fileURL: fileURL) { clock }

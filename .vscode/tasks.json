@@ -9,9 +9,9 @@
       // database from it — that's what keeps cross-file symbols resolving in VS Code as you
       // add and rename files. pipefail preserves the xcodebuild exit code so a failed build
       // still blocks F5 / the run step.
-      "label": "Build Fredie.app (debug)",
+      "label": "Build Ollie.app (debug)",
       "type": "shell",
-      "command": "bash -c 'set -o pipefail; xcodebuild -project Fredie.xcodeproj -scheme Fredie -configuration Debug -derivedDataPath build/DerivedData build 2>&1 | tee \"${TMPDIR:-/tmp}/fredie-build.log\"; ec=$?; ./scripts/sync-lsp.sh \"${TMPDIR:-/tmp}/fredie-build.log\" >/dev/null 2>&1 || true; exit $ec'",
+      "command": "bash -c 'set -o pipefail; xcodebuild -project Ollie.xcodeproj -scheme Ollie -configuration Debug -derivedDataPath build/DerivedData build 2>&1 | tee \"${TMPDIR:-/tmp}/ollie-build.log\"; ec=$?; ./scripts/sync-lsp.sh \"${TMPDIR:-/tmp}/ollie-build.log\" >/dev/null 2>&1 || true; exit $ec'",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": { "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer" }
@@ -21,11 +21,11 @@
     },
     {
       // Rebuild, then relaunch the menu-bar app. Default build task (⌘⇧B).
-      "label": "Build & Run Fredie (debug)",
+      "label": "Build & Run Ollie (debug)",
       "type": "shell",
-      "command": "killall 'Fredie Dev' 2>/dev/null; open 'build/DerivedData/Build/Products/Debug/Fredie Dev.app'",
+      "command": "killall 'Ollie Dev' 2>/dev/null; open 'build/DerivedData/Build/Products/Debug/Ollie Dev.app'",
       "options": { "cwd": "${workspaceFolder}" },
-      "dependsOn": "Build Fredie.app (debug)",
+      "dependsOn": "Build Ollie.app (debug)",
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
     },

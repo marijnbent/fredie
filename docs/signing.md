@@ -1,6 +1,6 @@
 # Signing
 
-Fredie's local release uses the existing Apple Development certificate selected in
+Ollie's local release uses the existing Apple Development certificate selected in
 `release/Release.plist`. It must appear in `security find-identity -v -p codesigning`.
 The project uses team `X44F5HTS6P`; Xcode signs the app and embedded helpers during the build.
 

@@ -8,13 +8,14 @@ Mailie is excluded.
 This repository is the active home of the former Clippie, Importie, Nettie, Ntfy Notifier,
 Tabbie, Talkie, and Typie features. Their standalone source folders and installed app bundles
 are retired; do not depend on sibling repositories or recreate them unless explicitly requested.
-The folder and Xcode identity remain Fredie; the installed product is `/Applications/Ollie.app`.
+The folder, source directory, Xcode project, target, and scheme use Ollie; the installed product
+is `/Applications/Ollie.app`. The internal bundle IDs and existing data paths remain stable.
 SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 
 ## Posture: latest-only, always
 
-**Fredie targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
+**Ollie targets one macOS — the current stable release — and nothing else.** macOS 26+, the Xcode 26
 toolchain, Swift 6 language mode. There is no compatibility floor to defend, no shim layer and no
 deprecation debt, and that is the single largest reason the codebase stays as small as it does.
 
@@ -41,12 +42,12 @@ system-wide chord, and HIToolbox's TIS APIs remain the public input-source mecha
 
 | Folder | Holds |
 | --- | --- |
-| `Fredie/App/` | `@main`, `AppDelegate`, `AppCore` — the composition root |
-| `Fredie/DesignSystem/` | shared visual primitives; `Theme.swift` is the only design-token source |
-| `Fredie/Platform/` | system shims: `Permissions`, `AppPaths`, `Signposts`, `NotificationToken`, … |
-| `Fredie/Palette/` | the palette shell: panel, window controller, `RootPaletteView`, `PaletteScreen` |
-| `Fredie/Windows/` | the non-palette AppKit surfaces: `Dialog/`, `HUD/`, `About/`, `AppWindowController` |
-| `Fredie/Features/` | one folder per feature; larger ones split `Model/` `Service/` `UI/` `Settings/` |
+| `Ollie/App/` | `@main`, `AppDelegate`, `AppCore` — the composition root |
+| `Ollie/DesignSystem/` | shared visual primitives; `Theme.swift` is the only design-token source |
+| `Ollie/Platform/` | system shims: `Permissions`, `AppPaths`, `Signposts`, `NotificationToken`, … |
+| `Ollie/Palette/` | the palette shell: panel, window controller, `RootPaletteView`, `PaletteScreen` |
+| `Ollie/Windows/` | the non-palette AppKit surfaces: `Dialog/`, `HUD/`, `About/`, `AppWindowController` |
+| `Ollie/Features/` | one folder per feature; larger ones split `Model/` `Service/` `UI/` `Settings/` |
 | `Tests/` | the standalone harnesses — one Swift file each, no XCTest target |
 | `scripts/` | every executable script: test runner, data generators, packaging, linting, editor setup |
 
@@ -78,7 +79,7 @@ feature's doc, under its own `## Invariants`.
   the forced-dark build shipped, restated rather than re-derived. Retune a light branch freely — change
   a dark one only when the task is to change Dark. `AppAppearance` drives `NSApp.appearance`, and
   `.system` maps to `nil` so AppKit follows macOS on its own.
-- **Fredie presents its own dialogs — never `NSAlert` or a system popover.** A question
+- **Ollie presents its own dialogs — never `NSAlert` or a system popover.** A question
   goes through `DialogController`, a report through a HUD via `HUDPresenter`.
 - **A networked feature fetches on a private `.ephemeral`, `urlCache = nil` session**, never
   `URLSession.shared`, so its own cache file stays the only copy on disk. `CurrencyRateStore` is the
@@ -126,7 +127,7 @@ feature's doc, under its own `## Invariants`.
 - **Debug builds are their own channel** — `Ollie Dev.app` / `nl.bentjes.fredie.dev` — so a local run
   never shares prefs, caches, TCC grants or the login item with an installed copy. Anything newly
   persisted must stay keyed by `Bundle.main.bundleIdentifier`.
-- **XcodeGen owns the project.** `Fredie.xcodeproj` is committed but generated from `project.yml`;
+- **XcodeGen owns the project.** `Ollie.xcodeproj` is committed but generated from `project.yml`;
   after editing it, run `xcodegen generate` and commit both. No SwiftPM, and never `Bundle.module`.
 
 ## Before you finish
@@ -136,7 +137,7 @@ Each item is explained in [testing.md](docs/testing.md#definition-of-done).
 - `./scripts/run-tests.sh` passes.
 - The Debug build compiles with **no new warnings**.
 - `./scripts/lint.sh` is clean.
-- `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Fredie/Features/*/Model/` returns nothing.
+- `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Ollie/Features/*/Model/` returns nothing.
 - Any doc your change made wrong is fixed in the same commit.
 
 ## Local release

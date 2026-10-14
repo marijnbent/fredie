@@ -1,6 +1,6 @@
 # Raycast import
 
-Fredie reads the `.rayconfig` written by Raycast v2.x: a `RAYCFG3` container holding an AES-256-GCM
+Ollie reads the `.rayconfig` written by Raycast v2.x: a `RAYCFG3` container holding an AES-256-GCM
 payload under a scrypt-derived key. It is the only format read — the v1.x export and the Raycast X beta
 between them are both gone, deleted rather than carried, as of **v0.10.5**.
 
@@ -30,12 +30,12 @@ key  = scrypt(passphrase, salt, N=16384, r=8, p=1, dkLen=32)
 
 The header carries `schemaVersion`, `iv` and `salt`, hex-encoded, 16 bytes each. `schemaVersion` is
 Raycast's own container number and is **3**; anything else is rejected. The payload is category-keyed
-JSON. Fredie imports settings, shortcuts, favorites, aliases, and the `quicklinks` object.
+JSON. Ollie imports settings, shortcuts, favorites, aliases, and the `quicklinks` object.
 Other payload categories are ignored.
 
 Raycast encrypts even when the user never chose a password — it generates one and stores it in the
 login keychain (service `Raycast`, account `export_passphrase`), viewable at Raycast → Settings →
-Extensions → Export Settings & Data. **Fredie never reads the keychain**; the user supplies the
+Extensions → Export Settings & Data. **Ollie never reads the keychain**; the user supplies the
 passphrase.
 
 ## Mapping
@@ -57,7 +57,7 @@ have their own importer, described in
 ## Layout
 
 `RaycastDecoder` unwraps the container and returns Raycast's own values; `RaycastImportReader` turns
-those into Fredie's domain types. That is the same pure-layer / platform-layer split
+those into Ollie's domain types. That is the same pure-layer / platform-layer split
 `Features/WindowManagement/` uses — the reader needs AppKit, so it lives in `Service/` and is covered by
 the app build. `raycast-test` verifies container framing and decryption.
 

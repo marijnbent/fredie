@@ -1,8 +1,8 @@
-// The single seam between the JS runtime and Swift. Swift installs `__fredieHost` on the global
+// The single seam between the JS runtime and Swift. Swift installs `__ollieHost` on the global
 // before evaluating the bundle; everything else in here goes through these helpers.
 
-const raw = globalThis.__fredieHost;
-if (!raw) throw new Error("__fredieHost missing — the runtime was evaluated outside Fredie.");
+const raw = globalThis.__ollieHost;
+if (!raw) throw new Error("__ollieHost missing — the runtime was evaluated outside Ollie.");
 
 export const hostRaw = raw;
 
@@ -10,7 +10,7 @@ let nextCallId = 1;
 const pending = new Map();
 
 /// Every Raycast API that touches the system is an async host call: Swift answers later via
-/// `__fredie.settle`, so the JS thread never blocks waiting on the main actor.
+/// `__ollie.settle`, so the JS thread never blocks waiting on the main actor.
 export function hostCall(api, method, args) {
   return new Promise((resolve, reject) => {
     const callId = nextCallId++;

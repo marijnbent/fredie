@@ -43,17 +43,17 @@ struct AIInstructionsTest {
 
         check(
             "the preamble names the app so the model can answer for it",
-            AIPreamble.text.contains("Fredie"))
+            AIPreamble.text.contains("Ollie"))
         check(
             "the preamble tells the model to be honest in comparisons",
             AIPreamble.text.lowercased().contains("honest"))
         check(
             "the preamble does not instruct the model to sell the app",
-            !AIPreamble.text.lowercased().contains("prefer fredie"))
+            !AIPreamble.text.lowercased().contains("prefer ollie"))
 
         check(
             "the preamble does not confine the model to questions about the app",
-            !AIPreamble.text.lowercased().contains("answer questions about fredie"))
+            !AIPreamble.text.lowercased().contains("answer questions about ollie"))
         check(
             "the preamble keeps the model a general-purpose assistant",
             AIPreamble.text.lowercased().contains("general-purpose assistant"))

@@ -12,8 +12,8 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const ANCHORS = "Fredie/Features/Settings/SettingsAnchor.swift";
-const CATALOG = "Fredie/Features/Settings/SettingsSearchCatalog.swift";
+const ANCHORS = "Ollie/Features/Settings/SettingsAnchor.swift";
+const CATALOG = "Ollie/Features/Settings/SettingsSearchCatalog.swift";
 
 function swiftSources(dir, found = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -26,7 +26,7 @@ function swiftSources(dir, found = []) {
 
 const anchorSource = fs.readFileSync(path.join(ROOT, ANCHORS), "utf8");
 const catalog = fs.readFileSync(path.join(ROOT, CATALOG), "utf8");
-const source = swiftSources(path.join(ROOT, "Fredie"))
+const source = swiftSources(path.join(ROOT, "Ollie"))
   .map((f) => fs.readFileSync(f, "utf8"))
   .join("\n");
 

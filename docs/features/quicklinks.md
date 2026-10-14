@@ -154,7 +154,7 @@ frontmost tab; that is what "prefer existing tabs" means, so it is the same swit
 second one.
 
 Every failure — unresolvable link, missing file, missing app, refused open — reports through
-Fredie's own dialog and leaves no partial state.
+Ollie's own dialog and leaves no partial state.
 
 ## Search and pinning
 
@@ -234,7 +234,7 @@ Quicklinks and their bindings also ride in native settings backups, and the sett
 excluding it would be cargo-culting.
 
 The encrypted `.rayconfig` flow in **Settings → Backup** can import Raycast's quicklinks as an
-independently selectable category. Fredie reads `name`, `link`, `createdAt` and the optional
+independently selectable category. Ollie reads `name`, `link`, `createdAt` and the optional
 `openWith` / `applicationId` from the export's `quicklinks.quicklinks` collection, resolving an app
 path through `openWithPlatforms` when the field is a platform id. Invalid entries are skipped; valid
 entries merge into the existing library the same way **Import Quicklinks** does. Importing at least

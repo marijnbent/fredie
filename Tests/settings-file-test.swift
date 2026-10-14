@@ -217,7 +217,7 @@ struct SettingsFileTest {
     private static func testRepository() async throws {
         let folder = scratchFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let url = folder.appending(path: "fredie/settings.json")
+        let url = folder.appending(path: "ollie/settings.json")
 
         let first = Fixture()
         first.seconds = 15
@@ -342,7 +342,7 @@ struct SettingsFileTest {
     // MARK: - Paths
 
     private static func testContentFolders() throws {
-        let bundleID = "nl.bentjes.fredie.settings-file-test.\(UUID().uuidString)"
+        let bundleID = "nl.bentjes.ollie.settings-file-test.\(UUID().uuidString)"
         let standard = AppPaths.applicationSupport(bundleID: bundleID)
         defer { try? FileManager.default.removeItem(at: standard) }
         let home = FileManager.default.homeDirectoryForCurrentUser.standardizedFileURL.path
@@ -397,7 +397,7 @@ struct SettingsFileTest {
 
     private static func scratchFolder() -> URL {
         FileManager.default.temporaryDirectory.appending(
-            path: "fredie-settings-file-test-\(UUID().uuidString)", directoryHint: .isDirectory)
+            path: "ollie-settings-file-test-\(UUID().uuidString)", directoryHint: .isDirectory)
     }
 
     private static func write(_ text: String, to url: URL) throws {

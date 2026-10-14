@@ -110,7 +110,7 @@ struct UpdateCheckTests {
         Data(
             """
             [{"tag_name":"v\(version)","prerelease":false,"draft":false,"assets":[
-                {"name":"Fredie-Universal-\(version).zip","size":100,
+                {"name":"Ollie-Universal-\(version).zip","size":100,
                  "browser_download_url":"https://example.com/update.zip"}
             ]}]
             """.utf8)

@@ -11,7 +11,7 @@ set -uo pipefail
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.." || exit 1
 
-BIN="${TMPDIR:-/tmp}/fredie-harness"
+BIN="${TMPDIR:-/tmp}/ollie-harness"
 mkdir -p "$BIN"
 
 # `--exec` is the worker half: xargs re-enters here once per queued harness.
@@ -35,10 +35,10 @@ if [ "${1:-}" = "--exec" ]; then
     # macOS ships no `timeout`, so the worker polls; a wedged harness must fail, not stall the suite.
     ticks=0
     while kill -0 "$pid" 2>/dev/null; do
-        if [ "$ticks" -ge $((FREDIE_TEST_TIMEOUT * 5)) ]; then
+        if [ "$ticks" -ge $((OLLIE_TEST_TIMEOUT * 5)) ]; then
             { pkill -KILL -P "$pid"; kill -KILL "$pid"; wait "$pid"; } 2>/dev/null
-            printf '\n[run-tests] killed after %ss without finishing\n' "$FREDIE_TEST_TIMEOUT" >> "$BIN/$name.log"
-            fail "timed out after ${FREDIE_TEST_TIMEOUT}s"
+            printf '\n[run-tests] killed after %ss without finishing\n' "$OLLIE_TEST_TIMEOUT" >> "$BIN/$name.log"
+            fail "timed out after ${OLLIE_TEST_TIMEOUT}s"
         fi
         ticks=$((ticks + 1))
         sleep 0.2
@@ -64,7 +64,7 @@ only="${1:-}"
 # xcodebuild never compiles the harnesses, so without this nothing in Tests/ resolves in an editor.
 # The source lists below are the only copy, which is why this lives here rather than in its own script.
 emit_db=0
-DB="${TMPDIR:-/tmp}/fredie-compile-db.json"
+DB="${TMPDIR:-/tmp}/ollie-compile-db.json"
 if [ "$only" = "--index" ]; then
     emit_db=1
     only=""
@@ -113,409 +113,409 @@ run() {
     printf '%s %s %s %s\n' "$pri" "$name" "$opt" "$*" >> "$QUEUE"
 }
 
-L=Fredie/Features/Launcher/Model
+L=Ollie/Features/Launcher/Model
 run slow -O fuzz-test      $L/SearchRelevance.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/EntryNaming.swift $L/LauncherOrder.swift \
                            $L/LauncherRankingStore.swift $L/LauncherSuggestions.swift
 run file-search-test       $L/SearchRelevance.swift \
-                           Fredie/Features/FileSearch/Model/*.swift
-run file-search-session-test Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
+                           Ollie/Features/FileSearch/Model/*.swift
+run file-search-session-test Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
                              $L/SearchRelevance.swift \
-                             Fredie/Features/FileSearch/Model/*.swift \
-                             Fredie/Features/FileSearch/Service/*.swift
+                             Ollie/Features/FileSearch/Model/*.swift \
+                             Ollie/Features/FileSearch/Service/*.swift
 run menu-search-test       $L/SearchRelevance.swift \
-                           Fredie/Features/MenuSearch/Model/*.swift \
-                           Fredie/Features/MenuSearch/Service/*.swift
-run index file-search-performance Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
+                           Ollie/Features/MenuSearch/Model/*.swift \
+                           Ollie/Features/MenuSearch/Service/*.swift
+run index file-search-performance Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
-                           Fredie/Features/FileSearch/Model/*.swift \
-                           Fredie/Features/FileSearch/Service/FileSearchService.swift
+                           Ollie/Features/FileSearch/Model/*.swift \
+                           Ollie/Features/FileSearch/Service/FileSearchService.swift
 run launcher-apps-test     $L/SearchRelevance.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/EntryNaming.swift $L/LauncherOrder.swift \
                            $L/LauncherRankingStore.swift $L/LauncherAppResults.swift
 run ranking-test           $L/SearchRelevance.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/LauncherRankingStore.swift
 run scopes-test            $L/SearchScopes.swift
-run app-name-test          Fredie/Platform/AppDisplayName.swift \
-                           Fredie/Platform/BundleLocalization.swift \
+run app-name-test          Ollie/Platform/AppDisplayName.swift \
+                           Ollie/Platform/BundleLocalization.swift \
                            $L/SearchRelevance.swift
 run favorites-test         $L/FavoriteSlots.swift
 run launcher-file-test     $L/LauncherFileFormat.swift \
-                           Fredie/Features/Settings/Model/SettingsFileJSON.swift
+                           Ollie/Features/Settings/Model/SettingsFileJSON.swift
 run launcher-settings-file-test \
                            $L/LauncherFileFormat.swift $L/CommandID.swift $L/CommandCatalog.swift \
-                           Fredie/Features/Launcher/Service/LauncherSettingsFile.swift \
-                           Fredie/Features/Launcher/Service/AliasStore.swift \
-                           Fredie/Features/Launcher/Service/VisibilityStore.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/*.swift \
-                           Fredie/Features/HotKeys/Service/HotKeySettingsFile.swift \
-                           Fredie/Features/HotKeys/Service/KeyShortcut.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyAction.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
-                           Fredie/Features/HotKeys/Model/HotKeySpelling.swift \
-                           Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
-                           Fredie/Features/HotKeys/Model/ModifierKey.swift \
-                           Fredie/Platform/ASCIIKeyboardLayout.swift \
-                           Fredie/Features/QuickActions/Model/BuiltInQuickAction.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
-run apple-shortcut-test    Fredie/Features/AppleShortcuts/Model/*.swift
-run calc-test              Fredie/Features/Calculator/Model/*.swift
-run index calc-performance Fredie/Features/Calculator/Model/*.swift
-run calendar-test          Fredie/Features/Calendar/Model/*.swift
+                           Ollie/Features/Launcher/Service/LauncherSettingsFile.swift \
+                           Ollie/Features/Launcher/Service/AliasStore.swift \
+                           Ollie/Features/Launcher/Service/VisibilityStore.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/*.swift \
+                           Ollie/Features/HotKeys/Service/HotKeySettingsFile.swift \
+                           Ollie/Features/HotKeys/Service/KeyShortcut.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyAction.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyBinding.swift \
+                           Ollie/Features/HotKeys/Model/HotKeySpelling.swift \
+                           Ollie/Features/HotKeys/Model/DoubleTapModifier.swift \
+                           Ollie/Features/HotKeys/Model/ModifierKey.swift \
+                           Ollie/Platform/ASCIIKeyboardLayout.swift \
+                           Ollie/Features/QuickActions/Model/BuiltInQuickAction.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/SystemActions/Model/SystemAction.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCommand.swift
+run apple-shortcut-test    Ollie/Features/AppleShortcuts/Model/*.swift
+run calc-test              Ollie/Features/Calculator/Model/*.swift
+run index calc-performance Ollie/Features/Calculator/Model/*.swift
+run calendar-test          Ollie/Features/Calendar/Model/*.swift
 # `Q` is the URL detector a drag payload builds its link with, rather than a second one.
-Q=Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift
-run emoji-test             Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/Emoji/Model/EmojiGridGeometry.swift \
-                           Fredie/Features/Emoji/Model/EmojiData.generated.swift
-run emoji-search-test      Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/Emoji/Model/EmojiData.generated.swift \
-                           Fredie/Features/Emoji/Service/EmojiIndex.swift \
-                           Fredie/Features/Emoji/Service/FrequentEmojiStore.swift \
-                           Fredie/Features/Emoji/Service/PinnedEmojiStore.swift \
-                           Fredie/Features/Launcher/Model/SearchRelevance.swift \
-                           Fredie/Platform/AppPaths.swift Fredie/Platform/Memo.swift
+Q=Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift
+run emoji-test             Ollie/Features/Emoji/Model/EmojiCatalog.swift \
+                           Ollie/Features/Emoji/Model/EmojiGridGeometry.swift \
+                           Ollie/Features/Emoji/Model/EmojiData.generated.swift
+run emoji-search-test      Ollie/Features/Emoji/Model/EmojiCatalog.swift \
+                           Ollie/Features/Emoji/Model/EmojiData.generated.swift \
+                           Ollie/Features/Emoji/Service/EmojiIndex.swift \
+                           Ollie/Features/Emoji/Service/FrequentEmojiStore.swift \
+                           Ollie/Features/Emoji/Service/PinnedEmojiStore.swift \
+                           Ollie/Features/Launcher/Model/SearchRelevance.swift \
+                           Ollie/Platform/AppPaths.swift Ollie/Platform/Memo.swift
 run index emoji-search-performance \
-                           Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/Emoji/Model/EmojiData.generated.swift \
-                           Fredie/Features/Emoji/Service/EmojiIndex.swift \
-                           Fredie/Features/Emoji/Service/FrequentEmojiStore.swift \
-                           Fredie/Features/Launcher/Model/SearchRelevance.swift \
-                           Fredie/Platform/AppPaths.swift Fredie/Platform/Memo.swift
-run palette-selection-test Fredie/Features/PaletteRowIndex.swift \
-                           Fredie/Features/Emoji/Model/EmojiGridGeometry.swift
-run appearance-test        Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Settings/AppAppearance.swift
-run interface-size-test    Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Settings/InterfaceSize.swift \
-                           Fredie/Features/Extensions/Model/ExtensionFormMetrics.swift
-run palette-placement-test Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Settings/InterfaceSize.swift \
-                           Fredie/Palette/PalettePlacement.swift
-run palette-surface-test   Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Settings/InterfaceSize.swift \
-                           Fredie/Palette/PaletteSurface.swift \
-                           Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run scroll-reveal-test     Fredie/DesignSystem/Scrolling/SelectionReveal.swift
-run redaction-test         Fredie/DesignSystem/RedactedPlaceholder.swift
-run keyboard-focus-test    Fredie/DesignSystem/Interaction/KeyboardFocus.swift
-run ai-instructions-test   Fredie/Features/AI/Model/AIInstructions.swift \
-                           Fredie/Features/AI/Model/AIPreamble.swift
-run hover-arming-test      Fredie/Palette/HoverArming.swift \
-                           Fredie/Palette/PaletteState.swift \
-                           Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
-                           Fredie/Features/Calculator/Model/ColorValue.swift \
-                           Fredie/Features/Calculator/Model/ColorFormat.swift \
-                           Fredie/Features/Calculator/Model/ColorSpaces.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run palette-escape-test    Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Palette/PaletteEscapeAction.swift \
-                           Fredie/Palette/CommandEscapeTap.swift \
-                           Fredie/Features/Settings/EscapeKeyBehavior.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run palette-navigation-test Fredie/Palette/PaletteState.swift \
-                           Fredie/Palette/PaletteFieldBoundary.swift \
-                           Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Palette/HoverArming.swift \
-                           Fredie/Features/Emoji/Model/EmojiCatalog.swift \
-                           Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
-                           Fredie/Features/Calculator/Model/ColorValue.swift \
-                           Fredie/Features/Calculator/Model/ColorFormat.swift \
-                           Fredie/Features/Calculator/Model/ColorSpaces.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run palette-filter-test    Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Palette/PaletteFilterAction.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run action-menu-search-test Fredie/Palette/ActionMenuSearchQuery.swift \
-                            Fredie/Features/Launcher/Model/SearchRelevance.swift
-run palette-shortcut-test  Fredie/Palette/PaletteShortcut.swift
-run ascii-layout-test      Fredie/Platform/ASCIIKeyboardLayout.swift
-run palette-tab-test       Fredie/Palette/PaletteMode.swift \
-                           Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Palette/PaletteTabAction.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift
-run fallback-test          Fredie/Features/Launcher/Model/Fallback.swift \
-                           Fredie/Features/Launcher/Model/CommandID.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyAction.swift \
-                           Fredie/Features/QuickActions/Model/QuickAction.swift \
-                           Fredie/Features/QuickActions/Model/BuiltInQuickAction.swift \
-                           Fredie/Features/QuickActions/Model/CustomQuickAction.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
-run dictionary-test        Fredie/Features/Dictionary/Model/DictionaryEntry.swift \
-                           Fredie/Features/Dictionary/Model/DictionaryMarkup.swift
-run hotkey-test            Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
-                           Fredie/Features/HotKeys/Model/ModifierKey.swift \
-                           Fredie/Features/HotKeys/Model/ModifierKeyDetector.swift \
-                           Fredie/Features/HotKeys/Model/DoubleTapDetector.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
-                           Fredie/Features/HotKeys/Model/HotKeySpelling.swift \
-                           Fredie/Platform/ASCIIKeyboardLayout.swift \
-                           Fredie/Features/HotKeys/Service/KeyShortcut.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyAction.swift \
-                           Fredie/Features/QuickActions/Model/QuickAction.swift \
-                           Fredie/Features/QuickActions/Model/BuiltInQuickAction.swift \
-                           Fredie/Features/QuickActions/Model/CustomQuickAction.swift \
-                           Fredie/Features/Launcher/Model/CommandID.swift \
-                           Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/SystemActions/Model/SystemAction.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCommand.swift
-run callout-test          Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/HotKeys/UI/CalloutPlacement.swift
-run icon-cache-test        Fredie/Platform/Appearance.swift \
-                           Fredie/Platform/Images/IconCache.swift
-run entry-icon-test        Fredie/Platform/Appearance.swift \
-                           Fredie/Platform/Images/IconCache.swift \
-                           Fredie/Platform/Images/FileIconStamp.swift
-run ext-icon-test          Fredie/Platform/Appearance.swift \
-                           Fredie/Platform/AppDisplayName.swift \
-                           Fredie/Platform/Images/IconCache.swift \
-                           Fredie/Platform/Compression/Zlib.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Extensions/Model/ExtensionBootConfig.swift \
-                           Fredie/Features/Extensions/Model/ExtensionLaunchType.swift \
-                           Fredie/Features/Extensions/Model/ExtensionManifest.swift \
-                           Fredie/Features/Extensions/Model/ExtensionRefreshPolicy.swift \
-                           Fredie/Features/Extensions/Model/ExtensionRefreshState.swift \
-                           Fredie/Features/Extensions/Model/RenderNode.swift \
-                           Fredie/Features/Extensions/Service/ExtensionCatalog.swift \
-                           Fredie/Features/Extensions/Service/ExtensionFetcher.swift \
-                           Fredie/Platform/ProcessExit.swift \
-                           Fredie/Features/Extensions/Service/ExtensionNodeShims.swift \
-                           Fredie/Features/Extensions/Service/ExtensionOAuthKeychain.swift \
-                           Fredie/Features/Extensions/Service/ExtensionOAuthSession.swift \
-                           Fredie/Features/Extensions/Service/ExtensionRuntime.swift \
-                           Fredie/Features/Extensions/Service/ExtensionIconCache.swift \
-                           Fredie/Features/Extensions/UI/ExtensionAnimatedImage.swift \
-                           Fredie/Features/Extensions/UI/ExtensionImage.swift \
-                           Fredie/Features/Calculator/Model/ColorValue.swift \
-                           Fredie/Features/Calculator/Model/ColorSpaces.swift
-run system-action-test     Fredie/Features/SystemActions/Model/SystemAction.swift
-run microphone-mute-test   Fredie/Features/SystemActions/Service/SystemActionFailure.swift \
-                           Fredie/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
-run volume-test            Fredie/Features/SystemActions/Model/VolumeLevel.swift
-run window-command-test    Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCycle.swift \
-                           Fredie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
-                           Fredie/Features/WindowManagement/Model/WindowActionMemory.swift
-run window-preset-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/WindowShortcutPreset.swift \
-                           Fredie/Features/HotKeys/Model/DoubleTapModifier.swift \
-                           Fredie/Features/HotKeys/Model/ModifierKey.swift \
-                           Fredie/Features/HotKeys/Model/HotKeyBinding.swift \
-                           Fredie/Platform/ASCIIKeyboardLayout.swift \
-                           Fredie/Features/HotKeys/Service/KeyShortcut.swift
-run spaces-test           Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/SpaceGesture.swift \
-                           Fredie/Features/Spaces/Model/SpaceSwipeState.swift \
-                           Fredie/Features/Spaces/Model/SpaceBoundaryState.swift \
-                           Fredie/Features/Spaces/Model/SpaceTransitionSpeed.swift
+                           Ollie/Features/Emoji/Model/EmojiCatalog.swift \
+                           Ollie/Features/Emoji/Model/EmojiData.generated.swift \
+                           Ollie/Features/Emoji/Service/EmojiIndex.swift \
+                           Ollie/Features/Emoji/Service/FrequentEmojiStore.swift \
+                           Ollie/Features/Launcher/Model/SearchRelevance.swift \
+                           Ollie/Platform/AppPaths.swift Ollie/Platform/Memo.swift
+run palette-selection-test Ollie/Features/PaletteRowIndex.swift \
+                           Ollie/Features/Emoji/Model/EmojiGridGeometry.swift
+run appearance-test        Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Settings/AppAppearance.swift
+run interface-size-test    Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Settings/InterfaceSize.swift \
+                           Ollie/Features/Extensions/Model/ExtensionFormMetrics.swift
+run palette-placement-test Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Settings/InterfaceSize.swift \
+                           Ollie/Palette/PalettePlacement.swift
+run palette-surface-test   Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Settings/InterfaceSize.swift \
+                           Ollie/Palette/PaletteSurface.swift \
+                           Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run scroll-reveal-test     Ollie/DesignSystem/Scrolling/SelectionReveal.swift
+run redaction-test         Ollie/DesignSystem/RedactedPlaceholder.swift
+run keyboard-focus-test    Ollie/DesignSystem/Interaction/KeyboardFocus.swift
+run ai-instructions-test   Ollie/Features/AI/Model/AIInstructions.swift \
+                           Ollie/Features/AI/Model/AIPreamble.swift
+run hover-arming-test      Ollie/Palette/HoverArming.swift \
+                           Ollie/Palette/PaletteState.swift \
+                           Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Features/Emoji/Model/EmojiCatalog.swift \
+                           Ollie/Features/FileSearch/Model/FileSearchFilter.swift \
+                           Ollie/Features/Calculator/Model/ColorValue.swift \
+                           Ollie/Features/Calculator/Model/ColorFormat.swift \
+                           Ollie/Features/Calculator/Model/ColorSpaces.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run palette-escape-test    Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Palette/PaletteEscapeAction.swift \
+                           Ollie/Palette/CommandEscapeTap.swift \
+                           Ollie/Features/Settings/EscapeKeyBehavior.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run palette-navigation-test Ollie/Palette/PaletteState.swift \
+                           Ollie/Palette/PaletteFieldBoundary.swift \
+                           Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Palette/HoverArming.swift \
+                           Ollie/Features/Emoji/Model/EmojiCatalog.swift \
+                           Ollie/Features/FileSearch/Model/FileSearchFilter.swift \
+                           Ollie/Features/Calculator/Model/ColorValue.swift \
+                           Ollie/Features/Calculator/Model/ColorFormat.swift \
+                           Ollie/Features/Calculator/Model/ColorSpaces.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run palette-filter-test    Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Palette/PaletteFilterAction.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run action-menu-search-test Ollie/Palette/ActionMenuSearchQuery.swift \
+                            Ollie/Features/Launcher/Model/SearchRelevance.swift
+run palette-shortcut-test  Ollie/Palette/PaletteShortcut.swift
+run ascii-layout-test      Ollie/Platform/ASCIIKeyboardLayout.swift
+run palette-tab-test       Ollie/Palette/PaletteMode.swift \
+                           Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Palette/PaletteTabAction.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift
+run fallback-test          Ollie/Features/Launcher/Model/Fallback.swift \
+                           Ollie/Features/Launcher/Model/CommandID.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyAction.swift \
+                           Ollie/Features/QuickActions/Model/QuickAction.swift \
+                           Ollie/Features/QuickActions/Model/BuiltInQuickAction.swift \
+                           Ollie/Features/QuickActions/Model/CustomQuickAction.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/SystemActions/Model/SystemAction.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCommand.swift
+run dictionary-test        Ollie/Features/Dictionary/Model/DictionaryEntry.swift \
+                           Ollie/Features/Dictionary/Model/DictionaryMarkup.swift
+run hotkey-test            Ollie/Features/HotKeys/Model/DoubleTapModifier.swift \
+                           Ollie/Features/HotKeys/Model/ModifierKey.swift \
+                           Ollie/Features/HotKeys/Model/ModifierKeyDetector.swift \
+                           Ollie/Features/HotKeys/Model/DoubleTapDetector.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyBinding.swift \
+                           Ollie/Features/HotKeys/Model/HotKeySpelling.swift \
+                           Ollie/Platform/ASCIIKeyboardLayout.swift \
+                           Ollie/Features/HotKeys/Service/KeyShortcut.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyAction.swift \
+                           Ollie/Features/QuickActions/Model/QuickAction.swift \
+                           Ollie/Features/QuickActions/Model/BuiltInQuickAction.swift \
+                           Ollie/Features/QuickActions/Model/CustomQuickAction.swift \
+                           Ollie/Features/Launcher/Model/CommandID.swift \
+                           Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/SystemActions/Model/SystemAction.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCommand.swift
+run callout-test          Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/HotKeys/UI/CalloutPlacement.swift
+run icon-cache-test        Ollie/Platform/Appearance.swift \
+                           Ollie/Platform/Images/IconCache.swift
+run entry-icon-test        Ollie/Platform/Appearance.swift \
+                           Ollie/Platform/Images/IconCache.swift \
+                           Ollie/Platform/Images/FileIconStamp.swift
+run ext-icon-test          Ollie/Platform/Appearance.swift \
+                           Ollie/Platform/AppDisplayName.swift \
+                           Ollie/Platform/Images/IconCache.swift \
+                           Ollie/Platform/Compression/Zlib.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Extensions/Model/ExtensionBootConfig.swift \
+                           Ollie/Features/Extensions/Model/ExtensionLaunchType.swift \
+                           Ollie/Features/Extensions/Model/ExtensionManifest.swift \
+                           Ollie/Features/Extensions/Model/ExtensionRefreshPolicy.swift \
+                           Ollie/Features/Extensions/Model/ExtensionRefreshState.swift \
+                           Ollie/Features/Extensions/Model/RenderNode.swift \
+                           Ollie/Features/Extensions/Service/ExtensionCatalog.swift \
+                           Ollie/Features/Extensions/Service/ExtensionFetcher.swift \
+                           Ollie/Platform/ProcessExit.swift \
+                           Ollie/Features/Extensions/Service/ExtensionNodeShims.swift \
+                           Ollie/Features/Extensions/Service/ExtensionOAuthKeychain.swift \
+                           Ollie/Features/Extensions/Service/ExtensionOAuthSession.swift \
+                           Ollie/Features/Extensions/Service/ExtensionRuntime.swift \
+                           Ollie/Features/Extensions/Service/ExtensionIconCache.swift \
+                           Ollie/Features/Extensions/UI/ExtensionAnimatedImage.swift \
+                           Ollie/Features/Extensions/UI/ExtensionImage.swift \
+                           Ollie/Features/Calculator/Model/ColorValue.swift \
+                           Ollie/Features/Calculator/Model/ColorSpaces.swift
+run system-action-test     Ollie/Features/SystemActions/Model/SystemAction.swift
+run microphone-mute-test   Ollie/Features/SystemActions/Service/SystemActionFailure.swift \
+                           Ollie/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
+run volume-test            Ollie/Features/SystemActions/Model/VolumeLevel.swift
+run window-command-test    Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCycle.swift \
+                           Ollie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
+                           Ollie/Features/WindowManagement/Model/WindowActionMemory.swift
+run window-preset-test     Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/WindowShortcutPreset.swift \
+                           Ollie/Features/HotKeys/Model/DoubleTapModifier.swift \
+                           Ollie/Features/HotKeys/Model/ModifierKey.swift \
+                           Ollie/Features/HotKeys/Model/HotKeyBinding.swift \
+                           Ollie/Platform/ASCIIKeyboardLayout.swift \
+                           Ollie/Features/HotKeys/Service/KeyShortcut.swift
+run spaces-test           Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/SpaceGesture.swift \
+                           Ollie/Features/Spaces/Model/SpaceSwipeState.swift \
+                           Ollie/Features/Spaces/Model/SpaceBoundaryState.swift \
+                           Ollie/Features/Spaces/Model/SpaceTransitionSpeed.swift
 
-run space-gesture-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/SpaceGesture.swift
-run window-layout-test     Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCycle.swift \
-                           Fredie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayout.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutPlan.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutStore.swift \
-                           Fredie/Features/WindowManagement/Model/CustomWindowSize.swift \
-                           Fredie/Features/WindowManagement/Model/CustomWindowSizeStore.swift
-run window-room-test       Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCycle.swift \
-                           Fredie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayout.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutPlan.swift \
-                           Fredie/Features/WindowManagement/Model/RoomLayoutKind.swift \
-                           Fredie/Features/WindowManagement/Model/RoomLayoutEngine.swift \
-                           Fredie/Features/WindowManagement/Model/RoomGrid.swift \
-                           Fredie/Features/WindowManagement/Model/RoomWindow.swift \
-                           Fredie/Features/WindowManagement/Model/Room.swift \
-                           Fredie/Features/WindowManagement/Model/RoomWindowMatcher.swift \
-                           Fredie/Features/WindowManagement/Model/RoomParking.swift \
-                           Fredie/Features/WindowManagement/Model/RoomPlan.swift \
-                           Fredie/Features/WindowManagement/Model/RoomArrangement.swift \
-                           Fredie/Features/WindowManagement/Model/RoomStore.swift \
-                           Fredie/Features/WindowManagement/Model/RoomMinimumSizeStore.swift \
-                           Fredie/Features/WindowManagement/Model/RoomParkingLedger.swift
-run window-file-test       Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-                           Fredie/Features/WindowManagement/Model/WindowCycle.swift \
-                           Fredie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayout.swift \
-                           Fredie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
-                           Fredie/Features/WindowManagement/Model/CustomWindowSize.swift \
-                           Fredie/Features/WindowManagement/Model/Room.swift \
-                           Fredie/Features/WindowManagement/Model/RoomWindow.swift \
-                           Fredie/Features/WindowManagement/Model/RoomLayoutKind.swift \
-                           Fredie/Features/WindowManagement/Model/RoomGrid.swift \
-                           Fredie/Features/WindowManagement/Model/RoomLayoutEngine.swift \
-                           Fredie/Features/WindowManagement/Model/WindowManagementFileFormat.swift \
-                           Fredie/Features/Settings/Model/SettingsFileJSON.swift \
-                           Fredie/Features/Settings/Model/SettingsFileIdentity.swift
-run custom-command-test    Fredie/Platform/PseudoTerminal.swift \
-                           Fredie/Platform/ProcessExit.swift \
-                           Fredie/Features/CustomCommands/Model/CustomCommand.swift \
-                           Fredie/Features/CustomCommands/Model/RaycastScriptImport.swift \
-                           Fredie/Features/CustomCommands/Service/ShellCommandRunner.swift
-run uninstall-test         Fredie/Features/Uninstall/Model/UninstallTarget.swift \
-                           Fredie/Features/Uninstall/Model/UninstallSearchRoot.swift \
-                           Fredie/Features/Uninstall/Model/UninstallRules.swift \
-                           Fredie/Features/Uninstall/Model/UninstallProtection.swift \
-                           Fredie/Features/Uninstall/Model/UninstallPlan.swift
-run text-injection-test Fredie/Features/TextInjection/Service/*.swift \
-    Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift \
-    Fredie/Platform/{Paster,PasteboardFiles,Permissions,AccessibilityText,CalendarAccess,CameraAccess}.swift
+run space-gesture-test     Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/SpaceGesture.swift
+run window-layout-test     Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCycle.swift \
+                           Ollie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayout.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutPlan.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutStore.swift \
+                           Ollie/Features/WindowManagement/Model/CustomWindowSize.swift \
+                           Ollie/Features/WindowManagement/Model/CustomWindowSizeStore.swift
+run window-room-test       Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCycle.swift \
+                           Ollie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayout.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutPlan.swift \
+                           Ollie/Features/WindowManagement/Model/RoomLayoutKind.swift \
+                           Ollie/Features/WindowManagement/Model/RoomLayoutEngine.swift \
+                           Ollie/Features/WindowManagement/Model/RoomGrid.swift \
+                           Ollie/Features/WindowManagement/Model/RoomWindow.swift \
+                           Ollie/Features/WindowManagement/Model/Room.swift \
+                           Ollie/Features/WindowManagement/Model/RoomWindowMatcher.swift \
+                           Ollie/Features/WindowManagement/Model/RoomParking.swift \
+                           Ollie/Features/WindowManagement/Model/RoomPlan.swift \
+                           Ollie/Features/WindowManagement/Model/RoomArrangement.swift \
+                           Ollie/Features/WindowManagement/Model/RoomStore.swift \
+                           Ollie/Features/WindowManagement/Model/RoomMinimumSizeStore.swift \
+                           Ollie/Features/WindowManagement/Model/RoomParkingLedger.swift
+run window-file-test       Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+                           Ollie/Features/WindowManagement/Model/WindowCycle.swift \
+                           Ollie/Features/WindowManagement/Model/WindowPlacementEngine.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutAnchor.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutDisplay.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayout.swift \
+                           Ollie/Features/WindowManagement/Model/WindowLayoutGeometry.swift \
+                           Ollie/Features/WindowManagement/Model/CustomWindowSize.swift \
+                           Ollie/Features/WindowManagement/Model/Room.swift \
+                           Ollie/Features/WindowManagement/Model/RoomWindow.swift \
+                           Ollie/Features/WindowManagement/Model/RoomLayoutKind.swift \
+                           Ollie/Features/WindowManagement/Model/RoomGrid.swift \
+                           Ollie/Features/WindowManagement/Model/RoomLayoutEngine.swift \
+                           Ollie/Features/WindowManagement/Model/WindowManagementFileFormat.swift \
+                           Ollie/Features/Settings/Model/SettingsFileJSON.swift \
+                           Ollie/Features/Settings/Model/SettingsFileIdentity.swift
+run custom-command-test    Ollie/Platform/PseudoTerminal.swift \
+                           Ollie/Platform/ProcessExit.swift \
+                           Ollie/Features/CustomCommands/Model/CustomCommand.swift \
+                           Ollie/Features/CustomCommands/Model/RaycastScriptImport.swift \
+                           Ollie/Features/CustomCommands/Service/ShellCommandRunner.swift
+run uninstall-test         Ollie/Features/Uninstall/Model/UninstallTarget.swift \
+                           Ollie/Features/Uninstall/Model/UninstallSearchRoot.swift \
+                           Ollie/Features/Uninstall/Model/UninstallRules.swift \
+                           Ollie/Features/Uninstall/Model/UninstallProtection.swift \
+                           Ollie/Features/Uninstall/Model/UninstallPlan.swift
+run text-injection-test Ollie/Features/TextInjection/Service/*.swift \
+    Ollie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift \
+    Ollie/Platform/{Paster,PasteboardFiles,Permissions,AccessibilityText,CalendarAccess,CameraAccess}.swift
 
-run quicklink-template-test Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
+run quicklink-template-test Ollie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
 
-run quicklink-test         Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkStore.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkArchive.swift \
-                           Fredie/Features/Quicklinks/Model/RaycastQuicklinkImport.swift
-run quicklink-coordinator-test Fredie/Features/Quicklinks/Model/Quicklink.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkStore.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkArchive.swift \
-                           Fredie/Features/Quicklinks/UI/QuicklinkCoordinator.swift \
-                           Fredie/Features/Quicklinks/UI/QuicklinkArgumentsAccessory.swift \
-                           Fredie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
-run notes-test             Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
+run quicklink-test         Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkStore.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkArchive.swift \
+                           Ollie/Features/Quicklinks/Model/RaycastQuicklinkImport.swift
+run quicklink-coordinator-test Ollie/Features/Quicklinks/Model/Quicklink.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkDestination.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkStore.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkArchive.swift \
+                           Ollie/Features/Quicklinks/UI/QuicklinkCoordinator.swift \
+                           Ollie/Features/Quicklinks/UI/QuicklinkArgumentsAccessory.swift \
+                           Ollie/Features/Quicklinks/Model/QuicklinkTemplateEngine.swift
+run notes-test             Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
                            $L/SearchRelevance.swift \
-                           Fredie/Features/Notes/Model/*.swift \
-                           Fredie/Features/Notes/Service/*.swift
-run notes-editor-test      Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
-                           Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Platform/NotificationToken.swift \
-                           Fredie/Features/TextInjection/Service/InjectableTextView.swift \
-                           Fredie/Features/Notes/Model/NoteDocument.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdown.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdownParser.swift \
-                           Fredie/Features/Notes/Model/NoteInlineScanner.swift \
-                           Fredie/Features/Notes/Model/NoteEditPlan.swift \
-                           Fredie/Features/Notes/Model/NoteEditAction.swift \
-                           Fredie/Features/Notes/Model/NoteFormatting.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdownEditing.swift \
-                           Fredie/Features/Notes/Model/NoteRevealPolicy.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownTypography.swift \
-                           Fredie/Features/Notes/UI/NoteBlockDecoration.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownStyler.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownRenderer.swift \
-                           Fredie/Features/Notes/UI/NoteCheckboxGeometry.swift \
-                           Fredie/Features/Notes/UI/NoteBlockLayoutFragment.swift \
-                           Fredie/Features/Notes/UI/NoteLayoutFragmentProvider.swift \
-                           Fredie/Features/Notes/UI/NoteTextViewEditing.swift \
-                           Fredie/Features/Notes/UI/NoteTextView.swift \
-                           Fredie/Features/Notes/UI/NoteEditorView.swift
+                           Ollie/Features/Notes/Model/*.swift \
+                           Ollie/Features/Notes/Service/*.swift
+run notes-editor-test      Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
+                           Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Platform/NotificationToken.swift \
+                           Ollie/Features/TextInjection/Service/InjectableTextView.swift \
+                           Ollie/Features/Notes/Model/NoteDocument.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdown.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdownParser.swift \
+                           Ollie/Features/Notes/Model/NoteInlineScanner.swift \
+                           Ollie/Features/Notes/Model/NoteEditPlan.swift \
+                           Ollie/Features/Notes/Model/NoteEditAction.swift \
+                           Ollie/Features/Notes/Model/NoteFormatting.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdownEditing.swift \
+                           Ollie/Features/Notes/Model/NoteRevealPolicy.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownTypography.swift \
+                           Ollie/Features/Notes/UI/NoteBlockDecoration.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownStyler.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownRenderer.swift \
+                           Ollie/Features/Notes/UI/NoteCheckboxGeometry.swift \
+                           Ollie/Features/Notes/UI/NoteBlockLayoutFragment.swift \
+                           Ollie/Features/Notes/UI/NoteLayoutFragmentProvider.swift \
+                           Ollie/Features/Notes/UI/NoteTextViewEditing.swift \
+                           Ollie/Features/Notes/UI/NoteTextView.swift \
+                           Ollie/Features/Notes/UI/NoteEditorView.swift
 run -O index notes-editor-performance \
-                           Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift \
-                           Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Platform/NotificationToken.swift \
-                           Fredie/Features/TextInjection/Service/InjectableTextView.swift \
-                           Fredie/Features/Notes/Model/NoteDocument.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdown.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdownParser.swift \
-                           Fredie/Features/Notes/Model/NoteInlineScanner.swift \
-                           Fredie/Features/Notes/Model/NoteEditPlan.swift \
-                           Fredie/Features/Notes/Model/NoteEditAction.swift \
-                           Fredie/Features/Notes/Model/NoteFormatting.swift \
-                           Fredie/Features/Notes/Model/NoteMarkdownEditing.swift \
-                           Fredie/Features/Notes/Model/NoteRevealPolicy.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownTypography.swift \
-                           Fredie/Features/Notes/UI/NoteBlockDecoration.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownStyler.swift \
-                           Fredie/Features/Notes/UI/NoteMarkdownRenderer.swift \
-                           Fredie/Features/Notes/UI/NoteCheckboxGeometry.swift \
-                           Fredie/Features/Notes/UI/NoteBlockLayoutFragment.swift \
-                           Fredie/Features/Notes/UI/NoteLayoutFragmentProvider.swift \
-                           Fredie/Features/Notes/UI/NoteTextViewEditing.swift \
-                           Fredie/Features/Notes/UI/NoteTextView.swift \
-                           Fredie/Features/Notes/UI/NoteEditorView.swift
-run slow -O raycast-test   Fredie/Features/Backup/Model/RaycastImportError.swift \
-                           Fredie/Features/Backup/Service/RaycastDecoder.swift \
-                           Fredie/Features/Backup/Service/Scrypt.swift \
-                           Fredie/Platform/Compression/Zlib.swift \
-                           Fredie/Features/Calculator/Model/ColorValue.swift \
-                           Fredie/Features/Calculator/Model/ColorFormat.swift \
-                           Fredie/Features/Calculator/Model/ColorSpaces.swift
-run settings-backup-test   Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/Backup/Model/SettingsBackupCoverage.swift
-run settings-file-test     Fredie/Features/Settings/Model/*.swift \
-                           Fredie/Features/Settings/Service/SettingsFileMonitor.swift \
-                           Fredie/Features/Settings/Service/SettingsFileRepository.swift \
-                           Fredie/Platform/AppPaths.swift
-run backup-archive-test    Fredie/Platform/AppPaths.swift \
-                           Fredie/Features/Backup/Model/BackupArchive.swift \
-                           Fredie/Features/Backup/Model/BackupBundle.swift \
-                           Fredie/Features/Backup/Model/BackupCategory.swift \
-                           Fredie/Features/Backup/Model/BackupManifest.swift \
-                           Fredie/Features/Backup/Service/BackupStaging.swift
-E=Fredie/Features/Extensions
+                           Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift \
+                           Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Platform/NotificationToken.swift \
+                           Ollie/Features/TextInjection/Service/InjectableTextView.swift \
+                           Ollie/Features/Notes/Model/NoteDocument.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdown.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdownParser.swift \
+                           Ollie/Features/Notes/Model/NoteInlineScanner.swift \
+                           Ollie/Features/Notes/Model/NoteEditPlan.swift \
+                           Ollie/Features/Notes/Model/NoteEditAction.swift \
+                           Ollie/Features/Notes/Model/NoteFormatting.swift \
+                           Ollie/Features/Notes/Model/NoteMarkdownEditing.swift \
+                           Ollie/Features/Notes/Model/NoteRevealPolicy.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownTypography.swift \
+                           Ollie/Features/Notes/UI/NoteBlockDecoration.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownStyler.swift \
+                           Ollie/Features/Notes/UI/NoteMarkdownRenderer.swift \
+                           Ollie/Features/Notes/UI/NoteCheckboxGeometry.swift \
+                           Ollie/Features/Notes/UI/NoteBlockLayoutFragment.swift \
+                           Ollie/Features/Notes/UI/NoteLayoutFragmentProvider.swift \
+                           Ollie/Features/Notes/UI/NoteTextViewEditing.swift \
+                           Ollie/Features/Notes/UI/NoteTextView.swift \
+                           Ollie/Features/Notes/UI/NoteEditorView.swift
+run slow -O raycast-test   Ollie/Features/Backup/Model/RaycastImportError.swift \
+                           Ollie/Features/Backup/Service/RaycastDecoder.swift \
+                           Ollie/Features/Backup/Service/Scrypt.swift \
+                           Ollie/Platform/Compression/Zlib.swift \
+                           Ollie/Features/Calculator/Model/ColorValue.swift \
+                           Ollie/Features/Calculator/Model/ColorFormat.swift \
+                           Ollie/Features/Calculator/Model/ColorSpaces.swift
+run settings-backup-test   Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/Backup/Model/SettingsBackupCoverage.swift
+run settings-file-test     Ollie/Features/Settings/Model/*.swift \
+                           Ollie/Features/Settings/Service/SettingsFileMonitor.swift \
+                           Ollie/Features/Settings/Service/SettingsFileRepository.swift \
+                           Ollie/Platform/AppPaths.swift
+run backup-archive-test    Ollie/Platform/AppPaths.swift \
+                           Ollie/Features/Backup/Model/BackupArchive.swift \
+                           Ollie/Features/Backup/Model/BackupBundle.swift \
+                           Ollie/Features/Backup/Model/BackupCategory.swift \
+                           Ollie/Features/Backup/Model/BackupManifest.swift \
+                           Ollie/Features/Backup/Service/BackupStaging.swift
+E=Ollie/Features/Extensions
 run symbols-test           $E/Service/SymbolCatalog.swift
 run ext-cleanup-test       $E/Service/ExtensionCleanup.swift \
                            $E/Service/ExtensionCatalog.swift \
-                           Fredie/Platform/AppDisplayName.swift \
+                           Ollie/Platform/AppDisplayName.swift \
                            $E/Model/ExtensionManifest.swift \
                            $E/Model/ExtensionLaunchType.swift \
                            $E/Model/ExtensionRefreshPolicy.swift \
                            $E/Model/ExtensionRefreshState.swift
 run ext-refresh-test       $E/Model/ExtensionManifest.swift \
-                           Fredie/Platform/AppDisplayName.swift \
+                           Ollie/Platform/AppDisplayName.swift \
                            $E/Model/ExtensionLaunchType.swift \
                            $E/Model/ExtensionRefreshPolicy.swift \
                            $E/Model/ExtensionRefreshState.swift
@@ -546,16 +546,16 @@ run slow ext-test          -parse-as-library \
                            $E/Model/ExtensionMenuBarSnapshot.swift \
                            $E/Service/ExtensionStorage.swift \
                            $E/Service/ExtensionMenuBarManager.swift \
-                           Fredie/Platform/Diagnostics.swift \
+                           Ollie/Platform/Diagnostics.swift \
                            $E/Model/ExtensionCommandMetadata.swift \
                            $E/Service/ExtensionCommandMetadataStore.swift \
                            $E/UI/ExtensionMenuBarController.swift \
                            $E/UI/ExtensionMenuBarImage.swift \
-                           Fredie/Platform/Appearance.swift \
-                           Fredie/Platform/AppDisplayName.swift \
-                           Fredie/Platform/Images/IconCache.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Platform/Appearance.swift \
+                           Ollie/Platform/AppDisplayName.swift \
+                           Ollie/Platform/Images/IconCache.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
                            $E/Model/ExtensionBootConfig.swift \
                            $E/Model/ExtensionDeepLink.swift \
                            $E/Model/ExtensionLaunchType.swift \
@@ -569,7 +569,7 @@ run slow ext-test          -parse-as-library \
                            $E/Model/ExtensionSearchAccessory.swift \
                            $E/Service/ExtensionCatalog.swift \
                            $E/Service/ExtensionFetcher.swift \
-                           Fredie/Platform/ProcessExit.swift \
+                           Ollie/Platform/ProcessExit.swift \
                            $E/Service/ExtensionIconCache.swift \
                            $E/Service/ExtensionNodeShims.swift \
                            $E/Service/ExtensionOAuthKeychain.swift \
@@ -581,196 +581,196 @@ run slow ext-test          -parse-as-library \
                            $E/UI/ExtensionImage.swift \
                            $E/UI/ExtensionScreen.swift \
                            $L/SearchRelevance.swift \
-                           Fredie/Platform/Compression/Zlib.swift \
-                           Fredie/Features/Calculator/Model/ColorValue.swift \
-                           Fredie/Features/Calculator/Model/ColorSpaces.swift
-run diagnostics-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Platform/Signposts.swift Fredie/Features/Settings/AppSettingsKey.swift
-run ollie-dictation-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Tests/Dictation/*.swift Fredie/Platform/AppPaths.swift Fredie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Fredie/Features/Dictation/Service/AudioCaptureController.swift Fredie/Features/Dictation/Service/AudioBufferConverter.swift Fredie/Features/Dictation/Service/AudioInputSelection.swift Fredie/Features/Dictation/Service/DeepgramLanguage.swift Fredie/Features/Dictation/Service/TranscriptionProvider.swift Fredie/Features/Dictation/Service/EnhancementProvider.swift Fredie/Features/Dictation/Service/ShortcutConfig.swift Fredie/Features/Dictation/Service/Hotkey.swift Fredie/Features/Dictation/Service/RecordingOwnership.swift Fredie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Fredie/Features/Dictation/Service/StatusModel.swift Fredie/Features/Dictation/Service/LogEntry.swift Fredie/Features/Dictation/Service/DictationSessionState.swift Fredie/Features/Dictation/Service/DictationPreferences.swift Fredie/Features/Dictation/Service/TranscriptHistoryStore.swift Fredie/Features/Dictation/Service/RawRecordingStore.swift Fredie/Features/Dictation/Service/SystemMuteController.swift Fredie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Fredie/Features/Dictation/Service/String+Trim.swift
-run ollie-switcher-test -parse-as-library Fredie/Platform/Diagnostics.swift Fredie/Features/WindowSwitcher/Service/*.swift
+                           Ollie/Platform/Compression/Zlib.swift \
+                           Ollie/Features/Calculator/Model/ColorValue.swift \
+                           Ollie/Features/Calculator/Model/ColorSpaces.swift
+run diagnostics-test -parse-as-library Ollie/Platform/Diagnostics.swift Ollie/Platform/Signposts.swift Ollie/Features/Settings/AppSettingsKey.swift
+run ollie-dictation-test -parse-as-library Ollie/Platform/Diagnostics.swift Ollie/Features/Dictation/Service/{CelerisClient,OpenRouterClient,DictationHTTP}.swift Tests/Dictation/*.swift Ollie/Platform/AppPaths.swift Ollie/Features/Dictation/Runtime/{Ports,RecordingRuntime,PasteRuntime,ShortcutRuntime,ShortcutStateMachine}.swift Ollie/Features/Dictation/Service/AudioCaptureController.swift Ollie/Features/Dictation/Service/AudioBufferConverter.swift Ollie/Features/Dictation/Service/AudioInputSelection.swift Ollie/Features/Dictation/Service/DeepgramLanguage.swift Ollie/Features/Dictation/Service/TranscriptionProvider.swift Ollie/Features/Dictation/Service/EnhancementProvider.swift Ollie/Features/Dictation/Service/ShortcutConfig.swift Ollie/Features/Dictation/Service/Hotkey.swift Ollie/Features/Dictation/Service/RecordingOwnership.swift Ollie/Features/Dictation/Service/ShortcutOwnershipPolicy.swift Ollie/Features/Dictation/Service/StatusModel.swift Ollie/Features/Dictation/Service/LogEntry.swift Ollie/Features/Dictation/Service/DictationSessionState.swift Ollie/Features/Dictation/Service/DictationPreferences.swift Ollie/Features/Dictation/Service/TranscriptHistoryStore.swift Ollie/Features/Dictation/Service/RawRecordingStore.swift Ollie/Features/Dictation/Service/SystemMuteController.swift Ollie/Features/Dictation/Service/TranscriptionReconnectPolicy.swift Ollie/Features/Dictation/Service/String+Trim.swift
+run ollie-switcher-test -parse-as-library Ollie/Platform/Diagnostics.swift Ollie/Features/WindowSwitcher/Service/*.swift
 run ollie-clipboard-test -parse-as-library \
-    Fredie/Features/Clipboard/Model/*.swift \
-    Fredie/Features/Clipboard/Service/ClipboardSearchSession.swift \
-    Fredie/Features/Clipboard/Service/OCRService.swift \
-    Fredie/Features/Clipboard/Service/ClipboardStore.swift \
-    Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
-    Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \
-    Fredie/Features/Clipboard/Service/ClipboardImageCache.swift \
-    Fredie/Platform/Diagnostics.swift \
-    Fredie/Features/Clipboard/Service/SnippetStore.swift \
-    Fredie/Features/Clipboard/Service/PasteController.swift \
-    Fredie/Platform/NotificationToken.swift
+    Ollie/Features/Clipboard/Model/*.swift \
+    Ollie/Features/Clipboard/Service/ClipboardSearchSession.swift \
+    Ollie/Features/Clipboard/Service/OCRService.swift \
+    Ollie/Features/Clipboard/Service/ClipboardStore.swift \
+    Ollie/Features/Clipboard/Service/ClipboardStorage.swift \
+    Ollie/Features/Clipboard/Service/ClipboardWatcher.swift \
+    Ollie/Features/Clipboard/Service/ClipboardImageCache.swift \
+    Ollie/Platform/Diagnostics.swift \
+    Ollie/Features/Clipboard/Service/SnippetStore.swift \
+    Ollie/Features/Clipboard/Service/PasteController.swift \
+    Ollie/Platform/NotificationToken.swift
 run clipboard-coordinator-test -parse-as-library \
-    Fredie/Features/Clipboard/ClipboardCoordinator.swift \
-    Fredie/Features/Clipboard/Model/*.swift \
-    Fredie/Features/Clipboard/Service/ClipboardSearchSession.swift \
-    Fredie/Features/Clipboard/Service/ClipboardStore.swift \
-    Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
-    Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \
-    Fredie/Features/Clipboard/Service/ClipboardImageCache.swift \
-    Fredie/Platform/Diagnostics.swift \
-    Fredie/Features/Clipboard/Service/SnippetStore.swift \
-    Fredie/Platform/NotificationToken.swift
+    Ollie/Features/Clipboard/ClipboardCoordinator.swift \
+    Ollie/Features/Clipboard/Model/*.swift \
+    Ollie/Features/Clipboard/Service/ClipboardSearchSession.swift \
+    Ollie/Features/Clipboard/Service/ClipboardStore.swift \
+    Ollie/Features/Clipboard/Service/ClipboardStorage.swift \
+    Ollie/Features/Clipboard/Service/ClipboardWatcher.swift \
+    Ollie/Features/Clipboard/Service/ClipboardImageCache.swift \
+    Ollie/Platform/Diagnostics.swift \
+    Ollie/Features/Clipboard/Service/SnippetStore.swift \
+    Ollie/Platform/NotificationToken.swift
 run media-import-state-test -parse-as-library \
-    Fredie/Features/MediaImport/Service/*.swift \
-    Fredie/Features/MediaImport/Settings/MediaImportSettingsStore.swift \
-    Fredie/Platform/{AppPaths,ProcessExit}.swift
+    Ollie/Features/MediaImport/Service/*.swift \
+    Ollie/Features/MediaImport/Settings/MediaImportSettingsStore.swift \
+    Ollie/Platform/{AppPaths,ProcessExit}.swift
 run ollie-services-test -parse-as-library \
-    Fredie/Features/TypingSounds/Model/*.swift \
-    Fredie/Features/TypingSounds/Service/SoundEngine.swift \
-    Fredie/Features/TypingSounds/Service/SoundSamples.swift \
-    Fredie/Features/Network/Model/*.swift \
-    Fredie/Features/Network/Service/NetTopMonitor.swift \
-    Fredie/Features/Network/Service/UsageStore.swift \
-    Fredie/Features/Notifications/Model/*.swift \
-    Fredie/Features/MediaImport/Service/MediaModels.swift \
-    Fredie/Features/MediaImport/Service/ImportSupport.swift \
-    Fredie/Features/MediaImport/Service/FFmpegService.swift \
-    Fredie/Features/Updates/Model/UpdateReadiness.swift \
-    Fredie/Platform/ProcessExit.swift \
-    Fredie/Platform/AppPaths.swift
+    Ollie/Features/TypingSounds/Model/*.swift \
+    Ollie/Features/TypingSounds/Service/SoundEngine.swift \
+    Ollie/Features/TypingSounds/Service/SoundSamples.swift \
+    Ollie/Features/Network/Model/*.swift \
+    Ollie/Features/Network/Service/NetTopMonitor.swift \
+    Ollie/Features/Network/Service/UsageStore.swift \
+    Ollie/Features/Notifications/Model/*.swift \
+    Ollie/Features/MediaImport/Service/MediaModels.swift \
+    Ollie/Features/MediaImport/Service/ImportSupport.swift \
+    Ollie/Features/MediaImport/Service/FFmpegService.swift \
+    Ollie/Features/Updates/Model/UpdateReadiness.swift \
+    Ollie/Platform/ProcessExit.swift \
+    Ollie/Platform/AppPaths.swift
 run feature-availability-test -parse-as-library \
-    Fredie/Features/Settings/SettingsTab.swift \
-    Fredie/Features/Settings/Model/FeatureAvailability.swift \
-    Fredie/Features/Settings/Service/FeatureAccess.swift \
-    Fredie/Palette/PaletteMode.swift \
-    Fredie/Features/Launcher/Model/CommandID.swift \
-    Fredie/Features/Launcher/Model/CommandCatalog.swift \
-    Fredie/Features/HotKeys/Model/HotKeyAction.swift \
-    Fredie/Features/SystemActions/Model/SystemAction.swift \
-    Fredie/Features/WindowManagement/Model/WindowCommand.swift \
-    Fredie/Features/QuickActions/Model/{QuickAction,BuiltInQuickAction,CustomQuickAction}.swift \
-    Fredie/Features/Quicklinks/Model/{Quicklink,QuicklinkDestination}.swift
-run -O settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
-                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
-                           Fredie/Features/Settings/SettingsHistory.swift \
-                           Fredie/Features/Settings/SettingsAnchor.swift \
-                           Fredie/Features/Settings/SettingsNavigationState.swift \
-                           Fredie/Features/Settings/SettingsSearchCatalog.swift \
+    Ollie/Features/Settings/SettingsTab.swift \
+    Ollie/Features/Settings/Model/FeatureAvailability.swift \
+    Ollie/Features/Settings/Service/FeatureAccess.swift \
+    Ollie/Palette/PaletteMode.swift \
+    Ollie/Features/Launcher/Model/CommandID.swift \
+    Ollie/Features/Launcher/Model/CommandCatalog.swift \
+    Ollie/Features/HotKeys/Model/HotKeyAction.swift \
+    Ollie/Features/SystemActions/Model/SystemAction.swift \
+    Ollie/Features/WindowManagement/Model/WindowCommand.swift \
+    Ollie/Features/QuickActions/Model/{QuickAction,BuiltInQuickAction,CustomQuickAction}.swift \
+    Ollie/Features/Quicklinks/Model/{Quicklink,QuicklinkDestination}.swift
+run -O settings-history-test  Ollie/Features/Settings/SettingsTab.swift \
+                           Ollie/Features/Settings/Model/FeatureAvailability.swift \
+                           Ollie/Features/Settings/SettingsHistory.swift \
+                           Ollie/Features/Settings/SettingsAnchor.swift \
+                           Ollie/Features/Settings/SettingsNavigationState.swift \
+                           Ollie/Features/Settings/SettingsSearchCatalog.swift \
                            $L/SearchRelevance.swift
-run updates-test           Fredie/Features/Updates/Model/*.swift \
-                           Fredie/Features/Updates/Service/BundleSignature.swift
-run update-check-test      Fredie/Features/Updates/Model/*.swift \
-                           Fredie/Features/Updates/Service/UpdateCheckStore.swift \
-                           Fredie/Platform/AppPaths.swift
-run support-test           Fredie/Features/Support/Model/*.swift
-run ai-provider-test       Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/*.swift \
-                           Fredie/Features/AI/Settings/AISettingsStore.swift
-run ai-chat-test           Fredie/Features/AI/Model/AIRequest.swift \
-                           Fredie/Features/AI/Model/AIConnection.swift \
-                           Fredie/Features/AI/Model/AppleIntelligence.swift \
-                           Fredie/Features/AI/Model/AIAttachmentPolicy.swift \
-                           Fredie/Features/AI/Model/AIRetention.swift \
-                           Fredie/Features/AI/Model/AITool.swift \
-                           Fredie/Features/AI/Model/JSONValue.swift \
-                           Fredie/Features/AI/Model/ChatMessage.swift \
-                           Fredie/Features/AI/Model/ChatSession.swift \
-                           Fredie/Features/AI/Model/ChatChoices.swift \
-                           Fredie/Features/AI/Model/ChatReferences.swift \
-                           Fredie/Features/AI/Model/ChatTitle.swift \
-                           Fredie/Features/AI/Model/ChatFind.swift \
-                           Fredie/Features/AI/Model/ChatCitations.swift \
-                           Fredie/Features/AI/Model/ChatToolScope.swift \
-                           Fredie/Features/AI/Model/MarkdownBlock.swift \
-                           Fredie/Features/AI/Model/MarkdownMath.swift \
-                           Fredie/Features/AI/Model/MathFormula.swift \
-                           Fredie/Features/AI/Model/MathNode.swift \
-                           Fredie/Features/AI/Model/MathSymbolCatalog.swift \
-                           Fredie/Features/AI/Service/AIProvider.swift \
-                           Fredie/Features/AI/Service/ChatHistoryStore.swift \
-                           Fredie/Features/AI/Service/AIToolLoopProvider.swift \
-                           Fredie/Features/AI/UI/AIChatState.swift \
-                           Fredie/Features/AI/UI/AIChatSurfacesState.swift \
-                           Fredie/Features/AI/UI/ChatFindState.swift
-run chat-markdown-test     Fredie/Platform/Appearance.swift \
-                           Fredie/DesignSystem/Theme.swift \
-                           Fredie/DesignSystem/InterfaceMetrics.swift \
-                           Fredie/Features/Settings/InterfaceSize.swift \
-                           Fredie/Features/AI/Model/AIRequest.swift \
-                           Fredie/Features/AI/Model/AITool.swift \
-                           Fredie/Features/AI/Model/JSONValue.swift \
-                           Fredie/Features/AI/Model/ChatMessage.swift \
-                           Fredie/Features/AI/Model/ChatChoices.swift \
-                           Fredie/Features/AI/Model/ChatReferences.swift \
-                           Fredie/Features/AI/Model/ChatCitations.swift \
-                           Fredie/Features/AI/Model/ChatFind.swift \
-                           Fredie/Features/AI/Model/MarkdownBlock.swift \
-                           Fredie/Features/AI/Model/MarkdownMath.swift \
-                           Fredie/Features/AI/Model/MathFormula.swift \
-                           Fredie/Features/AI/Model/MathNode.swift \
-                           Fredie/Features/AI/Model/MathSymbolCatalog.swift \
-                           Fredie/Features/AI/UI/ChatTextHighlight.swift \
-                           Fredie/Features/AI/UI/ChatMarkdownRenderer.swift \
-                           Fredie/Features/AI/UI/MathAttachmentCell.swift \
-                           Fredie/Features/AI/UI/MathBox.swift \
-                           Fredie/Features/AI/UI/MathFont.swift \
-                           Fredie/Features/AI/UI/MathLayoutEngine.swift
-run mcp-test               Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/AIConnection.swift \
-                           Fredie/Features/AI/Model/AppleIntelligence.swift \
-                           Fredie/Features/AI/Model/AITool.swift \
-                           Fredie/Features/AI/Model/AIToolServer.swift \
-                           Fredie/Features/AI/Model/JSONValue.swift \
-                           Fredie/Features/MCP/Model/*.swift \
-                           Fredie/Features/MCP/Settings/MCPSettingsStore.swift
-run -O text-diff-test      Fredie/Features/QuickActions/Model/TextDiffEngine.swift
-run index text-diff-performance Fredie/Features/QuickActions/Model/TextDiffEngine.swift
-run quick-action-test      Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/AIConnection.swift \
-                           Fredie/Features/AI/Model/AppleIntelligence.swift \
-                           Fredie/Features/AI/Model/ChatGPTSubscription.swift \
-                           Fredie/Features/AI/Model/InstalledAI.swift \
-                           Fredie/Features/QuickActions/Model/*.swift \
-                           Fredie/Features/QuickActions/Settings/QuickActionSettingsStore.swift
-run apple-intelligence-test Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/*.swift \
-                           Fredie/Features/AI/Service/AIProvider.swift \
-                           Fredie/Features/AI/Service/AppleIntelligenceProvider.swift
-run mcp-oauth-test         Fredie/Platform/ExecutableLocator.swift \
-                           Fredie/Platform/ProcessExit.swift \
-                           Fredie/Platform/KeychainSecretStore.swift \
-                           Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/AIConnection.swift \
-                           Fredie/Features/AI/Model/AppleIntelligence.swift \
-                           Fredie/Features/AI/Model/AITool.swift \
-                           Fredie/Features/AI/Model/AIToolServer.swift \
-                           Fredie/Features/AI/Model/AIStreamDecoder.swift \
-                           Fredie/Features/AI/Model/AIThinkTagDecoder.swift \
-                           Fredie/Features/AI/Model/AIRequest.swift \
-                           Fredie/Features/AI/Model/JSONValue.swift \
-                           Fredie/Features/MCP/Model/*.swift \
-                           Fredie/Features/MCP/Service/*.swift
-run slow mcp-stdio-test    Fredie/Platform/ExecutableLocator.swift \
-                           Fredie/Platform/ProcessExit.swift \
-                           Fredie/Platform/KeychainSecretStore.swift \
-                           Fredie/Features/Settings/AppSettingsKey.swift \
-                           Fredie/Features/AI/Model/AIConnection.swift \
-                           Fredie/Features/AI/Model/AppleIntelligence.swift \
-                           Fredie/Features/AI/Model/AITool.swift \
-                           Fredie/Features/AI/Model/AIToolServer.swift \
-                           Fredie/Features/AI/Model/AIStreamDecoder.swift \
-                           Fredie/Features/AI/Model/AIThinkTagDecoder.swift \
-                           Fredie/Features/AI/Model/AIRequest.swift \
-                           Fredie/Features/AI/Model/JSONValue.swift \
-                           Fredie/Features/MCP/Model/*.swift \
-                           Fredie/Features/MCP/Service/*.swift
-run slow codex-turn-test   Fredie/Platform/AppPaths.swift \
-                           Fredie/Features/AI/Model/*.swift \
-                           Fredie/Features/AI/Service/AIProvider.swift \
-                           Fredie/Features/AI/Service/ChatGPTSubscriptionManager.swift \
-                           Fredie/Features/AI/Service/CodexAppServerClient.swift \
-                           Fredie/Features/AI/Service/InstalledAIProbe.swift \
-                           Fredie/Platform/ExecutableLocator.swift \
-                           Fredie/Platform/ProcessExit.swift \
-                           Fredie/Features/AI/Service/CodexTurnRunner.swift
-run installed-ai-test     Fredie/Features/AI/Model/*.swift \
-                          Fredie/Features/AI/Service/AIProvider.swift \
-                          Fredie/Platform/AppPaths.swift \
-                          Fredie/Platform/ExecutableLocator.swift \
-                          Fredie/Platform/ProcessExit.swift \
-                          Fredie/Features/AI/Service/InstalledCLIProvider.swift \
-                          Fredie/Features/AI/Service/InstalledAIProbe.swift \
-                          Fredie/Features/AI/Service/InstalledAIManager.swift
+run updates-test           Ollie/Features/Updates/Model/*.swift \
+                           Ollie/Features/Updates/Service/BundleSignature.swift
+run update-check-test      Ollie/Features/Updates/Model/*.swift \
+                           Ollie/Features/Updates/Service/UpdateCheckStore.swift \
+                           Ollie/Platform/AppPaths.swift
+run support-test           Ollie/Features/Support/Model/*.swift
+run ai-provider-test       Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/*.swift \
+                           Ollie/Features/AI/Settings/AISettingsStore.swift
+run ai-chat-test           Ollie/Features/AI/Model/AIRequest.swift \
+                           Ollie/Features/AI/Model/AIConnection.swift \
+                           Ollie/Features/AI/Model/AppleIntelligence.swift \
+                           Ollie/Features/AI/Model/AIAttachmentPolicy.swift \
+                           Ollie/Features/AI/Model/AIRetention.swift \
+                           Ollie/Features/AI/Model/AITool.swift \
+                           Ollie/Features/AI/Model/JSONValue.swift \
+                           Ollie/Features/AI/Model/ChatMessage.swift \
+                           Ollie/Features/AI/Model/ChatSession.swift \
+                           Ollie/Features/AI/Model/ChatChoices.swift \
+                           Ollie/Features/AI/Model/ChatReferences.swift \
+                           Ollie/Features/AI/Model/ChatTitle.swift \
+                           Ollie/Features/AI/Model/ChatFind.swift \
+                           Ollie/Features/AI/Model/ChatCitations.swift \
+                           Ollie/Features/AI/Model/ChatToolScope.swift \
+                           Ollie/Features/AI/Model/MarkdownBlock.swift \
+                           Ollie/Features/AI/Model/MarkdownMath.swift \
+                           Ollie/Features/AI/Model/MathFormula.swift \
+                           Ollie/Features/AI/Model/MathNode.swift \
+                           Ollie/Features/AI/Model/MathSymbolCatalog.swift \
+                           Ollie/Features/AI/Service/AIProvider.swift \
+                           Ollie/Features/AI/Service/ChatHistoryStore.swift \
+                           Ollie/Features/AI/Service/AIToolLoopProvider.swift \
+                           Ollie/Features/AI/UI/AIChatState.swift \
+                           Ollie/Features/AI/UI/AIChatSurfacesState.swift \
+                           Ollie/Features/AI/UI/ChatFindState.swift
+run chat-markdown-test     Ollie/Platform/Appearance.swift \
+                           Ollie/DesignSystem/Theme.swift \
+                           Ollie/DesignSystem/InterfaceMetrics.swift \
+                           Ollie/Features/Settings/InterfaceSize.swift \
+                           Ollie/Features/AI/Model/AIRequest.swift \
+                           Ollie/Features/AI/Model/AITool.swift \
+                           Ollie/Features/AI/Model/JSONValue.swift \
+                           Ollie/Features/AI/Model/ChatMessage.swift \
+                           Ollie/Features/AI/Model/ChatChoices.swift \
+                           Ollie/Features/AI/Model/ChatReferences.swift \
+                           Ollie/Features/AI/Model/ChatCitations.swift \
+                           Ollie/Features/AI/Model/ChatFind.swift \
+                           Ollie/Features/AI/Model/MarkdownBlock.swift \
+                           Ollie/Features/AI/Model/MarkdownMath.swift \
+                           Ollie/Features/AI/Model/MathFormula.swift \
+                           Ollie/Features/AI/Model/MathNode.swift \
+                           Ollie/Features/AI/Model/MathSymbolCatalog.swift \
+                           Ollie/Features/AI/UI/ChatTextHighlight.swift \
+                           Ollie/Features/AI/UI/ChatMarkdownRenderer.swift \
+                           Ollie/Features/AI/UI/MathAttachmentCell.swift \
+                           Ollie/Features/AI/UI/MathBox.swift \
+                           Ollie/Features/AI/UI/MathFont.swift \
+                           Ollie/Features/AI/UI/MathLayoutEngine.swift
+run mcp-test               Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/AIConnection.swift \
+                           Ollie/Features/AI/Model/AppleIntelligence.swift \
+                           Ollie/Features/AI/Model/AITool.swift \
+                           Ollie/Features/AI/Model/AIToolServer.swift \
+                           Ollie/Features/AI/Model/JSONValue.swift \
+                           Ollie/Features/MCP/Model/*.swift \
+                           Ollie/Features/MCP/Settings/MCPSettingsStore.swift
+run -O text-diff-test      Ollie/Features/QuickActions/Model/TextDiffEngine.swift
+run index text-diff-performance Ollie/Features/QuickActions/Model/TextDiffEngine.swift
+run quick-action-test      Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/AIConnection.swift \
+                           Ollie/Features/AI/Model/AppleIntelligence.swift \
+                           Ollie/Features/AI/Model/ChatGPTSubscription.swift \
+                           Ollie/Features/AI/Model/InstalledAI.swift \
+                           Ollie/Features/QuickActions/Model/*.swift \
+                           Ollie/Features/QuickActions/Settings/QuickActionSettingsStore.swift
+run apple-intelligence-test Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/*.swift \
+                           Ollie/Features/AI/Service/AIProvider.swift \
+                           Ollie/Features/AI/Service/AppleIntelligenceProvider.swift
+run mcp-oauth-test         Ollie/Platform/ExecutableLocator.swift \
+                           Ollie/Platform/ProcessExit.swift \
+                           Ollie/Platform/KeychainSecretStore.swift \
+                           Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/AIConnection.swift \
+                           Ollie/Features/AI/Model/AppleIntelligence.swift \
+                           Ollie/Features/AI/Model/AITool.swift \
+                           Ollie/Features/AI/Model/AIToolServer.swift \
+                           Ollie/Features/AI/Model/AIStreamDecoder.swift \
+                           Ollie/Features/AI/Model/AIThinkTagDecoder.swift \
+                           Ollie/Features/AI/Model/AIRequest.swift \
+                           Ollie/Features/AI/Model/JSONValue.swift \
+                           Ollie/Features/MCP/Model/*.swift \
+                           Ollie/Features/MCP/Service/*.swift
+run slow mcp-stdio-test    Ollie/Platform/ExecutableLocator.swift \
+                           Ollie/Platform/ProcessExit.swift \
+                           Ollie/Platform/KeychainSecretStore.swift \
+                           Ollie/Features/Settings/AppSettingsKey.swift \
+                           Ollie/Features/AI/Model/AIConnection.swift \
+                           Ollie/Features/AI/Model/AppleIntelligence.swift \
+                           Ollie/Features/AI/Model/AITool.swift \
+                           Ollie/Features/AI/Model/AIToolServer.swift \
+                           Ollie/Features/AI/Model/AIStreamDecoder.swift \
+                           Ollie/Features/AI/Model/AIThinkTagDecoder.swift \
+                           Ollie/Features/AI/Model/AIRequest.swift \
+                           Ollie/Features/AI/Model/JSONValue.swift \
+                           Ollie/Features/MCP/Model/*.swift \
+                           Ollie/Features/MCP/Service/*.swift
+run slow codex-turn-test   Ollie/Platform/AppPaths.swift \
+                           Ollie/Features/AI/Model/*.swift \
+                           Ollie/Features/AI/Service/AIProvider.swift \
+                           Ollie/Features/AI/Service/ChatGPTSubscriptionManager.swift \
+                           Ollie/Features/AI/Service/CodexAppServerClient.swift \
+                           Ollie/Features/AI/Service/InstalledAIProbe.swift \
+                           Ollie/Platform/ExecutableLocator.swift \
+                           Ollie/Platform/ProcessExit.swift \
+                           Ollie/Features/AI/Service/CodexTurnRunner.swift
+run installed-ai-test     Ollie/Features/AI/Model/*.swift \
+                          Ollie/Features/AI/Service/AIProvider.swift \
+                          Ollie/Platform/AppPaths.swift \
+                          Ollie/Platform/ExecutableLocator.swift \
+                          Ollie/Platform/ProcessExit.swift \
+                          Ollie/Features/AI/Service/InstalledCLIProvider.swift \
+                          Ollie/Features/AI/Service/InstalledAIProbe.swift \
+                          Ollie/Features/AI/Service/InstalledAIManager.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
@@ -793,8 +793,8 @@ if [ "$ran" -eq 0 ]; then
 fi
 
 # `sort -s` is stable, so the slow harnesses lead and everything else keeps its declaration order.
-JOBS="${FREDIE_TEST_JOBS:-4}"
-export FREDIE_TEST_TIMEOUT="${FREDIE_TEST_TIMEOUT:-300}"
+JOBS="${OLLIE_TEST_JOBS:-4}"
+export OLLIE_TEST_TIMEOUT="${OLLIE_TEST_TIMEOUT:-300}"
 started=$SECONDS
 
 # Numbers each result, and names what is still running whenever the output goes quiet.

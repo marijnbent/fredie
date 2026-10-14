@@ -166,7 +166,7 @@ const process = {
   platform: "darwin",
   arch: "arm64",
   version: "v22.0.0",
-  versions: { node: "22.0.0", v8: "12.0.0", fredie: "1" },
+  versions: { node: "22.0.0", v8: "12.0.0", ollie: "1" },
   argv: ["node", "extension"],
   argv0: "node",
   execArgv: [],
@@ -174,16 +174,16 @@ const process = {
   pid: 1,
   ppid: 0,
   env: {},
-  title: "fredie-extension",
+  title: "ollie-extension",
   stdout: { write: (text) => console.log(String(text).replace(/\n$/, "")), isTTY: false, columns: 80 },
   stderr: { write: (text) => console.error(String(text).replace(/\n$/, "")), isTTY: false, columns: 80 },
   stdin: { on: () => {}, resume: () => {}, pause: () => {}, isTTY: false },
   cwd: () => bootEnvironment.cwd,
   chdir: () => {
-    throw new Error("process.chdir is not supported in Fredie extensions.");
+    throw new Error("process.chdir is not supported in Ollie extensions.");
   },
   exit: () => {
-    throw new Error("process.exit is not supported in Fredie extensions.");
+    throw new Error("process.exit is not supported in Ollie extensions.");
   },
   kill(pid, signal = "SIGTERM") {
     hostCallSync("proc", "kill", [Number(pid), signalNumber(signal)]);
@@ -478,7 +478,7 @@ const fs = {
   },
   futimesSync() {},
   watch() {
-    throw new Error("fs.watch is not supported in Fredie extensions.");
+    throw new Error("fs.watch is not supported in Ollie extensions.");
   },
   createReadStream(file, options) {
     const target = fsPath(file);
@@ -746,7 +746,7 @@ const childProcess = {
     return new ChildProcess(String(file), args.map(String), options);
   },
   fork() {
-    throw new Error("child_process.fork is not supported in Fredie extensions.");
+    throw new Error("child_process.fork is not supported in Ollie extensions.");
   },
 };
 
@@ -925,10 +925,10 @@ const zlibImpl = {
   deflateRawSync: zlibSync("deflateRaw"),
   inflateRawSync: zlibSync("inflateRaw"),
   brotliCompressSync: () => {
-    throw new Error("zlib brotli is not supported in Fredie extensions.");
+    throw new Error("zlib brotli is not supported in Ollie extensions.");
   },
   brotliDecompressSync: () => {
-    throw new Error("zlib brotli is not supported in Fredie extensions.");
+    throw new Error("zlib brotli is not supported in Ollie extensions.");
   },
   constants: {},
 };
@@ -1520,7 +1520,7 @@ const util = {
       else signal.addEventListener("abort", () => resolve(), { once: true });
     }),
   /// Deliberately more forgiving than Node's: bundles call this at load time against classes from
-  /// modules Fredie only stubs, and a throw there would take down an extension that never reaches
+  /// modules Ollie only stubs, and a throw there would take down an extension that never reaches
   /// the code path.
   inherits(child, parent) {
     if (!child?.prototype || !parent?.prototype) return;
@@ -1639,7 +1639,7 @@ function unsupportedModule(name, extras = {}) {
 const RESERVED_MEMBERS = new Set(["__esModule", "default", "then", "catch", "prototype", "constructor", "toJSON", "inspect", "valueOf", "toString", "length", "name"]);
 
 function makeUnsupported(label) {
-  const reason = `${label} is not supported in Fredie extensions (no Node runtime). See docs/extensions.md.`;
+  const reason = `${label} is not supported in Ollie extensions (no Node runtime). See docs/extensions.md.`;
   const Unsupported = class {
     constructor() {
       throw new Error(reason);
@@ -1840,7 +1840,7 @@ export const nodeModules = {
 };
 
 function requireStub(name) {
-  throw new Error(`createRequire is not supported in Fredie extensions (tried to load "${name}").`);
+  throw new Error(`createRequire is not supported in Ollie extensions (tried to load "${name}").`);
 }
 
 // Every remaining Node builtin resolves to a refuse-on-use stub. Bundles reference the whole

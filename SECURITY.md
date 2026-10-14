@@ -4,7 +4,7 @@
 
 Report privately through GitHub: **Security** tab → **Report a vulnerability**.
 
-Include your macOS version, the Fredie version and channel, reproduction steps, and the impact.
+Include your macOS version, the Ollie version and channel, reproduction steps, and the impact.
 Please don't disclose publicly until it's fixed.
 
 We'll respond as quickly as we can and keep you posted.
@@ -19,7 +19,7 @@ Of particular interest:
 
 - **Accessibility (TCC)** — anything that widens what the paste grant enables.
 - **Clipboard history** — text and images cached on disk; unintended exposure or capture.
-- **Network** — Fredie is offline by default and every networked feature is consent-gated. A path
+- **Network** — Ollie is offline by default and every networked feature is consent-gated. A path
   that reaches the network without consent, or survives consent being withdrawn, is high severity.
 - **Hotkeys** — the in-house hotkey stack and the Input Monitoring grant.
 - **Signing and distribution** — the local release scripts and update verification.

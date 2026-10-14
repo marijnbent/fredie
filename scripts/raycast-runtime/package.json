@@ -1,8 +1,8 @@
 {
-  "name": "fredie-raycast-runtime",
+  "name": "ollie-raycast-runtime",
   "private": true,
   "version": "0.1.0",
-  "description": "Builds Fredie's embedded Raycast-extension JS runtime (React + reconciler + @raycast/api shim) into a single file consumed by JavaScriptCore.",
+  "description": "Builds Ollie's embedded Raycast-extension JS runtime (React + reconciler + @raycast/api shim) into a single file consumed by JavaScriptCore.",
   "type": "module",
   "scripts": {
     "build": "node build.mjs"

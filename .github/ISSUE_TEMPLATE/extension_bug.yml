@@ -1,12 +1,12 @@
 name: Extension Bug
-description: A Raycast extension misbehaves inside Fredie
+description: A Raycast extension misbehaves inside Ollie
 title: "[Extension]: "
 labels: ["bug", "extension"]
 body:
   - type: markdown
     attributes:
       value: |
-        **Read this first.** Fredie runs Raycast extensions in its own runtime — a different system,
+        **Read this first.** Ollie runs Raycast extensions in its own runtime — a different system,
         not Raycast. An extension that reaches for something only Raycast has cannot be made to work
         here, and the issue is closed as `wontfix`:
 
@@ -15,12 +15,12 @@ body:
         - Raycast's `WindowManagement` service
         - Raycast's OAuth proxy, `oauth.raycast.com`
         - Raycast Pro, cloud sync, accounts or teams
-        - an OS permission or entitlement Fredie doesn't hold
+        - an OS permission or entitlement Ollie doesn't hold
         - Raycast-internal APIs, private modules and unpublished behaviour
 
         The full list of gaps is in
-        [docs/features/extensions.md](https://github.com/marijnbent/fredie/blob/main/docs/features/extensions.md#what-isnt-supported-yet).
-        A missing API that Fredie *could* reasonably implement is worth reporting. "It works in
+        [docs/features/extensions.md](https://github.com/marijnbent/ollie/blob/main/docs/features/extensions.md#what-isnt-supported-yet).
+        A missing API that Ollie *could* reasonably implement is worth reporting. "It works in
         Raycast" on its own is not.
   - type: checkboxes
     id: existing-search
@@ -68,7 +68,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Fredie version + channel
+      label: Ollie version + channel
       placeholder: 0.1.0 stable
     validations:
       required: true
