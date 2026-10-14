@@ -60,5 +60,5 @@ workflows remain restricted to the upstream repository.
 
 Ollie retains Tinycast's [AGPL-3.0 license](LICENSE), original copyright notices, and
 [third-party notices](NOTICE.md). Tinycast was created by Abue Ammar. Core launcher features
-are retained; Ollie uses its own Pocket Otter app icon and monochrome otter menu mark.
+are retained; Ollie uses its own Happy Pocket Otter app icon and outlined Whiskers menu mark.
 In-app support links explicitly support the upstream Tinycast project.
