@@ -12,12 +12,7 @@ struct OllieShortcutsSettingsView: View {
     ]
 
     private func isEnabled(_ action: HotKeyAction) -> Bool {
-        switch action {
-        case .togglePalette, .command(.searchEmoji): settings.launcherEnabled
-        case .command(.clipboardHistory): settings.clipboardEnabled || settings.snippetsEnabled
-        case .command(.aiChat): settings.aiEnabled
-        default: settings.launcherEnabled
-        }
+        action.capability.map(settings.allows) ?? true
     }
 
     var body: some View {
@@ -52,7 +47,10 @@ struct OllieShortcutsSettingsView: View {
                     Button("Edit Window Switcher…") { navigation.select(.windowSwitcher) }
                 }
             }
-            let other = hotKeys.assignedActions.filter { !primary.contains($0) && !(settings.spacesEnabled && SpacesShortcutRows.actions.contains($0)) && settings.launcherEnabled }
+            let other = hotKeys.assignedActions.filter {
+                !primary.contains($0) && isEnabled($0)
+                    && !(settings.spacesEnabled && SpacesShortcutRows.actions.contains($0))
+            }
             if !other.isEmpty {
                 Section("Other Shortcuts") {
                     ForEach(other, id: \.self) { action in

@@ -97,8 +97,8 @@ final class NotesCoordinator {
     func applyEnabled() {
         enablementGeneration &+= 1
         let generation = enablementGeneration
-        appIndex.setCommandsVisible([.showNotes, .createNote, .searchNotes], settings.notesEnabled)
-        guard !settings.notesEnabled else { return }
+        appIndex.setCommandsVisible([.showNotes, .createNote, .searchNotes], settings.allows(.notes))
+        guard !settings.allows(.notes) else { return }
         presentationGeneration &+= 1
         pendingPresentation = nil
         loadTask?.cancel()
@@ -110,7 +110,7 @@ final class NotesCoordinator {
         Task { [weak self] in
             guard let self else { return }
             _ = await store.flush()
-            guard generation == enablementGeneration, !settings.notesEnabled else { return }
+            guard generation == enablementGeneration, !settings.allows(.notes) else { return }
             store.stop()
         }
     }
@@ -138,7 +138,7 @@ final class NotesCoordinator {
     }
 
     func openSwitcher() {
-        guard settings.notesEnabled, store.isLoaded else { return }
+        guard settings.allows(.notes), store.isLoaded else { return }
         closeHeadingMenu()
         if isSwitcherPresented {
             switcherFocusRevision &+= 1
@@ -237,8 +237,8 @@ final class NotesCoordinator {
             let selected = await store.select(id) { [weak self] in
                 self?.permitsCompletion(generation) ?? false
             }
-            guard selected, settings.notesEnabled, !Task.isCancelled else {
-                if !settings.notesEnabled { store.stop() }
+            guard selected, settings.allows(.notes), !Task.isCancelled else {
+                if !settings.allows(.notes) { store.stop() }
                 return
             }
             guard permitsCompletion(generation) else { return }
@@ -251,8 +251,8 @@ final class NotesCoordinator {
         runOperation { [weak self] generation in
             guard let self else { return }
             let renamedID = await store.rename(id, to: title)
-            guard let renamedID, settings.notesEnabled, !Task.isCancelled else {
-                if !settings.notesEnabled { store.stop() }
+            guard let renamedID, settings.allows(.notes), !Task.isCancelled else {
+                if !settings.allows(.notes) { store.stop() }
                 return
             }
             switcherSelection = renamedID
@@ -282,11 +282,11 @@ final class NotesCoordinator {
                 message: "You can recover it from the Trash in Finder.",
                 symbol: nil,
                 confirmTitle: "Move to Trash")
-            guard confirmed, settings.notesEnabled, !Task.isCancelled else { return }
+            guard confirmed, settings.allows(.notes), !Task.isCancelled else { return }
             let switcherOrder = visibleNotes.map(\.id)
             let removed = await store.trash(id)
-            guard removed, settings.notesEnabled, !Task.isCancelled else {
-                if !settings.notesEnabled { store.stop() }
+            guard removed, settings.allows(.notes), !Task.isCancelled else {
+                if !settings.allows(.notes) { store.stop() }
                 return
             }
             switcherSelection = NoteSwitcherSelection.replacement(
@@ -394,7 +394,7 @@ final class NotesCoordinator {
     }
 
     private func request(_ presentation: Presentation) {
-        guard settings.notesEnabled else { return }
+        guard settings.allows(.notes) else { return }
         closeHeadingMenu()
         pendingPresentation = presentation
         guard loadTask == nil else { return }
@@ -404,11 +404,11 @@ final class NotesCoordinator {
             // Create is its own load: the collection it would wait for is the one it adds to.
             let loaded = presentation == .create ? await store.create() : await store.start()
             guard generation == enablementGeneration else {
-                if !settings.notesEnabled { store.stop() }
+                if !settings.allows(.notes) { store.stop() }
                 return
             }
             loadTask = nil
-            guard loaded, settings.notesEnabled, !Task.isCancelled else { return }
+            guard loaded, settings.allows(.notes), !Task.isCancelled else { return }
             // The note this task just made satisfies a create still pending; never make a second.
             if presentation == .create, pendingPresentation == .create {
                 pendingPresentation = .editor
@@ -426,7 +426,7 @@ final class NotesCoordinator {
             windowController.show(focusEditor: true)
         case .create:
             let generation = presentationGeneration
-            guard await store.create(), settings.notesEnabled, !Task.isCancelled,
+            guard await store.create(), settings.allows(.notes), !Task.isCancelled,
                 generation == presentationGeneration
             else { return }
             closeSwitcher()

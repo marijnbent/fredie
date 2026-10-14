@@ -33,7 +33,7 @@ final class CustomWindowSizeCoordinator {
 
     /// Custom sizes are window commands, so they follow the commands' own launcher switch.
     func applyCustomWindowSizesPresence() {
-        let visible = settings.windowManagementEnabled && settings.windowManagementShowInLauncher
+        let visible = settings.allows(.windowManagement) && settings.windowManagementShowInLauncher
         appIndex.setCustomWindowSizes(visible ? store.sizes : [])
     }
 

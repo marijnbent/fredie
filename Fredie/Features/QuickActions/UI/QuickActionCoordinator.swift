@@ -60,12 +60,13 @@ final class QuickActionCoordinator {
         self.core = core
     }
 
-    /// Launcher rows come and go with the switch; the Carbon bindings stay registered.
     func applyEnabled() {
-        appIndex.setCommandsVisible(Self.launcherCommands, settings.quickActionsEnabled)
+        appIndex.setCommandsVisible(Self.launcherCommands, settings.allows(.quickActions))
         applyCustomQuickActionsPresence()
-        guard settings.quickActionsEnabled else {
+        guard settings.allows(.quickActions) else {
             cancel()
+            languageLoad?.cancel()
+            languageLoad = nil
             core.applyInstalledAILifecycle()
             return
         }
@@ -103,7 +104,7 @@ final class QuickActionCoordinator {
 
     func applyCustomQuickActionsPresence() {
         appIndex.setCustomQuickActions(
-            settings.quickActionsEnabled ? customActions.actions : [])
+            settings.allows(.quickActions) ? customActions.actions : [])
     }
 
     // MARK: - The reader's own actions
@@ -173,7 +174,7 @@ final class QuickActionCoordinator {
     }
 
     func run(_ action: QuickAction) {
-        guard settings.quickActionsEnabled, running == nil else { return }
+        guard settings.allows(.quickActions), running == nil else { return }
         let source =
             paletteCoordinator.isVisible
             ? InjectionTarget.behindPalette(
@@ -376,10 +377,12 @@ final class QuickActionCoordinator {
     @ObservationIgnored private var languageLoad: Task<Void, Never>?
 
     func loadLanguages() {
-        guard offeredLanguages.isEmpty, languageLoad == nil else { return }
+        guard settings.allows(.quickActions), offeredLanguages.isEmpty, languageLoad == nil else { return }
         languageLoad = Task { [weak self] in
             let languages = await TextTranslator.supportedLanguages()
-            self?.offeredLanguages = languages
+            guard let self, !Task.isCancelled, settings.allows(.quickActions) else { return }
+            offeredLanguages = languages
+            languageLoad = nil
         }
     }
 }

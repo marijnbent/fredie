@@ -26,8 +26,8 @@ final class FileSearchCoordinator {
     }
 
     func applyEnabled() {
-        appIndex.setCommandsVisible([.searchFiles], settings.fileSearchEnabled)
-        guard !settings.fileSearchEnabled else { return }
+        appIndex.setCommandsVisible([.searchFiles], settings.allows(.fileSearch))
+        guard !settings.allows(.fileSearch) else { return }
         session.cancel()
         if palette.mode == .fileSearch { palette.prepare(mode: .launcher) }
     }
@@ -39,7 +39,7 @@ final class FileSearchCoordinator {
 
     /// `query` is the fallback row's: the screen opens already narrowed to what was typed.
     func show(query: String = "") {
-        guard settings.fileSearchEnabled else { return }
+        guard settings.allows(.fileSearch) else { return }
         paletteCoordinator.togglePalette(mode: .fileSearch, seeding: query.isEmpty ? nil : query)
     }
 

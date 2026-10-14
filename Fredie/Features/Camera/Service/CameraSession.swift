@@ -30,6 +30,10 @@ final class CameraSession {
     private var photoOutput: AVCapturePhotoOutput?
     private var device: AVCaptureDevice?
     private var pendingPhoto: PhotoCapture?
+    private var generation = 0
+    private var startTask: Task<Void, Never>?
+    private var stopTask: Task<Void, Never>?
+    private var configurationTask: Task<Void, Never>?
 
     init(_ purpose: Purpose = .preview) {
         self.purpose = purpose
@@ -37,35 +41,57 @@ final class CameraSession {
 
     /// Blocking on `startRunning` is the point: the first frame is video, not black.
     func start() async -> Feed {
+        generation += 1
+        let revision = generation
+        await stopTask?.value
+        guard !Task.isCancelled, revision == generation else { return .noCamera }
         var access = Permissions.cameraAccess()
         if access == .notDetermined {
             _ = await Permissions.requestCameraAccess()
             access = Permissions.cameraAccess()
         }
+        guard !Task.isCancelled, revision == generation else { return .noCamera }
         guard access == .granted else { return .denied }
         guard let capture = capture ?? configure() else { return .noCamera }
         self.capture = capture
         guard !capture.isRunning else { return .live(capture) }
         let box = CaptureBox(session: capture)
-        await Task.detached { box.session.startRunning() }.value
+        let task = Task.detached { box.session.startRunning() }
+        startTask = task
+        await task.value
+        guard !Task.isCancelled, revision == generation else { return .noCamera }
+        startTask = nil
         return .live(capture)
     }
 
     func stop() {
+        generation += 1
         guard let capture else { return }
         // A reused session without an output of its own feeds a new preview layer no frames.
         self.capture = nil
         photoOutput = nil
-        guard capture.isRunning else { return }
         // The camera light must go out with the panel, so this is never left to deallocation.
         let box = CaptureBox(session: capture)
-        Task.detached { box.session.stopRunning() }
+        let starting = startTask
+        let configuring = configurationTask
+        startTask = nil
+        configurationTask = nil
+        let previous = stopTask
+        stopTask = Task.detached {
+            await previous?.value
+            await starting?.value
+            await configuring?.value
+            if box.session.isRunning { box.session.stopRunning() }
+        }
     }
 
     var hasMultipleDevices: Bool { Self.devices.count > 1 }
 
     /// Only the input swaps: the session keeps running, so the stage never blanks to black.
     func switchToNextDevice() async {
+        let revision = generation
+        await configurationTask?.value
+        guard !Task.isCancelled, revision == generation else { return }
         let devices = Self.devices
         guard devices.count > 1, let capture, let device else { return }
         // A device the discovery session does not list wraps to the first one rather than sticking.
@@ -73,14 +99,18 @@ final class CameraSession {
         let next = devices[(index + 1) % devices.count]
         guard let input = try? AVCaptureDeviceInput(device: next) else { return }
         let box = CaptureBox(session: capture, input: input)
-        await Task.detached {
+        let task = Task.detached {
             box.session.beginConfiguration()
             for existing in box.session.inputs { box.session.removeInput(existing) }
             if let input = box.input, box.session.canAddInput(input) {
                 box.session.addInput(input)
             }
             box.session.commitConfiguration()
-        }.value
+        }
+        configurationTask = task
+        await task.value
+        guard !Task.isCancelled, revision == generation else { return }
+        configurationTask = nil
         self.device = next
     }
 

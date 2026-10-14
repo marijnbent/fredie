@@ -14,6 +14,10 @@ without re-registering. "Show in launcher" only hides the section; shortcuts kee
 
 ## Invariants
 
+- Launcher or Commands disable cancels owned runs and closes their output window without deleting
+  saved commands. Headless shell cancellation and process registration share one lock; cancelling
+  before launch cannot race a subprocess into existence. Output sessions retain explicit stop handles.
+
 - **`Model/CustomCommand.swift` and `Service/ShellCommandRunner.swift` stay free of AppKit and
   SwiftUI** (Foundation plus Darwin for `mkstemp`) so `custom-command-test` can compile them standalone. That is why the confirmation gate
   lives in `CustomCommandCoordinator` and not in the runner.

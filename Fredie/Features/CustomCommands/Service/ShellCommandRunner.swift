@@ -73,20 +73,25 @@ enum ShellCommandRunner {
         _ command: String, arguments: [String] = [], loadingShellEnvironment: Bool = false,
         workingDirectory: String? = nil
     ) async -> ShellCommandResult {
-        await withCheckedContinuation { continuation in
-            queue.async {
-                continuation.resume(
-                    returning: execute(
-                        command, arguments: arguments,
-                        loadingShellEnvironment: loadingShellEnvironment,
-                        workingDirectory: workingDirectory))
+        let cancellation = RunCancellation()
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                queue.async {
+                    continuation.resume(
+                        returning: execute(
+                            command, arguments: arguments,
+                            loadingShellEnvironment: loadingShellEnvironment,
+                            workingDirectory: workingDirectory, cancellation: cancellation))
+                }
             }
+        } onCancel: {
+            cancellation.cancel()
         }
     }
 
     nonisolated private static func execute(
         _ command: String, arguments: [String], loadingShellEnvironment: Bool,
-        workingDirectory: String?
+        workingDirectory: String?, cancellation: RunCancellation
     ) -> ShellCommandResult {
         let launch: Launch
         do {
@@ -119,15 +124,47 @@ enum ShellCommandRunner {
         }
 
         do {
-            try process.runObservingExit().wait()
+            guard let exit = try cancellation.start(process) else {
+                return ShellCommandResult(termination: .stopped)
+            }
+            exit.wait()
         } catch {
             return ShellCommandResult(termination: .launchFailed(error.localizedDescription))
         }
 
         return ShellCommandResult(
-            termination: .exited(status: process.terminationStatus),
+            termination: cancellation.isCancelled ? .stopped : .exited(status: process.terminationStatus),
             standardOutput: output?.readSuffix(limit: standardOutputLimit),
             standardError: errors?.readSuffix(limit: standardErrorLimit))
+    }
+
+    private final class RunCancellation: @unchecked Sendable {
+        private let lock = NSLock()
+        private var cancelled = false
+        private var process: Process?
+
+        var isCancelled: Bool { lock.withLock { cancelled } }
+
+        func start(_ process: Process) throws -> ProcessExit? {
+            try lock.withLock {
+                guard !cancelled else { return nil }
+                let exit = try process.runObservingExit()
+                self.process = process
+                return exit
+            }
+        }
+
+        func cancel() {
+            let process = lock.withLock {
+                cancelled = true
+                return self.process
+            }
+            guard let process, process.isRunning else { return }
+            process.terminate()
+            queue.asyncAfter(deadline: .now() + stopGrace) {
+                if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+            }
+        }
     }
 
     // MARK: - Streaming

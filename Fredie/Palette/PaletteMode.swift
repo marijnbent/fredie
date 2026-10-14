@@ -23,6 +23,20 @@ enum PaletteMode: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var capability: FeatureCapability {
+        switch self {
+        case .launcher, .calculatorHistory, .emoji, .uninstall, .dictionary: .feature(.launcher)
+        case .clipboard: .clipboardHistory
+        case .ai, .aiHistory: .feature(.ai)
+        case .fileSearch: .fileSearch
+        case .menuSearch: .navigation
+        case .rooms, .roomWindows: .windowManagement
+        case .schedule, .meetingDetails: .calendar
+        case .quicklinks: .quicklinks
+        case .extensionCommand: .extensions
+        }
+    }
+
     var systemImage: String {
         switch self {
         case .clipboard: return "clipboard"

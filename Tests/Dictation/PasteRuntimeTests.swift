@@ -21,7 +21,7 @@ final class PasteRuntimeTests {
         var events: [PasteRuntimeEvent] = []
         runtime.onEvent = { events.append($0) }
 
-        await runtime.process(
+        let recordingAdopted = await runtime.process(
             session: FinalizedTranscriptSession(
                 finalTranscript: "hello world",
                 lastTranscript: "",
@@ -35,6 +35,7 @@ final class PasteRuntimeTests {
             )
         )
 
+        assertTrue(recordingAdopted)
         assertEqual(pasteboard.writtenStrings.last, "hello world")
         assertEqual(pasteboard.sendPasteCommandCallCount, 1)
         assertTrue(pasteboard.restoredSnapshots.isEmpty)
@@ -205,7 +206,8 @@ final class PasteRuntimeTests {
 
         await Task.yield()
         task.cancel()
-        await task.value
+        let recordingAdopted = await task.value
+        assertTrue(!recordingAdopted)
 
         assertTrue(pasteboard.writtenStrings.isEmpty)
         assertEqual(pasteboard.sendPasteCommandCallCount, 0)

@@ -207,6 +207,8 @@ run palette-surface-test   Fredie/Platform/Appearance.swift \
                            Fredie/Features/Settings/InterfaceSize.swift \
                            Fredie/Palette/PaletteSurface.swift \
                            Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
@@ -218,6 +220,8 @@ run ai-instructions-test   Fredie/Features/AI/Model/AIInstructions.swift \
 run hover-arming-test      Fredie/Palette/HoverArming.swift \
                            Fredie/Palette/PaletteState.swift \
                            Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Features/Emoji/Model/EmojiCatalog.swift \
                            Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
                            Fredie/Features/Calculator/Model/ColorValue.swift \
@@ -227,6 +231,8 @@ run hover-arming-test      Fredie/Palette/HoverArming.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
 run palette-escape-test    Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Palette/PaletteEscapeAction.swift \
                            Fredie/Palette/CommandEscapeTap.swift \
                            Fredie/Features/Settings/EscapeKeyBehavior.swift \
@@ -236,6 +242,8 @@ run palette-escape-test    Fredie/Palette/PaletteMode.swift \
 run palette-navigation-test Fredie/Palette/PaletteState.swift \
                            Fredie/Palette/PaletteFieldBoundary.swift \
                            Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Palette/HoverArming.swift \
                            Fredie/Features/Emoji/Model/EmojiCatalog.swift \
                            Fredie/Features/FileSearch/Model/FileSearchFilter.swift \
@@ -246,6 +254,8 @@ run palette-navigation-test Fredie/Palette/PaletteState.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
                            Fredie/Features/CustomCommands/Model/CustomCommand.swift
 run palette-filter-test    Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Palette/PaletteFilterAction.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
@@ -255,6 +265,8 @@ run action-menu-search-test Fredie/Palette/ActionMenuSearchQuery.swift \
 run palette-shortcut-test  Fredie/Palette/PaletteShortcut.swift
 run ascii-layout-test      Fredie/Platform/ASCIIKeyboardLayout.swift
 run palette-tab-test       Fredie/Palette/PaletteMode.swift \
+                           Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Palette/PaletteTabAction.swift \
                            Fredie/Features/Quicklinks/Model/Quicklink.swift \
                            Fredie/Features/Quicklinks/Model/QuicklinkDestination.swift \
@@ -587,6 +599,21 @@ run ollie-clipboard-test -parse-as-library \
     Fredie/Features/Clipboard/Service/SnippetStore.swift \
     Fredie/Features/Clipboard/Service/PasteController.swift \
     Fredie/Platform/NotificationToken.swift
+run clipboard-coordinator-test -parse-as-library \
+    Fredie/Features/Clipboard/ClipboardCoordinator.swift \
+    Fredie/Features/Clipboard/Model/*.swift \
+    Fredie/Features/Clipboard/Service/ClipboardSearchSession.swift \
+    Fredie/Features/Clipboard/Service/ClipboardStore.swift \
+    Fredie/Features/Clipboard/Service/ClipboardStorage.swift \
+    Fredie/Features/Clipboard/Service/ClipboardWatcher.swift \
+    Fredie/Features/Clipboard/Service/ClipboardImageCache.swift \
+    Fredie/Platform/Diagnostics.swift \
+    Fredie/Features/Clipboard/Service/SnippetStore.swift \
+    Fredie/Platform/NotificationToken.swift
+run media-import-state-test -parse-as-library \
+    Fredie/Features/MediaImport/Service/*.swift \
+    Fredie/Features/MediaImport/Settings/MediaImportSettingsStore.swift \
+    Fredie/Platform/{AppPaths,ProcessExit}.swift
 run ollie-services-test -parse-as-library \
     Fredie/Features/TypingSounds/Model/*.swift \
     Fredie/Features/TypingSounds/Service/SoundEngine.swift \
@@ -601,7 +628,20 @@ run ollie-services-test -parse-as-library \
     Fredie/Features/Updates/Model/UpdateReadiness.swift \
     Fredie/Platform/ProcessExit.swift \
     Fredie/Platform/AppPaths.swift
+run feature-availability-test -parse-as-library \
+    Fredie/Features/Settings/SettingsTab.swift \
+    Fredie/Features/Settings/Model/FeatureAvailability.swift \
+    Fredie/Features/Settings/Service/FeatureAccess.swift \
+    Fredie/Palette/PaletteMode.swift \
+    Fredie/Features/Launcher/Model/CommandID.swift \
+    Fredie/Features/Launcher/Model/CommandCatalog.swift \
+    Fredie/Features/HotKeys/Model/HotKeyAction.swift \
+    Fredie/Features/SystemActions/Model/SystemAction.swift \
+    Fredie/Features/WindowManagement/Model/WindowCommand.swift \
+    Fredie/Features/QuickActions/Model/{QuickAction,BuiltInQuickAction,CustomQuickAction}.swift \
+    Fredie/Features/Quicklinks/Model/{Quicklink,QuicklinkDestination}.swift
 run -O settings-history-test  Fredie/Features/Settings/SettingsTab.swift \
+                           Fredie/Features/Settings/Model/FeatureAvailability.swift \
                            Fredie/Features/Settings/SettingsHistory.swift \
                            Fredie/Features/Settings/SettingsAnchor.swift \
                            Fredie/Features/Settings/SettingsNavigationState.swift \

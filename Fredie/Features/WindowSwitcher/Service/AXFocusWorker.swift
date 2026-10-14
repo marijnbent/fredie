@@ -64,8 +64,8 @@ struct AXFocusWorker: Sendable {
     func closeWindow(pid: pid_t, target: AXWindowTarget?) async -> AXError {
         await run { [self] in
 
-        if let target { return self.action(.close, target) }
         guard !Task.isCancelled else { return .cannotComplete }
+        if let target { return self.action(.close, target) }
         let app = AXUIElementCreateApplication(pid)
         let reader = AXWindowReader()
         reader.prepareForSnapshot(app)

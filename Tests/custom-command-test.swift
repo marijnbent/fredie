@@ -287,6 +287,16 @@ struct CustomCommandTests {
             "a non-zero exit reports its status and stderr",
             failed.termination == .exited(status: 7) && failed.standardError == "expected failure")
 
+        let cancelledRun = Task { await ShellCommandRunner.run("while true; do :; done") }
+        try? await Task.sleep(for: .milliseconds(30))
+        cancelledRun.cancel()
+        let cancelledResult = await cancelledRun.value
+        check("cancelling a headless command terminates its shell", cancelledResult.termination == .stopped)
+        let cancelledBeforeStart = Task { await ShellCommandRunner.run("exit 99") }
+        cancelledBeforeStart.cancel()
+        let cancelledBeforeStartResult = await cancelledBeforeStart.value
+        check("cancelled queued commands never start", cancelledBeforeStartResult.termination == .stopped)
+
         // MARK: Streaming output
 
         /// Drains a streamed run, returning everything it printed and how it ended.

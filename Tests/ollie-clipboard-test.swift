@@ -108,9 +108,48 @@ struct OllieClipboardTests {
         check("next external copy captured", tracker.shouldCapture(changeCount: 6))
         tracker.reset(changeCount: 9)
         check("resume does not capture paused content", !tracker.shouldCapture(changeCount: 9))
+        await delayedPaste()
         try snippets()
         print(failures == 0 ? "Clipboard integration passed" : "\(failures) checks failed")
         exit(failures == 0 ? 0 : 1)
+    }
+
+    private static func delayedPaste() async {
+        let pasteboard = NSPasteboard.withUniqueName()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.clearContents()
+        pasteboard.setString("selected history item", forType: .string)
+        let changeCount = pasteboard.changeCount
+        var pasteSent = false
+        let pasted = await PasteController.pasteIfUnchanged(
+            on: pasteboard, expectedChangeCount: changeCount, prepare: {}, isTargetActive: { true },
+            sendPaste: { pasteSent = true; return true })
+        check("unchanged clipboard permits paste", pasted && pasteSent)
+        pasteSent = false
+        let replaced = await PasteController.pasteIfUnchanged(
+            on: pasteboard, expectedChangeCount: changeCount,
+            prepare: {
+                pasteboard.clearContents()
+                pasteboard.setString("newer copy", forType: .string)
+            }, isTargetActive: { true }, sendPaste: { pasteSent = true; return true })
+        check("clipboard replacement prevents delayed paste", !replaced && !pasteSent)
+        check("paste cancellation preserves the newer copy", pasteboard.string(forType: .string) == "newer copy")
+        let preparedCount = pasteboard.changeCount
+        let inactive = await PasteController.pasteIfUnchanged(
+            on: pasteboard, expectedChangeCount: preparedCount, prepare: {}, isTargetActive: { false },
+            sendPaste: { pasteSent = true; return true })
+        check("changed target prevents delayed paste", !inactive && !pasteSent)
+        var prepared = false
+        let task = Task { @MainActor in
+            await PasteController.pasteIfUnchanged(
+                on: pasteboard, expectedChangeCount: preparedCount,
+                prepare: { prepared = true }, isTargetActive: { true },
+                sendPaste: { pasteSent = true; return true })
+        }
+        while !prepared { await Task.yield() }
+        task.cancel()
+        let cancelled = await task.value
+        check("cancelled operation never sends paste", !cancelled && !pasteSent)
     }
 
     private static func snippets() throws {

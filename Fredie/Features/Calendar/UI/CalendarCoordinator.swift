@@ -14,6 +14,10 @@ final class CalendarCoordinator {
 
     /// Its own surface, the way `NotesCoordinator` owns the notes window.
     @ObservationIgnored private lazy var cameraPreview = CameraPreviewController()
+    @ObservationIgnored private var joinTask: Task<Void, Never>?
+    @ObservationIgnored private var eventTask: Task<Void, Never>?
+    @ObservationIgnored private var reloadTask: Task<Void, Never>?
+    @ObservationIgnored private var generation = 0
 
     @ObservationIgnored private var paletteVisible = false
     /// When auto join was last armed; a meeting already under way then is never joined.
@@ -47,7 +51,7 @@ final class CalendarCoordinator {
 
     /// The meeting the join card shows; `now` comes from the ticking clock.
     var cardedMeeting: MeetingEvent? {
-        guard settings.calendarEnabled else { return nil }
+        guard settings.allows(.calendar) else { return nil }
         return window.carded(from: store.events, now: clock.now)
     }
 
@@ -62,7 +66,7 @@ final class CalendarCoordinator {
 
     /// The event the menu bar carries, or nil for the plain icon.
     var menuBarEvent: MeetingEvent? {
-        guard settings.calendarEnabled, settings.calendarMenuBarDisplay != .disabled else {
+        guard settings.allows(.calendar), settings.calendarMenuBarDisplay != .disabled else {
             return nil
         }
         let summary = MenuBarSummary(
@@ -92,14 +96,14 @@ final class CalendarCoordinator {
     /// The switch funnels here so enabling, which is also consent, confirms first.
     func setCalendarEnabled(_ enabled: Bool) {
         if !enabled {
-            guard settings.calendarEnabled else { return }
+            guard settings.allows(.calendar) else { return }
             settings.calendarEnabled = false
             return
         }
 
         // Asking again is the only way back: Settings cannot add an app TCC has no record of.
         store.refreshAccess()
-        guard !settings.calendarEnabled || store.access != .granted else { return }
+        guard !settings.allows(.calendar) || store.access != .granted else { return }
         NSApp.activate(ignoringOtherApps: true)
         Task {
             guard
@@ -121,10 +125,18 @@ final class CalendarCoordinator {
 
     /// Publishes or withdraws everything the feature contributes to the launcher.
     func applyEnabled() {
-        let enabled = settings.calendarEnabled
+        generation += 1
+        let enabled = settings.allows(.calendar)
         appIndex.setCommandsVisible(
             [.joinNextMeeting, .copyMeetingLink, .mySchedule, .openInCalendar, .createEvent], enabled)
         guard enabled else {
+            joinTask?.cancel()
+            eventTask?.cancel()
+            reloadTask?.cancel()
+            joinTask = nil
+            eventTask = nil
+            reloadTask = nil
+            cameraPreview.stop()
             store.stop()
             clock.stop()
             publishEntries()
@@ -153,7 +165,7 @@ final class CalendarCoordinator {
         let watched =
             paletteVisible || settings.calendarMenuBarDisplay != .disabled
             || settings.autoJoinMeetings
-        guard settings.calendarEnabled, watched else {
+        guard settings.allows(.calendar), watched else {
             clock.stop()
             return
         }
@@ -163,7 +175,7 @@ final class CalendarCoordinator {
 
     /// Stamped when auto join goes on, so switching it on mid-call cannot yank you into that call.
     private func armAutoJoin() {
-        guard settings.calendarEnabled, settings.autoJoinMeetings else {
+        guard settings.allows(.calendar), settings.autoJoinMeetings else {
             armedAt = .distantFuture
             return
         }
@@ -194,7 +206,7 @@ final class CalendarCoordinator {
     }
 
     private func autoJoinIfDue() {
-        guard settings.calendarEnabled, settings.autoJoinMeetings, !core.isShowingDialog else {
+        guard settings.allows(.calendar), settings.autoJoinMeetings, !core.isShowingDialog else {
             return
         }
         let policy = AutoJoinPolicy(
@@ -210,7 +222,7 @@ final class CalendarCoordinator {
 
     /// "Show in launcher" gates only these rows, so My Schedule stays findable with meetings off.
     func publishEntries() {
-        guard settings.calendarEnabled, settings.calendarShowInLauncher else {
+        guard settings.allows(.calendar), settings.calendarShowInLauncher else {
             appIndex.setMeetings([])
             return
         }
@@ -237,11 +249,16 @@ final class CalendarCoordinator {
     func paletteDidShow() {
         paletteVisible = true
         applyClock()
-        guard settings.calendarEnabled else { return }
+        guard settings.allows(.calendar) else { return }
         // Meetings end while the palette is closed, and with no clock nothing republished them.
         publishEntries()
         // Off the summon path: the card is observation-driven, so it can land a frame later.
-        Task { store.reload() }
+        reloadTask?.cancel()
+        reloadTask = Task { [weak self] in
+            guard let self, !Task.isCancelled, settings.allows(.calendar) else { return }
+            store.reload()
+            reloadTask = nil
+        }
     }
 
     func paletteDidHide() {
@@ -269,13 +286,16 @@ final class CalendarCoordinator {
 
     func createEvent() {
         paletteCoordinator.hidePalette(restoreFocus: false)
-        guard settings.calendarEnabled, store.access == .granted else {
+        guard settings.allows(.calendar), store.access == .granted else {
             report("Turn Calendar on in Settings first")
             return
         }
         NSApp.activate(ignoringOtherApps: true)
-        Task {
+        eventTask?.cancel()
+        eventTask = Task { [weak self] in
+            guard let self else { return }
             guard let draft = await core.createEvent() else { return }
+            guard !Task.isCancelled, settings.allows(.calendar) else { return }
             guard store.createEvent(draft, now: Date()) else {
                 _ = await core.reportFailure(
                     title: "Couldn't create the event",
@@ -297,7 +317,7 @@ final class CalendarCoordinator {
 
     /// Live rather than clock-driven: a chord fires without the palette, so nothing is ticking.
     private func nextJoinable() -> MeetingEvent? {
-        guard settings.calendarEnabled else { return nil }
+        guard settings.allows(.calendar) else { return nil }
         return window.joinable(from: store.events, now: Date())
     }
 
@@ -315,18 +335,26 @@ final class CalendarCoordinator {
 
     /// `uninvited` marks an auto join, the only case that may have to ask before it acts.
     func join(_ meeting: MeetingEvent, uninvited: Bool = false) {
+        guard settings.allows(.calendar) else { return }
         guard let link = meeting.link else {
             openInCalendar(meeting)
             return
         }
         paletteCoordinator.hidePalette(restoreFocus: false)
-        Task { await joinAfterGate(meeting, link: link, uninvited: uninvited) }
+        guard joinTask == nil else { return }
+        let revision = generation
+        joinTask = Task { [weak self] in
+            guard let self else { return }
+            defer { if generation == revision { joinTask = nil } }
+            await joinAfterGate(meeting, link: link, uninvited: uninvited)
+        }
     }
 
     /// The camera preview doubles as the auto join confirmation, so there is one surface, not two.
     private func joinAfterGate(
         _ meeting: MeetingEvent, link: MeetingLink, uninvited: Bool
     ) async {
+        guard !Task.isCancelled, settings.allows(.calendar) else { return }
         // The preview is itself a confirmation, so it stands in for one when both are on.
         if settings.cameraPreview {
             guard await cameraPreview.present(meeting: meeting, now: Date()) else { return }
@@ -340,9 +368,11 @@ final class CalendarCoordinator {
                     confirmRole: .standard, dismissTitle: "Not Now")
             else { return }
         }
+        guard !Task.isCancelled, settings.allows(.calendar) else { return }
         if await MeetingLauncher.join(link, browserBundleID: settings.meetingBrowserBundleID) {
             return
         }
+        guard !Task.isCancelled, settings.allows(.calendar) else { return }
         _ = await core.reportFailure(
             title: "Couldn't open the meeting link",
             message: "Nothing on this Mac would open \(link.url.absoluteString).",
@@ -350,6 +380,7 @@ final class CalendarCoordinator {
     }
 
     func copyLink(_ meeting: MeetingEvent) {
+        guard settings.allows(.calendar) else { return }
         guard let link = meeting.link else {
             report("This meeting has no link")
             return
@@ -360,6 +391,7 @@ final class CalendarCoordinator {
     }
 
     func openInCalendar(_ meeting: MeetingEvent) {
+        guard settings.allows(.calendar) else { return }
         paletteCoordinator.hidePalette(restoreFocus: false)
         MeetingLauncher.showInCalendar(meeting)
     }

@@ -5,11 +5,14 @@ import Observation
 @MainActor
 @Observable
 final class MediaImportCoordinator {
-    let state = MediaImportState()
+    let state: MediaImportState
     private let monitor = MediaSourceMonitor()
     private unowned let core: AppCore
     private var running = false
     private var deletion: Task<Void, Never>?
+    private var transition: Task<Void, Never>?
+    private var generation = 0
+    private var sourcePanel: NSOpenPanel?
     @ObservationIgnored private lazy var window = AppWindowController(
         title: "Media Import", contentSize: CGSize(width: 900, height: 650),
         minimumSize: CGSize(width: 760, height: 520), resizable: true,
@@ -17,6 +20,9 @@ final class MediaImportCoordinator {
 
     init(core: AppCore) {
         self.core = core
+        state = MediaImportState(isEnabled: { [weak core] in
+            core?.settings.allows(.feature(.mediaImport)) ?? false
+        })
         state.onRequestWindow = { [weak self] in self?.show() }
         monitor.onSourceDetected = { [weak self] source in self?.state.handleDetectedSource(source) }
         monitor.onSourceRemoved = { [weak self] id in self?.state.handleRemovedSource(id: id) }
@@ -29,16 +35,31 @@ final class MediaImportCoordinator {
             return
         }
         guard !running else { return }
-        running = true
-        monitor.start()
+        generation += 1
+        let revision = generation
+        transition?.cancel()
+        transition = Task { [weak self] in
+            guard let self else { return }
+            await state.finishStopping()
+            guard !Task.isCancelled, revision == generation, core.settings.mediaImportEnabled else { return }
+            running = true
+            monitor.start()
+            transition = nil
+        }
     }
 
     func stop() {
+        generation += 1
+        running = false
+        transition?.cancel()
+        transition = nil
         monitor.stop()
         state.stop()
         deletion?.cancel()
         deletion = nil
-        running = false
+        sourcePanel?.cancel(nil)
+        sourcePanel = nil
+        window.close()
     }
 
     func show() {
@@ -61,18 +82,24 @@ final class MediaImportCoordinator {
     func reportError(_ message: String) { core.showMessage(message, tone: .danger) }
 
     func chooseSource() {
+        guard core.settings.mediaImportEnabled, running, sourcePanel == nil else { return }
         let panel = NSOpenPanel()
+        sourcePanel = panel
+        let revision = generation
+        defer { if sourcePanel === panel { sourcePanel = nil } }
         panel.title = "Choose Camera or Video Folder"
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runModal() == .OK, core.settings.mediaImportEnabled,
+              running, revision == generation, let url = panel.url else { return }
         state.load(monitor.manualSource(for: url))
         show()
     }
 
     private func confirmDeletion() {
-        guard deletion == nil, state.prepareOriginalDeletion() else { return }
+        guard core.settings.mediaImportEnabled, running, deletion == nil, state.prepareOriginalDeletion() else { return }
+        let revision = generation
         let sourceID = state.source?.id
         let count = state.deletableOriginalCount
         deletion = Task { [weak self] in
@@ -81,7 +108,8 @@ final class MediaImportCoordinator {
             let confirmed = await core.confirm(title: "Delete Imported Originals?",
                 message: "Permanently delete \(count) source files from \(state.source?.name ?? "the source")?",
                 symbol: "trash", confirmTitle: "Delete Permanently")
-            guard confirmed, !Task.isCancelled, state.source?.id == sourceID,
+            guard confirmed, !Task.isCancelled, core.settings.mediaImportEnabled,
+                  running, revision == generation, state.source?.id == sourceID,
                   state.deletableOriginalCount == count else { return }
             state.deleteImportedOriginals()
         }

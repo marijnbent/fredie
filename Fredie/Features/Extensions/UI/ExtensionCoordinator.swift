@@ -10,6 +10,8 @@ final class ExtensionCoordinator {
     private let settings: AppSettings
     /// Message-HUD presentation only — never for state this type owns.
     private unowned let core: AppCore
+    private var transition: Task<Void, Never>?
+    private var generation = 0
 
     init(
         extensions: ExtensionManager,
@@ -32,7 +34,25 @@ final class ExtensionCoordinator {
     /// Applies both switches as they stand — on launch, and after a backup import moves them.
     func applyEnabled() {
         extensions.setShowsInLauncher(settings.extensionsShowInLauncher)
-        Task { await extensions.setEnabled(settings.extensionsEnabled) }
+        generation += 1
+        let revision = generation
+        let enabled = settings.allows(.extensions)
+        if !enabled { extensions.revoke() }
+        transition?.cancel()
+        let previous = transition
+        transition = Task { [weak self] in
+            await previous?.value
+            guard let self else { return }
+            if !enabled {
+                await extensions.setEnabled(false)
+                if revision == generation { transition = nil }
+                return
+            }
+            guard !Task.isCancelled, revision == generation else { return }
+            await extensions.setEnabled(enabled)
+            guard revision == generation else { return }
+            transition = nil
+        }
     }
 
     /// Also consent to run third-party JavaScript, so it asks before it starts.
@@ -40,7 +60,7 @@ final class ExtensionCoordinator {
         guard enabled != settings.extensionsEnabled else { return }
         guard enabled else {
             settings.extensionsEnabled = false
-            Task { await extensions.setEnabled(false) }
+            applyEnabled()
             return
         }
 
@@ -56,9 +76,10 @@ final class ExtensionCoordinator {
                     symbol: "puzzlepiece.extension", confirmTitle: "Enable", tone: .neutral,
                     confirmRole: .standard)
             else { return }
+            guard !Task.isCancelled, settings.launcherEnabled else { return }
 
             settings.extensionsEnabled = true
-            await extensions.setEnabled(true)
+            applyEnabled()
         }
     }
 
@@ -68,7 +89,7 @@ final class ExtensionCoordinator {
 
     /// Resolved from the installed set: the launcher may never have been opened.
     func runExtensionCommand(entryID: String) {
-        guard settings.extensionsEnabled,
+        guard settings.allows(.extensions),
             let entry = extensions.launcherEntry(forEntryID: entryID)
         else { return }
         // The shortcut's second press closes its command, as a mode command's does.
@@ -83,7 +104,7 @@ final class ExtensionCoordinator {
 
     /// A `raycast://extensions/…` link: the same command the launcher would run, by slug.
     func runDeepLink(_ link: ExtensionDeepLink) {
-        guard settings.extensionsEnabled else {
+        guard settings.allows(.extensions) else {
             core.showMessage("Extensions are disabled — enable them in Settings", tone: .danger)
             return
         }

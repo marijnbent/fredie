@@ -63,7 +63,7 @@ final class RoomCoordinator {
     // MARK: - Feature presence
 
     func applyRoomsPresence() {
-        let enabled = settings.windowManagementEnabled
+        let enabled = settings.allows(.windowManagement)
         appIndex.setWindowRooms(enabled && settings.windowRoomsShowInLauncher ? store.rooms : [])
         appIndex.setCommandsVisible(Self.commands, enabled)
         appIndex.setCommandsListed(Self.commands, settings.windowRoomsShowInLauncher)
@@ -72,12 +72,20 @@ final class RoomCoordinator {
     /// Switching the feature off brings every parked window home, and the room's hidden apps.
     func applyEnabled() {
         applyRoomsPresence()
-        guard !settings.windowManagementEnabled else { return }
+        guard !settings.allows(.windowManagement) else { return }
+        loading?.cancel()
+        loading = nil
+        work?.cancel()
+        preview.hide()
+        session.reset()
         if palette.mode == .rooms || palette.mode == .roomWindows { palette.prepare(mode: .launcher) }
-        let hidden = hiddenByRooms
-        hiddenByRooms = []
         currentRoomID = nil
-        inTurn { [ledger] in await RoomRunner.restoreEverything(hiddenApps: hidden, ledger: ledger) }
+        inTurn { [weak self] in
+            guard let self else { return }
+            let hidden = hiddenByRooms
+            hiddenByRooms = []
+            await RoomRunner.restoreEverything(hiddenApps: hidden, ledger: ledger)
+        }
     }
 
     /// Windows a crash left parked come home at launch; nothing is unhidden, nothing else moves.
@@ -97,7 +105,7 @@ final class RoomCoordinator {
     // MARK: - The Rooms screen
 
     func showRooms() {
-        guard settings.windowManagementEnabled else { return }
+        guard settings.allows(.windowManagement) else { return }
         guard Permissions.ensureAccessibility() else {
             Task { await reportPermissionFailure() }
             return
@@ -107,7 +115,7 @@ final class RoomCoordinator {
 
     /// Every open reads the desk anew, one turn after the screen appears so it never waits on AX.
     func load() {
-        guard settings.windowManagementEnabled, Permissions.isAccessibilityTrusted() else { return }
+        guard settings.allows(.windowManagement), Permissions.isAccessibilityTrusted() else { return }
         guard !session.isLoaded, loading == nil else { return }
         loading = Task { [weak self] in
             await Task.yield()
@@ -209,7 +217,7 @@ final class RoomCoordinator {
 
     /// The one funnel for a Rooms row, a launcher entry, a shortcut and the pane alike.
     func enterRoom(id: UUID) {
-        guard settings.windowManagementEnabled, let room = store.room(id: id) else { return }
+        guard settings.allows(.windowManagement), let room = store.room(id: id) else { return }
         // The preview holds while the windows move in under it, then fades.
         isEntering = preview.isShowing
         if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
@@ -223,6 +231,7 @@ final class RoomCoordinator {
             self.preview.hide(settling: true)
             self.session.reset()
             self.hiddenByRooms.formUnion(outcome.hiddenApps)
+            guard !Task.isCancelled, self.settings.allows(.windowManagement) else { return }
             if outcome.placed > 0 {
                 self.currentRoomID = room.id
                 self.store.markEntered(id: room.id, at: Date())
@@ -244,7 +253,7 @@ final class RoomCoordinator {
 
     /// The picker for a room named on the Rooms screen; with no name yet, that screen first.
     func createRoom(named name: String = "") {
-        guard settings.windowManagementEnabled else { return }
+        guard settings.allows(.windowManagement) else { return }
         guard !name.isEmpty else {
             if paletteCoordinator.isShowing(.rooms) { nameIsMissing() } else { showRooms() }
             return

@@ -42,13 +42,16 @@ final class MediaImportState {
     private var scanTask: Task<Void, Never>?
     private var importTask: Task<Void, Never>?
     private var importGeneration = UUID()
+    private let isEnabled: @MainActor () -> Bool
 
     init(
+        isEnabled: @escaping @MainActor () -> Bool,
         settingsStore: MediaImportSettingsStore = MediaImportSettingsStore(),
         ffmpeg: FFmpegService = FFmpegService(),
         ledger: ImportLedger = ImportLedger(),
         scan: (@Sendable (MediaSource, @escaping ScanProgress) async throws -> [MediaClip])? = nil
     ) {
+        self.isEnabled = isEnabled
         self.settingsStore = settingsStore
         self.ffmpeg = ffmpeg
         self.ledger = ledger
@@ -81,6 +84,7 @@ final class MediaImportState {
     }
 
     func prepareOriginalDeletion() -> Bool {
+        guard isEnabled() else { return false }
         if let message = originalDeletionUnavailableMessage() {
             alertMessage = message
             return false
@@ -104,7 +108,7 @@ final class MediaImportState {
     }
 
     func handleDetectedSource(_ newSource: MediaSource) {
-        guard !isImporting else { return }
+        guard isEnabled(), !isImporting else { return }
         if case .folder = source?.kind, case .camera = newSource.kind { return }
         if source?.id == newSource.id, !clips.isEmpty { return }
         load(newSource)
@@ -114,6 +118,7 @@ final class MediaImportState {
     }
 
     func load(_ newSource: MediaSource) {
+        guard isEnabled() else { return }
         invalidateScan()
         let generation = sourceGeneration
         source = newSource
@@ -147,7 +152,7 @@ final class MediaImportState {
     }
 
     func handleRemovedSource(id: String) {
-        guard source?.id == id else { return }
+        guard isEnabled(), source?.id == id else { return }
         invalidateScan()
         cancelImport()
         source = nil
@@ -202,7 +207,7 @@ final class MediaImportState {
     }
 
     func startImport() {
-        guard !isImporting else { return }
+        guard isEnabled(), !isImporting, importTask == nil else { return }
         guard ffmpeg.isAvailable else {
             alertMessage = ImportieError.ffmpegMissing.localizedDescription
             return
@@ -227,6 +232,7 @@ final class MediaImportState {
         alertMessage = nil
         importTask = Task { [weak self] in
             guard let self else { return }
+            defer { importTask = nil }
             var successes = 0
             var failures = 0
             let concurrency = clipIDs.contains { id in
@@ -272,7 +278,8 @@ final class MediaImportState {
         do {
             let output = try await importService.importClip(clip, to: destination) { [weak self] fraction in
                 Task { @MainActor in
-                    guard let self, self.importGeneration == generation, self.clips.contains(where: { $0.id == clipID && $0.status == .importing }) else { return }
+                    guard let self, self.isEnabled(), self.importGeneration == generation,
+                          self.clips.contains(where: { $0.id == clipID && $0.status == .importing }) else { return }
                     self.importProgress[clipID] = max(self.importProgress[clipID] ?? 0, fraction)
                 }
             }
@@ -309,8 +316,12 @@ final class MediaImportState {
         ffmpeg.cancelAll()
     }
 
+    func finishStopping() async {
+        await importTask?.value
+    }
+
     func deleteImportedOriginals() {
-        guard !isImporting, case .folder(let sourceRoot) = source?.kind else { return }
+        guard isEnabled(), !isImporting, case .folder(let sourceRoot) = source?.kind else { return }
         if let message = originalDeletionUnavailableMessage() {
             alertMessage = message
             return

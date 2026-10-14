@@ -10,7 +10,8 @@ final class ClipboardSearchSession {
     @ObservationIgnored private var task: Task<Void, Never>?
     private var revision = 0
 
-    func search(_ text: String, items: [ClipboardItem], storage: ClipboardStorage, onReady: @escaping @MainActor () -> Void = {}) {
+    func search(_ text: String, items: [ClipboardItem], storage: ClipboardStorage,
+                onReady: @escaping @MainActor ([ClipboardItem]) -> Void = { _ in }) {
         cancel()
         let sameQuery = query == text
         query = text
@@ -20,8 +21,9 @@ final class ClipboardSearchSession {
         } else { self.items = [] }
         let normalized = ClipboardStorage.normalizeSearchText(text.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !text.hasPrefix(":"), !normalized.isEmpty else {
+            let previousItems = self.items
             self.items = text.hasPrefix(":") ? [] : Array(items.prefix(50))
-            onReady()
+            onReady(previousItems)
             return
         }
         isSearching = true
@@ -38,9 +40,10 @@ final class ClipboardSearchSession {
                 worker.cancel()
             }
             guard let self, !Task.isCancelled, current == revision, let scan else { return }
+            let previousItems = self.items
             self.items = scan.matches
             isSearching = false
-            onReady()
+            onReady(previousItems)
         }
     }
 

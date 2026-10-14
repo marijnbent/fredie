@@ -22,8 +22,9 @@ final class CustomCommandCoordinator {
         stop: { [unowned self] in self.stopOutputRun(id: $0) },
         openSettings: { [unowned self] in self.settingsCoordinator.showSettings(tab: .commands) })
     private let activationPolicy: ActivationPolicy
-    /// Superseding never touches it — only the button ends a command.
-    private var liveRun: (id: UUID, stop: @Sendable () -> Void)?
+    private var outputStops: [UUID: (capability: FeatureCapability, stop: @Sendable () -> Void)] = [:]
+    private var operations: [UUID: (capability: FeatureCapability, task: Task<Void, Never>)] = [:]
+    private var outputCapability: FeatureCapability?
     /// The last fallback shell line, which has no library entry for the window's Rerun to find.
     private var lastShellCommand: (id: UUID, text: String)?
 
@@ -58,7 +59,8 @@ final class CustomCommandCoordinator {
     // MARK: - Feature presence
 
     func applyCustomCommandsPresence() {
-        let visible = settings.customCommandsEnabled && settings.customCommandsShowInLauncher
+        stopUnavailableRuns()
+        let visible = settings.allows(.customCommands) && settings.customCommandsShowInLauncher
         appIndex.setCustomCommands(visible ? store.commands : [])
     }
 
@@ -160,7 +162,7 @@ final class CustomCommandCoordinator {
     /// The one funnel, so no entry point skips a required value or the confirmation.
     func runCustomCommand(id: UUID, values: [String: String] = [:]) {
         // Also the feature switch: with it off a registered hotkey must run nothing.
-        guard settings.customCommandsEnabled else { return }
+        guard settings.allows(.customCommands) else { return }
         guard let command = store.command(id: id), command.isEnabled else { return }
         guard let arguments = command.positionalValues(from: values) else {
             paletteCoordinator.showArguments(of: AppEntry(command), values: values)
@@ -171,6 +173,7 @@ final class CustomCommandCoordinator {
 
     /// The launcher fallback: a one-off shell line, streamed into the window every run uses.
     func runShellCommand(_ text: String) {
+        guard settings.launcherEnabled else { return }
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
@@ -180,7 +183,9 @@ final class CustomCommandCoordinator {
             name: CommandID.runShellCommand.name, command: text, loadsShellEnvironment: true,
             showsOutput: true)
         lastShellCommand = (command.id, text)
-        Task { await streamOutput(of: command, arguments: []) }
+        enqueue(.feature(.launcher)) { [weak self] in
+            await self?.streamOutput(of: command, arguments: [], capability: .feature(.launcher))
+        }
     }
 
     /// The window's Rerun. An ad-hoc shell line is not in the store, so it is repeated from here.
@@ -195,9 +200,10 @@ final class CustomCommandCoordinator {
     }
 
     private func perform(_ command: CustomCommand, arguments: [String]) {
-        guard settings.customCommandsEnabled else { return }
+        guard settings.allows(.customCommands) else { return }
         if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
-        Task {
+        enqueue(.customCommands) { [weak self] in
+            guard let self else { return }
             if command.requiresConfirmation {
                 guard
                     // Neutral, not destructive: their own command just wants a second tap.
@@ -208,20 +214,23 @@ final class CustomCommandCoordinator {
                         tone: .neutral, confirmRole: .standard)
                 else { return }
             }
+            guard !Task.isCancelled, settings.allows(.customCommands) else { return }
             guard !command.showsOutput else {
-                await streamOutput(of: command, arguments: arguments)
+                await streamOutput(of: command, arguments: arguments, capability: .customCommands)
                 return
             }
             let result = await ShellCommandRunner.run(
                 command.command, arguments: arguments,
                 loadingShellEnvironment: command.loadsShellEnvironment,
                 workingDirectory: command.workingDirectory)
+            guard !Task.isCancelled, settings.allows(.customCommands) else { return }
             await report(command, result: result)
         }
     }
 
     /// Opens the window before the first byte, so a long command is visible while it works.
-    private func streamOutput(of command: CustomCommand, arguments: [String]) async {
+    private func streamOutput(of command: CustomCommand, arguments: [String], capability: FeatureCapability) async {
+        guard !Task.isCancelled, settings.allows(capability) else { return }
         let session = ShellCommandRunner.stream(
             command.command, arguments: arguments,
             loadingShellEnvironment: command.loadsShellEnvironment,
@@ -229,10 +238,12 @@ final class CustomCommandCoordinator {
         let runID = outputPresenter.begin(
             commandID: command.id, name: command.name, commandText: command.command,
             symbol: command.symbol)
-        liveRun = (runID, session.stop)
-        defer { if liveRun?.id == runID { liveRun = nil } }
+        outputCapability = capability
+        outputStops[runID] = (capability, session.stop)
+        defer { outputStops[runID] = nil }
 
         for await event in session.events {
+            guard !Task.isCancelled, settings.allows(capability) else { session.stop(); break }
             switch event {
             case .output(let text):
                 outputPresenter.append(text, to: runID)
@@ -247,9 +258,43 @@ final class CustomCommandCoordinator {
         }
     }
 
+    private func enqueue(_ capability: FeatureCapability, action: @escaping @MainActor () async -> Void) {
+        let id = UUID()
+        let task = Task { [weak self] in
+            guard let self else { return }
+            defer { operations[id] = nil }
+            guard !Task.isCancelled, settings.allows(capability) else { return }
+            await action()
+        }
+        operations[id] = (capability, task)
+    }
+
+    func stopUnavailableRuns() {
+        for (id, operation) in operations where !settings.allows(operation.capability) {
+            operation.task.cancel()
+            operations[id] = nil
+        }
+        for (id, output) in outputStops where !settings.allows(output.capability) {
+            output.stop()
+            outputStops[id] = nil
+        }
+        if let outputCapability, !settings.allows(outputCapability) {
+            outputPresenter.close()
+            self.outputCapability = nil
+        }
+    }
+
+    func stop() {
+        operations.values.forEach { $0.task.cancel() }
+        operations.removeAll()
+        outputStops.values.forEach { $0.stop() }
+        outputStops.removeAll()
+        outputPresenter.close()
+        outputCapability = nil
+    }
+
     private func stopOutputRun(id: UUID) {
-        guard let liveRun, liveRun.id == id else { return }
-        liveRun.stop()
+        outputStops[id]?.stop()
     }
 
     private func removeCustomCommandReferences(ids: Set<UUID>, entryIDs: Set<String>) {

@@ -33,7 +33,7 @@ struct CompactMenuView: View {
             .padding(.leading, 16)
             .padding(.trailing, 10)
             .frame(height: 42)
-            if core.dictation.isBusy {
+            if core.settings.allows(.feature(.dictation)), core.dictation.isBusy {
                 HStack(spacing: 10) {
                     Image(systemName: core.dictation.session.isRecording ? "waveform" : "ellipsis").foregroundStyle(.red)
                     Text(core.dictation.session.statusMessage).font(.system(size: 11)).lineLimit(1)
@@ -44,7 +44,7 @@ struct CompactMenuView: View {
                     Button("Cancel") { core.dictation.cancelRecording() }.controlSize(.small)
                 }.padding(.horizontal, 16).padding(.vertical, 10)
             }
-            if core.mediaImport.state.isImporting {
+            if core.settings.allows(.feature(.mediaImport)), core.mediaImport.state.isImporting {
                 HStack(spacing: 10) {
                     ProgressView(value: core.mediaImport.state.overallImportProgress).frame(width: 38)
                     Text("Importing \(core.mediaImport.state.completedCount)/\(core.mediaImport.state.totalImportCount)")
@@ -54,7 +54,7 @@ struct CompactMenuView: View {
                 }
                 .padding(.horizontal, 16).padding(.vertical, 10)
             }
-            if core.settings.notificationsEnabled {
+            if core.settings.allows(.feature(.notifications)) {
                 Button {
                     perform { core.settingsCoordinator.showSettings(tab: .notifications) }
                 } label: {
@@ -79,30 +79,31 @@ struct CompactMenuView: View {
                 .onHover { notificationsHovered = $0 }
                 .padding(.horizontal, 8)
             }
-            if core.settings.networkEnabled {
+            if core.settings.allows(.feature(.network)) {
                 NetworkMenuSection(network: core.network) {
                     perform { core.settingsCoordinator.showSettings(tab: .network) }
                 }
             }
-            if core.dictation.isBusy || core.mediaImport.state.isImporting
-                || core.settings.notificationsEnabled || core.settings.networkEnabled {
+            if (core.settings.allows(.feature(.dictation)) && core.dictation.isBusy)
+                || (core.settings.allows(.feature(.mediaImport)) && core.mediaImport.state.isImporting)
+                || core.settings.allows(.feature(.notifications)) || core.settings.allows(.feature(.network)) {
                 Rectangle().fill(Theme.Colors.separator).frame(height: 0.5)
                     .padding(.horizontal, 16).padding(.top, 6)
             }
             HStack(spacing: 4) {
-                if core.settings.launcherEnabled {
+                if core.settings.allows(.feature(.launcher)) {
                     action("Launcher", symbol: "square.grid.2x2") { core.paletteCoordinator.showPalette(mode: .launcher) }
                 }
-                if core.settings.clipboardEnabled || core.settings.snippetsEnabled {
+                if core.settings.allows(.clipboardHistory) {
                     action("Clipboard", symbol: "clipboard") { core.clipboard.show() }
                 }
-                if core.settings.dictationEnabled {
+                if core.settings.allows(.feature(.dictation)) {
                     action("Dictate", symbol: "mic") { core.dictation.toggleRecording() }
                 }
-                if core.settings.aiEnabled {
+                if core.settings.allows(.feature(.ai)) {
                     action("AI Chat", symbol: "sparkles") { core.aiChatCoordinator.showWindow() }
                 }
-                if core.settings.mediaImportEnabled {
+                if core.settings.allows(.feature(.mediaImport)) {
                     action("Media Import", symbol: "externaldrive.badge.plus") { core.mediaImport.show() }
                 }
                 Spacer(minLength: 0)

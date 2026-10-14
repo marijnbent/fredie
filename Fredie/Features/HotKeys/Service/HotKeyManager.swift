@@ -271,10 +271,7 @@ final class HotKeyManager {
     }
 
     private func canRegister(_ action: HotKeyAction) -> Bool {
-        if case .windowCommand(let id) = action, id == .previousSpace || id == .nextSpace {
-            return allowsAction?(action) ?? true
-        }
-        return (action != .togglePalette && action != .command(.clipboardHistory)) || (allowsAction?(action) ?? true)
+        allowsAction?(action) ?? true
     }
 
     private func register(_ action: HotKeyAction) {

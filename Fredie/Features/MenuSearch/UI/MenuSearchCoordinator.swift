@@ -27,14 +27,14 @@ final class MenuSearchCoordinator {
     }
 
     func applyEnabled() {
-        appIndex.setCommandsVisible([.searchMenuItems], settings.navigationEnabled)
-        guard !settings.navigationEnabled else { return }
+        appIndex.setCommandsVisible([.searchMenuItems], settings.allows(.navigation))
+        guard !settings.allows(.navigation) else { return }
         session.reset()
         if palette.mode == .menuSearch { palette.prepare(mode: .launcher) }
     }
 
     func show() {
-        guard settings.navigationEnabled else { return }
+        guard settings.allows(.navigation) else { return }
         guard Permissions.ensureAccessibility() else {
             Task { await self.reportPermissionFailure() }
             return

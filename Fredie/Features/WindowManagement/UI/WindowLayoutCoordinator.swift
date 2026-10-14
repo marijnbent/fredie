@@ -41,10 +41,11 @@ final class WindowLayoutCoordinator {
     // MARK: - Feature presence
 
     func applyWindowLayoutsPresence() {
-        let visible = settings.windowManagementEnabled && settings.windowLayoutsShowInLauncher
+        if !settings.allows(.windowManagement) { prepareForTermination() }
+        let visible = settings.allows(.windowManagement) && settings.windowLayoutsShowInLauncher
         appIndex.setWindowLayouts(visible ? store.layouts : [])
         let commands: Set<CommandID> = [.createWindowLayout, .captureWindowLayout]
-        appIndex.setCommandsVisible(commands, settings.windowManagementEnabled)
+        appIndex.setCommandsVisible(commands, settings.allows(.windowManagement))
         appIndex.setCommandsListed(commands, settings.windowLayoutsShowInLauncher)
     }
 
@@ -52,14 +53,15 @@ final class WindowLayoutCoordinator {
 
     /// The one funnel for a palette row, a global shortcut and the pane's Apply alike.
     func runWindowLayout(id: UUID) {
-        guard settings.windowManagementEnabled, let layout = store.layout(id: id) else { return }
+        guard settings.allows(.windowManagement), let layout = store.layout(id: id) else { return }
         // Never restoreFocus: an opened app activates itself, and handing focus back races that.
         if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
         let gap = CGFloat(settings.windowGap)
         run?.cancel()
         run = Task { [weak self] in
             let outcome = await WindowLayoutRunner.run(layout, gap: gap)
-            await self?.report(outcome, for: layout)
+            guard !Task.isCancelled, let self, settings.allows(.windowManagement) else { return }
+            await report(outcome, for: layout)
         }
     }
 

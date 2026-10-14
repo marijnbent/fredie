@@ -1,0 +1,50 @@
+enum OllieFeature: CaseIterable, Identifiable, Hashable, Sendable {
+    case launcher, clipboard, snippets, dictation, windowSwitcher, spaces, ai
+    case typingSounds, network, notifications, mediaImport
+
+    var id: Self { self }
+}
+
+enum FeatureCapability: Hashable, Sendable, CaseIterable {
+    case feature(OllieFeature)
+    case clipboardHistory, spaceNavigation
+    case fileSearch, navigation, notes, calendar, extensions
+    case customCommands, quicklinks, appleShortcuts, windowManagement
+    case quickActions, mcp
+
+    static var allCases: [Self] {
+        OllieFeature.allCases.map(Self.feature) + [
+            .clipboardHistory, .spaceNavigation, .fileSearch, .navigation, .notes,
+            .calendar, .extensions, .customCommands, .quicklinks, .appleShortcuts,
+            .windowManagement, .quickActions, .mcp,
+        ]
+    }
+
+    var owner: OllieFeature? {
+        switch self {
+        case .feature(let feature): feature
+        case .clipboardHistory, .spaceNavigation: nil
+        case .quickActions, .mcp: .ai
+        default: .launcher
+        }
+    }
+}
+
+struct FeatureAvailability: Equatable, Sendable {
+    var enabledFeatures: Set<OllieFeature>
+    var enabledCapabilities: Set<FeatureCapability> = []
+
+    func allows(_ capability: FeatureCapability) -> Bool {
+        switch capability {
+        case .feature(let feature): enabledFeatures.contains(feature)
+        case .clipboardHistory:
+            enabledFeatures.contains(.clipboard) || enabledFeatures.contains(.snippets)
+        case .spaceNavigation:
+            enabledFeatures.contains(.spaces) || allows(.windowManagement)
+        default:
+            capability.owner.map(enabledFeatures.contains) == true
+                && enabledCapabilities.contains(capability)
+        }
+    }
+}
+

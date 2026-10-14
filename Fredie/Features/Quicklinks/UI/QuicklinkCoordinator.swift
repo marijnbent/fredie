@@ -20,6 +20,7 @@ final class QuicklinkCoordinator {
 
     /// The quicklink whose ⌘↵ override must survive the trip to the header's argument fields.
     private var pendingDefaultAppOverride: UUID?
+    private var opens: [UUID: Task<Void, Never>] = [:]
 
     init(
         store: QuicklinkStore,
@@ -55,12 +56,17 @@ final class QuicklinkCoordinator {
 
     /// Either switch off means the feature reaches the launcher not at all — rows and commands.
     func applyQuicklinksPresence() {
-        let visible = settings.quicklinksEnabled && settings.quicklinksShowInLauncher
+        if !settings.allows(.quicklinks) {
+            opens.values.forEach { $0.cancel() }
+            opens.removeAll()
+            pendingDefaultAppOverride = nil
+        }
+        let visible = settings.allows(.quicklinks) && settings.quicklinksShowInLauncher
         appIndex.setQuicklinks(visible ? store.quicklinks : [])
         let commands: Set<CommandID> = [
             .createQuicklink, .searchQuicklinks, .importQuicklinks, .exportQuicklinks
         ]
-        appIndex.setCommandsVisible(commands, settings.quicklinksEnabled)
+        appIndex.setCommandsVisible(commands, settings.allows(.quicklinks))
         appIndex.setCommandsListed(commands, settings.quicklinksShowInLauncher)
     }
 
@@ -71,7 +77,7 @@ final class QuicklinkCoordinator {
     func openQuicklink(
         id: UUID, forcingDefaultApp: Bool = false, values: [String: String] = [:]
     ) {
-        guard settings.quicklinksEnabled, let quicklink = store.quicklink(id: id),
+        guard settings.allows(.quicklinks), let quicklink = store.quicklink(id: id),
             quicklink.isEnabled
         else { return }
         // With the palette closed a shortcut still reads the selection from wherever the caret is.
@@ -149,14 +155,19 @@ final class QuicklinkCoordinator {
     private func performQuicklinkOpen(
         _ quicklink: Quicklink, link: String, forcingDefaultApp: Bool
     ) {
+        guard settings.allows(.quicklinks), !Task.isCancelled else { return }
         if windowController.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
         let openWith = forcingDefaultApp ? nil : quicklink.openWithBundleID
-        Task {
+        let operationID = UUID()
+        opens[operationID] = Task { [weak self] in
+            guard let self, !Task.isCancelled, settings.allows(.quicklinks) else { return }
+            defer { opens[operationID] = nil }
             do throws(QuicklinkLauncher.Failure) {
                 try await QuicklinkLauncher.open(
                     link, openWithBundleID: openWith,
                     inNewWindow: settings.quicklinkOpensNewWindow)
             } catch {
+                guard !Task.isCancelled, settings.allows(.quicklinks) else { return }
                 await presentQuicklinkFailure(quicklink, link: link, failure: error)
             }
         }

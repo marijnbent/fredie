@@ -4,6 +4,11 @@ A unified native macOS menu-bar app: launcher, clipboard and snippets, dictation
 typing sounds, Spaces, media import, notifications and network monitoring. The launcher includes hotkeys,
 calculator, notes, quicklinks, window management, emoji and Raycast extensions in JavaScriptCore.
 Mailie is excluded.
+
+This repository is the active home of the former Clippie, Importie, Nettie, Ntfy Notifier,
+Tabbie, Talkie, and Typie features. Their standalone source folders and installed app bundles
+are retired; do not depend on sibling repositories or recreate them unless explicitly requested.
+The folder and Xcode identity remain Fredie; the installed product is `/Applications/Ollie.app`.
 SwiftUI + AppKit, running as an accessory with no Dock icon (`LSUIElement`). Zero third-party
 dependencies.
 

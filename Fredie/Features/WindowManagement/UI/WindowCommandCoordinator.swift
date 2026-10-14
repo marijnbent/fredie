@@ -23,13 +23,13 @@ final class WindowCommandCoordinator {
     /// The one funnel for palette and hotkey alike. See docs/features/window-management.md#wiring.
     func runWindowCommand(id: WindowCommand.ID) {
         if let direction = SpaceDirection(id) {
-            guard settings.spacesEnabled || settings.windowManagementEnabled else { return }
+            guard settings.spacesEnabled || settings.allows(.windowManagement) else { return }
             // Restoring focus reactivates an app elsewhere, pulling its Space forward.
             if paletteCoordinator.isVisible { paletteCoordinator.hidePalette(restoreFocus: false) }
             spaceSwitcher.perform(direction)
             return
         }
-        guard settings.windowManagementEnabled else { return }
+        guard settings.allows(.windowManagement) else { return }
         windowMover.perform(
             id, target: handOffTarget(), gap: CGFloat(settings.windowGap),
             cycle: settings.windowCycle)
@@ -37,7 +37,7 @@ final class WindowCommandCoordinator {
 
     /// The same funnel for a custom size, so the feature switch gates it identically.
     func runCustomWindowSize(id: UUID) {
-        guard settings.windowManagementEnabled, let size = customSizes.size(id: id) else { return }
+        guard settings.allows(.windowManagement), let size = customSizes.size(id: id) else { return }
         windowMover.perform(size, target: handOffTarget(), gap: CGFloat(settings.windowGap))
     }
 

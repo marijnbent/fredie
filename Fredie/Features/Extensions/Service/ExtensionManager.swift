@@ -82,18 +82,15 @@ final class ExtensionManager: ExtensionRuntimeDelegate, ExtensionHostContext {
 
     /// Idempotent both ways, so launch and the switch are the same call.
     func setEnabled(_ enabled: Bool) async {
-        guard enabled != isEnabled else { return }
-        isEnabled = enabled
         guard enabled else {
-            menuBars?.stop()
-            menuBars = nil
+            revoke()
             await stop()
-            backgroundTask?.cancel()
-            backgroundTask = nil
             installed = []
             appIndex?.setExtensionCommands([])
             return
         }
+        guard !isEnabled else { return }
+        isEnabled = true
         if let coordinator {
             menuBars = ExtensionMenuBarManager(
                 storage: storage,
@@ -121,6 +118,15 @@ final class ExtensionManager: ExtensionRuntimeDelegate, ExtensionHostContext {
         }
         await refresh()
         ensureBackgroundLoop()
+    }
+
+    func revoke() {
+        isEnabled = false
+        menuBars?.stop()
+        menuBars = nil
+        backgroundTask?.cancel()
+        backgroundTask = nil
+        oauthSession.cancel()
     }
 
     func setShowsInLauncher(_ shows: Bool) {

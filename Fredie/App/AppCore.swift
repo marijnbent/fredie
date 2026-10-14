@@ -216,6 +216,8 @@ final class AppCore {
         })
     private let healthTicker = HealthTicker()
     @ObservationIgnored private var launcherRefreshTask: Task<Void, Never>?
+    @ObservationIgnored private var appliedFeatures: FeatureAvailability?
+    @ObservationIgnored private var notesFolderTask: Task<Void, Never>?
 
     private init() {
         let launcherRanking = LauncherRankingStore()
@@ -247,11 +249,6 @@ final class AppCore {
             settings.launchAtLogin = LaunchAtLogin.isEnabled
             applyAppearance()
             compactMenu.applyVisibility()
-            clipboard.apply()
-            typingSounds.apply()
-            mediaImport.apply()
-            notifications.apply()
-            applyNetworkEnabled()
             observeEffectiveAppearance()
             pinnedEmoji.onPersistenceFailure = { [weak self] in
                 self?.showMessage("Couldn't save Emoji & Symbols pins", tone: .danger)
@@ -259,36 +256,24 @@ final class AppCore {
 
             appIndex.start(settings: settings)
             extensions.start(appIndex: appIndex, coordinator: extensionCoordinator)
-            extensionCoordinator.applyEnabled()
-            fileSearchCoordinator.applyEnabled()
-            menuSearchCoordinator.applyEnabled()
             fileSearchCoordinator.applyPolicy()
-            notesCoordinator.applyEnabled()
             installedAI.launchSettings = { [aiSettings] in aiSettings.launch(for: $0) }
             chatGPTSubscription.launchSettings = { [aiSettings] in aiSettings.launch(for: .codex) }
-            aiChatCoordinator.applyEnabled()
-            mcpCoordinator.applyEnabled()
             customQuickActions.onChange = { [weak self] _ in
                 self?.quickActionCoordinator.applyCustomQuickActionsPresence()
             }
             // Before `hotKeys.start` even when off: the prune reads it.
             customQuickActions.load()
-            quickActionCoordinator.applyEnabled()
             customCommands.onChange = { [weak self] _ in
                 self?.customCommandCoordinator.applyCustomCommandsPresence()
             }
-            customCommandCoordinator.applyCustomCommandsPresence()
-            applyWindowCommandsPresence()
             customWindowSizes.onChange = { [weak self] _ in
                 self?.customWindowSizeCoordinator.applyCustomWindowSizesPresence()
             }
-            customWindowSizeCoordinator.applyCustomWindowSizesPresence()
             windowLayouts.onChange = { [weak self] _ in
                 self?.windowLayoutCoordinator.applyWindowLayoutsPresence()
             }
-            windowLayoutCoordinator.applyWindowLayoutsPresence()
             rooms.onChange = { [weak self] _ in self?.roomCoordinator.applyRoomsPresence() }
-            roomCoordinator.applyRoomsPresence()
             // A crash can leave windows parked off-screen; they come home before anything else.
             roomCoordinator.recoverParkedWindows()
             quicklinks.onChange = { [weak self] _ in
@@ -296,8 +281,6 @@ final class AppCore {
             }
             // Before `hotKeys.start` even when off: the prune reads it. docs/features/quicklinks.md
             quicklinks.load()
-            quicklinkCoordinator.applyQuicklinksPresence()
-            appleShortcutCoordinator.applyPresence()
             paletteCoordinator.onLauncherShown = { [weak self] in
                 self?.appleShortcutCoordinator.refresh()
             }
@@ -317,7 +300,6 @@ final class AppCore {
                 }
             }
             updateCoordinator.applyEnabled()
-            calendarCoordinator.applyEnabled()
             Task { await emojiIndex.load(languages: Locale.preferredLanguages) }
             updateChecker.onUpdateAvailable = { [weak self] release in
                 self?.updateCoordinator.presentIfAvailable(release) ?? true
@@ -379,8 +361,9 @@ final class AppCore {
             hotKeys.displayName = { [weak self] action in self?.hotKeyDisplayName(for: action) }
             hotKeys.allowsAction = { [weak self] action in
                 guard let self else { return false }
+                guard action.capability.map(settings.allows) ?? true else { return false }
                 if case .windowCommand(let id) = action, SpaceDirection(id) != nil {
-                    return settings.spacesEnabled || (settings.windowManagementEnabled && visibility.allowsHotKey(action))
+                    return settings.spacesEnabled || visibility.allowsHotKey(action)
                 }
                 guard visibility.allowsHotKey(action) else { return false }
                 if action == .togglePalette { return settings.launcherEnabled }
@@ -401,10 +384,7 @@ final class AppCore {
                 windowRoomIDs: Set(rooms.rooms.map(\.id)),
                 customWindowSizeIDs: Set(customWindowSizes.sizes.map(\.id)),
                 quickActionIDs: Set(customQuickActions.actions.map(\.id)))
-            applyLauncherEnabled()
-            spaces.apply()
-            windowSwitcher.apply()
-            dictation.apply()
+            applyFeatures()
 
             observeFeatureSwitches()
 
@@ -482,7 +462,8 @@ final class AppCore {
     func flushNotesForTermination() async -> Bool {
         let dictationSaved = await dictation.prepareForTermination()
         let clipboardSaved = await clipboard.prepareForTermination()
-        await notifications.stop()
+        notifications.stop()
+        await notifications.finishStopping()
         await notesCoordinator.prepareForTermination()
         guard dictationSaved && clipboardSaved else {
             dictation.apply()
@@ -501,7 +482,10 @@ final class AppCore {
         windowSwitcher.stop()
         clipboard.stop()
         typingSounds.stop()
+        cameraCoordinator.stop()
+        customCommandCoordinator.stop()
         mediaImport.stop()
+        notifications.stop()
         network.stop()
         launcherRefreshTask?.cancel()
         currencyRates.stop()
@@ -510,7 +494,7 @@ final class AppCore {
         roomCoordinator.prepareForTermination()
         inputSourceSwitcher.endSession()
         textInjector.prepareForTermination()
-        aiChats.reset()
+        aiChatCoordinator.stop()
         chatGPTSubscription.stop()
         mcpOAuth.stop()
         mcp.stop()
@@ -521,7 +505,7 @@ final class AppCore {
     private func applyInstalledLaunches() {
         let revisions = aiSettings.launchRevisions
         let enabled =
-            settings.aiEnabled || settings.quickActionsEnabled
+            settings.aiEnabled
             ? aiSettings.enabledInstalledProviders : []
         for kind in InstalledAIKind.allCases where appliedLaunchRevisions[kind] != revisions[kind] {
             guard enabled.contains(kind) else { continue }
@@ -538,7 +522,7 @@ final class AppCore {
     @discardableResult
     func applyInstalledAILifecycle() -> Task<Void, Never> {
         let enabledKinds =
-            settings.aiEnabled || settings.quickActionsEnabled
+            settings.aiEnabled
             ? aiSettings.enabledInstalledProviders : []
         var tasks: [Task<Void, Never>] = []
         if enabledKinds.contains(.codex) {
@@ -578,6 +562,8 @@ final class AppCore {
         compactMenu.applyVisibility()
         hotKeys.refreshRegistrations()
         guard settings.launcherEnabled else {
+            cameraCoordinator.stop()
+            customCommandCoordinator.stopUnavailableRuns()
             currencyRates.stop()
             if paletteCoordinator.isShowing(.launcher) {
                 paletteCoordinator.hidePalette(restoreFocus: false)
@@ -589,29 +575,67 @@ final class AppCore {
         launcherRefreshTask = Task { [weak self] in await self?.appIndex.refresh() }
     }
 
+    private func applyFeatures() {
+        let next = settings.featureAvailability
+        let previous = appliedFeatures
+        appliedFeatures = next
+        let changed: (FeatureCapability) -> Bool = { previous?.allows($0) != next.allows($0) }
+        if changed(.feature(.launcher)) { applyLauncherEnabled() }
+        if changed(.feature(.clipboard)) || changed(.feature(.snippets)) { clipboard.apply() }
+        if changed(.feature(.dictation)) { dictation.apply() }
+        if changed(.feature(.windowSwitcher)) { windowSwitcher.apply() }
+        if changed(.feature(.spaces)) { spaces.apply() }
+        if changed(.feature(.typingSounds)) { typingSounds.apply() }
+        if changed(.feature(.network)) { applyNetworkEnabled() }
+        if changed(.feature(.notifications)) { notifications.apply() }
+        if changed(.feature(.mediaImport)) { mediaImport.apply() }
+        if changed(.feature(.ai)) { aiChatCoordinator.applyEnabled() }
+        if changed(.quickActions) { quickActionCoordinator.applyEnabled() }
+        if changed(.mcp) { mcpCoordinator.applyEnabled() }
+        if changed(.fileSearch) { fileSearchCoordinator.applyEnabled() }
+        if changed(.navigation) { menuSearchCoordinator.applyEnabled() }
+        if changed(.notes) {
+            if !next.allows(.notes) { notesFolderTask?.cancel() } else { applyNotesFolder() }
+            notesCoordinator.applyEnabled()
+        }
+        if changed(.calendar) { calendarCoordinator.applyEnabled() }
+        if changed(.extensions) { extensionCoordinator.applyEnabled() }
+        if changed(.customCommands) { customCommandCoordinator.applyCustomCommandsPresence() }
+        if changed(.quicklinks) { quicklinkCoordinator.applyQuicklinksPresence() }
+        if changed(.appleShortcuts) { appleShortcutCoordinator.applyPresence() }
+        if changed(.windowManagement) {
+            applyWindowCommandsPresence()
+            customWindowSizeCoordinator.applyCustomWindowSizesPresence()
+            windowLayoutCoordinator.applyWindowLayoutsPresence()
+            roomCoordinator.applyEnabled()
+        }
+        if !next.allows(palette.mode.capability) {
+            paletteCoordinator.hidePalette(restoreFocus: false)
+        }
+        hotKeys.refreshRegistrations()
+        compactMenu.applyVisibility()
+    }
+
     private func observeFeatureSwitches() {
-        track({ _ = $0.spacesEnabled; _ = $0.spacesTransitionSpeed }, reproject: {
+        track({ _ = $0.featureAvailability }, reproject: { $0.applyFeatures() })
+        track({ _ = $0.spacesTransitionSpeed }, reproject: {
             $0.spaces.apply()
             $0.hotKeys.refreshRegistrations()
         })
-        track({ _ = $0.dictationEnabled }, reproject: { $0.dictation.apply() })
         track(dictation.settings, { _ = $0.shortcuts; _ = $0.historyLimit; _ = $0.deepgramLanguage }, reproject: { $0.dictation.applySettings() })
         track(dictation.session, { _ = $0.recordingPhase }, reproject: {
             $0.typingSounds.isRecording = $0.dictation.session.recordingPhase != .idle
             $0.clipboard.isRecording = $0.dictation.session.recordingPhase != .idle
         })
-        track({ _ = $0.windowSwitcherEnabled; _ = $0.switcherCommandTab; _ = $0.switcherCommandBacktick; _ = $0.switcherWindowSource; _ = $0.switcherMinimizedMode; _ = $0.switcherHiddenMode; _ = $0.switcherAppsWithoutWindowsMode; _ = $0.switcherImmediatePreview }, reproject: { $0.windowSwitcher.apply() })
+        track({
+            _ = $0.switcherCommandTab; _ = $0.switcherCommandBacktick; _ = $0.switcherWindowSource
+            _ = $0.switcherMinimizedMode; _ = $0.switcherHiddenMode; _ = $0.switcherAppsWithoutWindowsMode
+            _ = $0.switcherImmediatePreview
+        }, reproject: { $0.windowSwitcher.apply() })
         track(hotKeys, { _ = $0.revision }, reproject: { $0.windowSwitcher.apply(); $0.dictation.apply() })
-        track({ _ = $0.clipboardEnabled; _ = $0.snippetsEnabled; _ = $0.clipboardHistoryDays }, reproject: { $0.clipboard.apply(); $0.hotKeys.refreshRegistrations() })
-        track({ _ = $0.launcherEnabled }, reproject: { $0.applyLauncherEnabled() })
-        track({ _ = $0.mediaImportEnabled }, reproject: { $0.mediaImport.apply() })
-        track({ _ = $0.notificationsEnabled }, reproject: { $0.notifications.apply() })
-        track({ _ = $0.networkEnabled }, reproject: {
-            $0.applyNetworkEnabled()
-        })
+        track({ _ = $0.clipboardHistoryDays }, reproject: { $0.clipboard.apply() })
         track({ _ = $0.showInMenuBar }, reproject: { $0.compactMenu.applyVisibility() })
         track({
-            _ = $0.typingSoundsEnabled
             _ = $0.typingSoundProfile
             _ = $0.typingSoundVolume
             _ = $0.typingSoundDownVolume
@@ -630,7 +654,6 @@ final class AppCore {
             reproject: { $0.updateCoordinator.applyAutomaticChecking() })
         track(
             {
-                _ = $0.windowManagementEnabled
                 _ = $0.windowManagementShowInLauncher
             },
             reproject: {
@@ -640,46 +663,22 @@ final class AppCore {
             })
         track(
             {
-                _ = $0.windowManagementEnabled
                 _ = $0.windowLayoutsShowInLauncher
             }, reproject: { $0.windowLayoutCoordinator.applyWindowLayoutsPresence() })
         track(
             {
-                _ = $0.windowManagementEnabled
                 _ = $0.windowRoomsShowInLauncher
             }, reproject: { $0.roomCoordinator.applyEnabled() })
         track(
             {
-                _ = $0.customCommandsEnabled
                 _ = $0.customCommandsShowInLauncher
             }, reproject: { $0.customCommandCoordinator.applyCustomCommandsPresence() })
         track(
             {
-                _ = $0.quicklinksEnabled
                 _ = $0.quicklinksShowInLauncher
             }, reproject: { $0.quicklinkCoordinator.applyQuicklinksPresence() })
-        track(
-            { _ = $0.appleShortcutsEnabled },
-            reproject: { $0.appleShortcutCoordinator.applyPresence() })
 
-        track({ _ = $0.fileSearchEnabled }, reproject: { $0.fileSearchCoordinator.applyEnabled() })
-        track(
-            { _ = $0.navigationEnabled },
-            reproject: {
-                $0.menuSearchCoordinator.applyEnabled()
-            })
-        track({ _ = $0.notesEnabled }, reproject: { $0.notesCoordinator.applyEnabled() })
-        track({ _ = $0.aiEnabled }, reproject: { $0.aiChatCoordinator.applyEnabled() })
 
-        track(
-            {
-                _ = $0.aiEnabled
-                _ = $0.mcpEnabled
-            }, reproject: { $0.mcpCoordinator.applyEnabled() })
-        track(
-            { _ = $0.quickActionsEnabled },
-            reproject: { $0.quickActionCoordinator.applyEnabled() })
-        track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
         track(
             {
                 _ = $0.calendarShowInLauncher
@@ -770,8 +769,15 @@ final class AppCore {
     }
 
     private func applyNotesFolder() {
+        guard settings.allows(.notes) else { return }
+        notesFolderTask?.cancel()
+        let previous = notesFolderTask
         let repository = Self.notesRepository(for: settings)
-        Task { await notesStore.relocate(to: repository) }
+        notesFolderTask = Task { [weak self] in
+            await previous?.value
+            guard let self, !Task.isCancelled, settings.allows(.notes) else { return }
+            await notesStore.relocate(to: repository)
+        }
     }
 
     private static func notesRepository(for settings: AppSettings) -> NotesRepository {
@@ -779,7 +785,7 @@ final class AppCore {
     }
 
     private func applyWindowCommandsPresence() {
-        let visible = settings.windowManagementEnabled && settings.windowManagementShowInLauncher
+        let visible = settings.allows(.windowManagement) && settings.windowManagementShowInLauncher
         appIndex.setWindowCommandsVisible(visible)
     }
 

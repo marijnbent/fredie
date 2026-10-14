@@ -14,6 +14,8 @@ final class AIChatCoordinator {
     private let window: AppWindowController
     /// Chats with a title request in flight, so a quick second reply never asks twice.
     @ObservationIgnored private var naming: [UUID: Task<Void, Never>] = [:]
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
+    @ObservationIgnored private var generation = 0
 
     init(
         chats: AIChatSurfacesState, settings: AppSettings, appIndex: AppIndex,
@@ -34,25 +36,34 @@ final class AIChatCoordinator {
     }
 
     func applyEnabled() {
+        generation += 1
+        let revision = generation
+        loadTask?.cancel()
         appIndex.setCommandsVisible([.aiChat, .quickAI], settings.aiEnabled)
         guard settings.aiEnabled else {
-            for request in naming.values { request.cancel() }
-            naming = [:]
-            // Before the handle closes: cancelling an open reply saves the conversation it ends.
-            chats.reset()
-            window.close()
-            core.applyInstalledAILifecycle()
-            core.chatHistory.close()
-            core.quickAICoordinator.leave()
+            stop()
             return
         }
         core.applyInstalledAILifecycle()
-        // Deferred off the launch path like the clipboard's own read; history fills in behind it.
-        Task {
+        loadTask = Task { [weak self] in
+            guard let self, !Task.isCancelled, revision == generation, settings.aiEnabled else { return }
             core.chatHistory.load()
-            // Inside the enabled branch only: off means the file is untouched, however old it gets.
             applyRetention()
+            loadTask = nil
         }
+    }
+
+    func stop() {
+        generation += 1
+        loadTask?.cancel()
+        loadTask = nil
+        for request in naming.values { request.cancel() }
+        naming = [:]
+        chats.reset()
+        window.close()
+        core.applyInstalledAILifecycle()
+        core.chatHistory.close()
+        core.quickAICoordinator.leave()
     }
 
     func applyRetention() {

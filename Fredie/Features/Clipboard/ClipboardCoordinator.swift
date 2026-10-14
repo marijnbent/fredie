@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 @Observable
 final class ClipboardCoordinator: HealthCheckable {
     let store: ClipboardStore
-    let snippets = SnippetStore()
+    let snippets: SnippetStore
     let watcher: ClipboardWatcher
     private unowned let core: AppCore
     private let ticker: HealthTicker
@@ -20,14 +20,16 @@ final class ClipboardCoordinator: HealthCheckable {
     @ObservationIgnored private var snippetQuery: String?
     @ObservationIgnored private var snippetResults: [ClipboardResult] = []
     @ObservationIgnored private var contentTask: Task<Void, Never>?
+    @ObservationIgnored private var contentOperation: ContentOperation?
     @ObservationIgnored private var loadTask: Task<Void, Never>?
     private(set) var snippetsRunning = false
     var isCapturingShortcut = false { didSet { applyExpansion() } }
     var isRecording = false { didSet { applyExpansion() } }
 
-    init(core: AppCore, ticker: HealthTicker) {
+    init(core: AppCore, ticker: HealthTicker, snippets: SnippetStore = SnippetStore()) {
         self.core = core
         self.ticker = ticker
+        self.snippets = snippets
         store = ClipboardStore(storageDirectory: AppPaths.applicationSupport().appendingPathComponent("Clipboard"))
         watcher = ClipboardWatcher(store: store)
     }
@@ -36,6 +38,25 @@ final class ClipboardCoordinator: HealthCheckable {
         core.appIndex.setCommandsVisible([.clipboardHistory], core.settings.clipboardEnabled || core.settings.snippetsEnabled)
         store.historyLimit = ClipboardHistoryLimit(rawValue: core.settings.clipboardHistoryDays) ?? .defaultValue
         applyExpansion()
+        if let contentOperation, !isEnabled(contentOperation) { contentTask?.cancel() }
+        if !core.settings.clipboardEnabled {
+            ocrTask?.cancel()
+            expandedImage = nil
+        }
+        if !core.settings.snippetsEnabled { snippetEditor = nil }
+        if !core.settings.clipboardEnabled && !core.settings.snippetsEnabled {
+            pendingActivation = nil
+            searchSession.cancel()
+            if core.paletteCoordinator.isShowing(.clipboard) { core.paletteCoordinator.hidePalette() }
+        } else if core.paletteCoordinator.isShowing(.clipboard) {
+            let showingSnippets = core.palette.query.hasPrefix(":")
+            if (showingSnippets && !core.settings.snippetsEnabled)
+                || (!showingSnippets && !core.settings.clipboardEnabled) {
+                core.palette.query = core.settings.clipboardEnabled ? "" : ":"
+                core.palette.selection = 0
+                refreshSearch()
+            }
+        }
         guard core.settings.clipboardEnabled else {
             watcher.stopWatching()
             return
@@ -96,10 +117,12 @@ final class ClipboardCoordinator: HealthCheckable {
         let query = core.palette.query
         if pendingActivation != query { pendingActivation = nil }
         let previous = results(for: query)
-        let selection = core.palette.selection
-        let selectedID = previous.indices.contains(selection) ? previous[selection].id : nil
-        searchSession.search(query, items: store.items, storage: store.storage) { [weak self] in
+        let initialSelection = core.palette.selection
+        let initialID = previous.indices.contains(initialSelection) ? previous[initialSelection].id : nil
+        searchSession.search(query, items: store.items, storage: store.storage) { [weak self] previousItems in
             guard let self, core.palette.mode == .clipboard, core.palette.query == query else { return }
+            let selection = core.palette.selection
+            let selectedID = previousItems.indices.contains(selection) ? ClipboardResult.item(previousItems[selection]).id : nil
             let current = results(for: query)
             core.palette.selection = selectedID.flatMap { id in current.firstIndex { $0.id == id } }
                 ?? min(selection, max(current.count - 1, 0))
@@ -108,6 +131,10 @@ final class ClipboardCoordinator: HealthCheckable {
                 if let first = current.first { activate(first) }
             }
         }
+        guard core.palette.mode == .clipboard, core.palette.query == query else { return }
+        let retained = results(for: query)
+        core.palette.selection = initialID.flatMap { id in retained.firstIndex { $0.id == id } }
+            ?? min(initialSelection, max(retained.count - 1, 0))
     }
 
     func activateSelection() {
@@ -133,7 +160,13 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     func activate(_ result: ClipboardResult, copyOnly: Bool = false) {
+        let operation: ContentOperation = switch result {
+        case .item: .history
+        case .snippet: .snippet
+        }
+        guard isEnabled(operation) else { return }
         contentTask?.cancel()
+        contentOperation = operation
         let target = core.paletteCoordinator.targetApp
         let shouldPaste = !copyOnly && target != nil && target?.processIdentifier != NSRunningApplication.current.processIdentifier
         if shouldPaste, !Permissions.ensureAccessibility() { return }
@@ -151,9 +184,11 @@ final class ClipboardCoordinator: HealthCheckable {
                     content = .text(snippet.content)
                 }
                 try Task.checkCancellation()
+                guard isEnabled(operation) else { return }
                 let success = shouldPaste
                     ? await PasteController.paste(content, targetApplication: target)
                     : PasteController.copyToClipboard(content)
+                guard !Task.isCancelled, isEnabled(operation) else { return }
                 guard success else {
                     core.showMessage(shouldPaste ? "Could not paste to the previous app" : "Could not copy this item", tone: .danger)
                     return
@@ -174,7 +209,10 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     func editSnippet(_ result: ClipboardResult?) {
+        let operation: ContentOperation = if case .item = result { .editSnippetFromHistory } else { .snippet }
+        guard isEnabled(operation) else { return }
         contentTask?.cancel()
+        contentOperation = operation
         contentTask = Task { [weak self] in
             guard let self else { return }
             do {
@@ -187,6 +225,8 @@ final class ClipboardCoordinator: HealthCheckable {
                 case .snippet(let snippet): target = SnippetEditorTarget(snippet: snippet)
                 case nil: target = SnippetEditorTarget(snippet: nil)
                 }
+                try Task.checkCancellation()
+                guard isEnabled(operation) else { return }
                 core.paletteCoordinator.hidePalette()
                 core.settingsCoordinator.showSettings(tab: .snippets)
                 snippetEditor = target
@@ -196,12 +236,13 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     func copyImageText(_ item: ClipboardItem) {
-        guard let text = item.ocrText, !text.isEmpty, text != "No text found in this image." else { return }
+        guard core.settings.clipboardEnabled,
+              let text = item.ocrText, !text.isEmpty, text != "No text found in this image." else { return }
         PasteController.copyTextToClipboard(text)
     }
 
     func runOCR(_ item: ClipboardItem) {
-        guard item.type == .image, extractingItemID == nil else { return }
+        guard core.settings.clipboardEnabled, item.type == .image, extractingItemID == nil else { return }
         extractingItemID = item.id
         let pasteboardChange = NSPasteboard.general.changeCount
         ocrTask = Task { [weak self] in
@@ -212,7 +253,8 @@ final class ClipboardCoordinator: HealthCheckable {
             guard !Task.isCancelled else { return }
             guard let image else { core.showMessage("Image unavailable", tone: .danger); return }
             let text = await OCRService.recognizeText(from: image) ?? ""
-            guard !Task.isCancelled, store.items.contains(where: { $0.id == item.id }) else { return }
+            guard !Task.isCancelled, core.settings.clipboardEnabled,
+                  store.items.contains(where: { $0.id == item.id }) else { return }
             let extracted = text.trimmingCharacters(in: .whitespacesAndNewlines)
             store.setOCRText(extracted, for: item)
             guard !extracted.isEmpty else {
@@ -225,6 +267,18 @@ final class ClipboardCoordinator: HealthCheckable {
             }
             if PasteController.copyTextToClipboard(extracted) { core.showMessage("OCR text copied") }
             else { core.showMessage("OCR ready · Could not copy", tone: .danger) }
+        }
+    }
+
+    private enum ContentOperation {
+        case history, snippet, editSnippetFromHistory
+    }
+
+    private func isEnabled(_ operation: ContentOperation) -> Bool {
+        switch operation {
+        case .history: core.settings.clipboardEnabled
+        case .snippet: core.settings.snippetsEnabled
+        case .editSnippetFromHistory: core.settings.clipboardEnabled && core.settings.snippetsEnabled
         }
     }
 

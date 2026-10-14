@@ -77,10 +77,13 @@ final class MediaSourceMonitor: NSObject {
     }
 
     private var running = false
+    private var generation = 0
 
     func start() {
         guard !running else { return }
         running = true
+        generation += 1
+        let revision = generation
         let center = workspace.notificationCenter
         workspaceObservers = [
             center.addObserver(
@@ -90,8 +93,9 @@ final class MediaSourceMonitor: NSObject {
             ) { [weak self] notification in
                 guard let url = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL else { return }
                 Task { @MainActor in
-                    self?.onVolumesChanged?()
-                    self?.inspectMountedVolume(url)
+                    guard let self, self.running, self.generation == revision else { return }
+                    self.onVolumesChanged?()
+                    self.inspectMountedVolume(url)
                 }
             },
             center.addObserver(
@@ -101,8 +105,9 @@ final class MediaSourceMonitor: NSObject {
             ) { [weak self] notification in
                 guard let url = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL else { return }
                 Task { @MainActor in
-                    self?.onVolumesChanged?()
-                    self?.onSourceRemoved?("folder:\(url.path)")
+                    guard let self, self.running, self.generation == revision else { return }
+                    self.onVolumesChanged?()
+                    self.onSourceRemoved?("folder:\(url.path)")
                 }
             },
             center.addObserver(
@@ -110,7 +115,10 @@ final class MediaSourceMonitor: NSObject {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                Task { @MainActor in self?.onVolumesChanged?() }
+                Task { @MainActor in
+                    guard let self, self.running, self.generation == revision else { return }
+                    self.onVolumesChanged?()
+                }
             },
         ]
 
@@ -120,6 +128,7 @@ final class MediaSourceMonitor: NSObject {
 
     func stop() {
         running = false
+        generation += 1
         workspaceObservers.forEach(workspace.notificationCenter.removeObserver)
         workspaceObservers.removeAll()
         cameraCatalogTasks.values.forEach { $0.cancel() }
@@ -159,19 +168,27 @@ final class MediaSourceMonitor: NSObject {
 
     private func inspectCamera(_ camera: ICCameraDevice, id: String) {
         let cameraBox = CameraDeviceBox(camera)
+        let revision = generation
         camera.requestOpenSession(options: nil) { [weak self, cameraBox] error in
             guard error == nil else { return }
             Task { @MainActor in
-                self?.waitForCameraCatalog(cameraBox.device, id: id)
+                guard let self, self.running, self.generation == revision else {
+                    cameraBox.device.requestCloseSession(options: nil) { _ in }
+                    return
+                }
+                self.waitForCameraCatalog(cameraBox.device, id: id)
             }
         }
     }
 
     private func waitForCameraCatalog(_ camera: ICCameraDevice, id: String) {
+        guard running else { return }
+        let revision = generation
         cameraCatalogTasks[id]?.cancel()
         cameraCatalogTasks[id] = Task { [weak self, weak camera] in
             for _ in 0..<60 {
-                guard !Task.isCancelled, let self, let camera else { return }
+                guard !Task.isCancelled, let self, let camera, self.running,
+                      self.generation == revision else { return }
                 let files = (camera.mediaFiles ?? []).compactMap { $0 as? ICCameraFile }
                 let videos = files.filter { file in
                     guard let name = file.name else { return false }

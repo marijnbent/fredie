@@ -17,6 +17,7 @@ final class WindowSwitcherCoordinator: HealthCheckable {
     @ObservationIgnored private var workspaceSpaceObserver: NotificationToken?
     @ObservationIgnored private var pendingInventoryRefresh: Task<Void, Never>?
     @ObservationIgnored private var pendingActionRefresh: Task<Void, Never>?
+    @ObservationIgnored private var selectionTask: Task<Void, Never>?
     @ObservationIgnored private let activation = SwitcherActivation()
     private var originalItem: SwitcherItem?
     private var monitoredActivationShortcuts: [SwitcherShortcut] = []
@@ -103,6 +104,8 @@ final class WindowSwitcherCoordinator: HealthCheckable {
     }
 
     private func stopRuntime() {
+        selectionTask?.cancel()
+        selectionTask = nil
         shortcutMonitor.stop()
         dismissSwitcher(restoreFocus: false)
         windowDiscovery.stopRegistry()
@@ -118,6 +121,7 @@ final class WindowSwitcherCoordinator: HealthCheckable {
     }
 
     private func handle(_ action: SwitcherShortcutAction) {
+        guard core.settings.windowSwitcherEnabled, isRunning else { return }
         diagnostics.info("shortcut.action \(action.diagnosticName)")
         switch action {
         case .activate(let reverse, let windowScopeOverride, let triggeredAt):
@@ -206,10 +210,13 @@ final class WindowSwitcherCoordinator: HealthCheckable {
         case .activate:
             activate(item)
         case .closeWindow:
-            Task { [weak self] in
-                guard let self else { return }
+            selectionTask?.cancel()
+            selectionTask = Task { [weak self] in
+                guard let self, !Task.isCancelled, isRunning else { return }
                 await focusController.closeWindow(for: item)
+                guard !Task.isCancelled, isRunning else { return }
                 refreshVisibleSwitcher(afterPerforming: action, targetItem: item)
+                selectionTask = nil
             }
             return
         case .quitApp:

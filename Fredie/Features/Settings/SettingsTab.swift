@@ -100,11 +100,7 @@ enum SettingsSection: CaseIterable, Identifiable {
 }
 
 
-enum OllieFeature: CaseIterable, Identifiable {
-    case launcher, clipboard, snippets, dictation, windowSwitcher, spaces, ai, typingSounds, network, notifications, mediaImport
-
-    var id: Self { self }
-
+extension OllieFeature {
     var settingsTab: SettingsTab {
         switch self {
         case .launcher: .applications
@@ -126,14 +122,42 @@ enum OllieFeature: CaseIterable, Identifiable {
 
 extension SettingsTab {
     var feature: OllieFeature? {
-        if self == .emoji { return .launcher }
-        return OllieFeature.allCases.first { $0.settingsTab == self }
+        capability?.owner
     }
 
     static func visible(for enabled: Set<OllieFeature>) -> [Self] {
         available.filter { tab in
             guard let feature = tab.feature else { return true }
             return enabled.contains(feature)
+        }
+    }
+}
+
+extension SettingsTab {
+    var capability: FeatureCapability? {
+        switch self {
+        case .applications, .systemSettings, .systemActions, .commands, .fallbacks, .emoji:
+            .feature(.launcher)
+        case .clipboard: .feature(.clipboard)
+        case .snippets: .feature(.snippets)
+        case .dictation: .feature(.dictation)
+        case .windowSwitcher: .feature(.windowSwitcher)
+        case .spaces: .feature(.spaces)
+        case .ai: .feature(.ai)
+        case .typingSounds: .feature(.typingSounds)
+        case .network: .feature(.network)
+        case .notifications: .feature(.notifications)
+        case .mediaImport: .feature(.mediaImport)
+        case .fileSearch: .fileSearch
+        case .navigation: .navigation
+        case .notes: .notes
+        case .calendar: .calendar
+        case .extensions: .extensions
+        case .quicklinks: .quicklinks
+        case .appleShortcuts: .appleShortcuts
+        case .windowManagement: .windowManagement
+        case .quickActions: .quickActions
+        case .features, .general, .shortcuts, .permissions, .backup, .about: nil
         }
     }
 }

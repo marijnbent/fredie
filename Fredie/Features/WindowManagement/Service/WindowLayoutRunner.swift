@@ -25,6 +25,7 @@ enum WindowLayoutRunner {
 
     /// The one entry point. `gap` is the preferred gap; the layout decides whether to use it.
     static func run(_ layout: WindowLayout, gap: CGFloat) async -> Outcome {
+        guard !Task.isCancelled else { return Outcome() }
         // An explicit user gesture, so prompting for the grant is appropriate here.
         guard Permissions.ensureAccessibility() else {
             return Outcome(isBlockedOnPermission: true)
@@ -144,6 +145,7 @@ enum WindowLayoutRunner {
         _ placements: [WindowLayoutPlan.Placement], outcome: inout Outcome
     ) async {
         for placement in placements {
+            guard !Task.isCancelled else { return }
             guard
                 let url = NSWorkspace.shared.urlForApplication(
                     withBundleIdentifier: placement.bundleID)

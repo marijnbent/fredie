@@ -20,6 +20,8 @@ final class NetworkCoordinator {
     @ObservationIgnored private let icons = NetworkAppIcons()
     @ObservationIgnored private var observers: [NotificationToken] = []
     @ObservationIgnored private var watchdog: Task<Void, Never>?
+    @ObservationIgnored private var enabled = false
+    @ObservationIgnored private var generation = 0
     @ObservationIgnored private var launchTime = Date()
     @ObservationIgnored private var currentDay = Calendar.current.startOfDay(for: Date())
 
@@ -37,14 +39,23 @@ final class NetworkCoordinator {
     }
 
     func start() {
-        guard watchdog == nil else { return }
+        guard !enabled else { return }
+        enabled = true
+        generation += 1
+        let revision = generation
         restart()
         let center = NSWorkspace.shared.notificationCenter
         observers.append(NotificationToken(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.suspend() }
+            Task { @MainActor in
+                guard let self, self.enabled, self.generation == revision else { return }
+                self.suspend()
+            }
         }, center: center))
         observers.append(NotificationToken(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.restart() }
+            Task { @MainActor in
+                guard let self, self.enabled, self.generation == revision else { return }
+                self.restart()
+            }
         }, center: center))
         watchdog = Task { [weak self] in
             while !Task.isCancelled {
@@ -58,6 +69,7 @@ final class NetworkCoordinator {
     }
 
     func restart() {
+        guard enabled else { return }
         monitor.stop()
         error = nil
         monitoring = false
@@ -79,12 +91,14 @@ final class NetworkCoordinator {
     }
 
     private func fail(_ message: String) {
+        guard enabled else { return }
         Logger(subsystem: Bundle.main.bundleIdentifier ?? "nl.bentjes.fredie", category: "network").error("\(message, privacy: .public)")
         error = message
         suspend()
     }
 
     private func receive(_ samples: [AppUsage], start: Date, end: Date) {
+        guard enabled else { return }
         do {
             try store?.record(samples, from: start, to: end)
             startedAt = try store?.startedAt
@@ -117,6 +131,8 @@ final class NetworkCoordinator {
     }
 
     func stop() {
+        enabled = false
+        generation += 1
         watchdog?.cancel()
         watchdog = nil
         observers.removeAll()

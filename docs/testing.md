@@ -86,8 +86,9 @@ If a change touches anything in the right column, the harness on the left is man
 | `emoji-search-test` | `Emoji/Service/EmojiIndex.swift`, `FrequentEmojiStore.swift`, `scripts/gen-emoji.js`'s keyword format, multilingual search |
 | `palette-navigation-test` | `Palette/PaletteState.swift`'s screen motions — `prepare`, `replace`, `push`, `pop` |
 | `palette-selection-test` | `Features/PaletteRowIndex.swift` |
+| `clipboard-coordinator-test` | Feature-specific operation cancellation, pending OCR completion, editor cancellation, and selection during asynchronous refreshes |
 | `interface-size-test` | `DesignSystem/InterfaceMetrics.swift`, `Features/Settings/InterfaceSize.swift`, `Extensions/Model/ExtensionFormMetrics.swift` |
-| `palette-surface-test` | Compact launcher and full-panel sizing, stable anchors across modes, and the transparent gap between search and results |
+| `palette-surface-test` | Unified launcher and clipboard sizing, stable anchors across modes, and continuous panel geometry |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `fallback-test` | `Launcher/Model/Fallback.swift`, plus the `CommandID` and `Quicklink` ids it is built from |
@@ -685,6 +686,15 @@ interaction checks. It enables every feature pane in that identity's preferences
 without calling `AppCore.start()`, so capture services do not start. Use it to inspect grouped forms,
 recorders and editor dismissal without changing the installed app's preferences. Release builds
 contain neither verification entry point.
+
+## Feature lifecycles
+
+`feature-availability-test` compiles the shipped ownership policy and action mappings. It covers
+all eleven roots independently, all-off with saved child flags, global commands, palette modes,
+shared Clipboard/Snippets and Spaces navigation. `palette-navigation-test` rejects disabled roots and
+ancestors. `media-import-state-test` uses private defaults, a temporary ledger and an injected delayed
+scan to prove disabled actions and stale results cannot restart work. `custom-command-test` verifies
+cancellation before launch and during a headless shell run. None of these opens feature windows.
 
 ## App-wide diagnostics
 

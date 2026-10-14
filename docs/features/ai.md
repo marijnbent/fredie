@@ -18,7 +18,8 @@ bottom with the model picker. ⌘J hands a Quick AI conversation to the window.
 - **AI is off out of the box, and off means fully off.** `AppSettings.aiEnabled` is the flag:
   no active chat command in the launcher, no history database opened or created, no Codex
   helper for chat, no stop for it on Tab's ring, the palette leaves `.ai` and the window closes.
-  The launcher’s Ask AI button only opens AI settings while disabled. Installed providers may still remain available for Quick Actions, which has its own switch and route. Turning AI off cancels
+  The launcher’s Ask AI button only opens AI settings while disabled. Quick Actions and MCP require
+  AI; saved child options cannot keep providers running after AI is disabled. Turning AI off cancels
   every streaming reply and drops both transcripts, but touches neither the saved conversations in
   `ai-chats.sqlite3` nor a Keychain key. `aiEnabled` is excluded from settings backups like every
   other AI key, so an import can never arm a feature it cannot configure.

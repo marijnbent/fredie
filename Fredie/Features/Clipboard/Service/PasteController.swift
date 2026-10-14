@@ -47,7 +47,8 @@ enum PasteController {
             guard activePID == targetApplication.processIdentifier || activePID == ProcessInfo.processInfo.processIdentifier else { return false }
         }
         guard copyToClipboard(content) else { return false }
-        return await prepareAndSimulatePaste(into: targetApplication)
+        let pasteboardChange = NSPasteboard.general.changeCount
+        return await prepareAndSimulatePaste(into: targetApplication, pasteboardChange: pasteboardChange)
     }
 
     private static func writeToPasteboard(_ write: (NSPasteboard) -> Bool) -> Bool {
@@ -62,19 +63,33 @@ enum PasteController {
         return true
     }
 
-    private static func prepareAndSimulatePaste(into targetApplication: NSRunningApplication?) async -> Bool {
+    private static func prepareAndSimulatePaste(
+        into targetApplication: NSRunningApplication?, pasteboardChange: Int
+    ) async -> Bool {
         guard let targetApplication,
               !targetApplication.isTerminated,
               targetApplication.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return false }
-        targetApplication.activate()
+        return await pasteIfUnchanged(
+            on: .general, expectedChangeCount: pasteboardChange,
+            prepare: { targetApplication.activate() },
+            isTargetActive: { NSWorkspace.shared.frontmostApplication?.processIdentifier == targetApplication.processIdentifier },
+            sendPaste: simulatePaste)
+    }
+
+    static func pasteIfUnchanged(
+        on pasteboard: NSPasteboard, expectedChangeCount: Int,
+        prepare: () -> Void, isTargetActive: () -> Bool, sendPaste: () -> Bool
+    ) async -> Bool {
+        guard !Task.isCancelled, pasteboard.changeCount == expectedChangeCount else { return false }
+        prepare()
         do {
             try await Task.sleep(nanoseconds: UInt64(pasteDelay * 1_000_000_000))
             try Task.checkCancellation()
         } catch {
             return false
         }
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == targetApplication.processIdentifier else { return false }
-        return simulatePaste()
+        guard pasteboard.changeCount == expectedChangeCount, isTargetActive() else { return false }
+        return sendPaste()
     }
 
     private static func simulatePaste() -> Bool {

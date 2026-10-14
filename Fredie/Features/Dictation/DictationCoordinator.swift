@@ -28,6 +28,7 @@ final class DictationCoordinator: HealthCheckable {
         audioCapturePort: AudioCaptureControllerAdapter(controller: AudioCaptureController(preferredInputProvider: { [weak self] in
             self?.settings.audioInputSelection ?? .systemDefault
         })), transcriptionStreamPort: TranscriptionStreamRouter(), eventMonitorPort: events,
+        isEnabled: { [weak self] in self?.core.settings.dictationEnabled == true },
         activeApplicationProvider: {
             let app = NSWorkspace.shared.frontmostApplication
             return ActiveApplicationContext(bundleIdentifier: app?.bundleIdentifier, icon: app?.icon)
@@ -84,11 +85,14 @@ final class DictationCoordinator: HealthCheckable {
             defer { loadTask = nil }
             do {
                 let entries = try await Task.detached(priority: .utility) { [history] in try history.loadEntries() }.value
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled, core.settings.dictationEnabled else { return }
                 session.loadHistory(entries)
                 session.applyHistoryLimit(settings.historyLimit)
                 historyLoaded = true
-            } catch { session.reportHistoryLoadFailure() }
+            } catch {
+                guard !Task.isCancelled, core.settings.dictationEnabled else { return }
+                session.reportHistoryLoadFailure()
+            }
         }
     }
 
@@ -109,6 +113,11 @@ final class DictationCoordinator: HealthCheckable {
             guard let self else { return }
             await loadTask?.value
             guard !Task.isCancelled, revision == generation else { return }
+            if !historyLoaded {
+                loadHistory()
+                await loadTask?.value
+                guard !Task.isCancelled, revision == generation else { return }
+            }
             await runtime.finishStopping()
             guard !Task.isCancelled, revision == generation else { return }
             runtime.onProcessingChanged = { [weak self] busy in self?.isProcessing = busy }
@@ -126,6 +135,7 @@ final class DictationCoordinator: HealthCheckable {
     }
 
     func healthCheck() {
+        guard core.settings.dictationEnabled else { return }
         permissions.refreshPermissions()
         guard isRunning else { return }
         runtime.recoverMonitor()
@@ -144,6 +154,7 @@ final class DictationCoordinator: HealthCheckable {
 
     func stop() {
         generation += 1
+        loadTask?.cancel()
         transition?.cancel()
         transition = nil
         ticker.unsubscribe(self)

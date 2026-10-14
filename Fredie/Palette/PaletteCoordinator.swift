@@ -29,6 +29,8 @@ final class PaletteCoordinator {
         self.fileSearch = fileSearch
         self.menuSearch = menuSearch
         self.windowController = windowController
+        palette.allowsMode = { [weak settings] in settings?.allows($0.capability) ?? false }
+        palette.onUnavailableMode = { [weak self] in self?.hidePalette(restoreFocus: false) }
     }
 
     // MARK: - Palette control
@@ -73,6 +75,7 @@ final class PaletteCoordinator {
 
     /// Navigating keeps the screen under as the back step; the launcher is the root and never has one.
     func navigate(to mode: PaletteMode) {
+        guard settings.allows(mode.capability) else { return }
         if windowController.isVisible, palette.mode != mode, mode != .launcher {
             palette.push(mode: mode)
         } else {
@@ -84,9 +87,10 @@ final class PaletteCoordinator {
     func showPalette(
         mode: PaletteMode, restoreAnyMode: Bool = false, seeding query: String? = nil
     ) {
-        guard mode != .launcher || settings.launcherEnabled else { return }
+        guard settings.allows(mode.capability) else { return }
         let preserved = windowController.consumePreservedState()
-        let restoring = preserved && (restoreAnyMode || palette.mode == mode)
+        let restoring = preserved && settings.allows(palette.mode.capability)
+            && (restoreAnyMode || palette.mode == mode)
         // Resetting a screen the pop to root already reset would only re-render the whole palette.
         let alreadyFresh = windowController.isPoppedToRoot && palette.mode == mode
         // A carried query always opens the screen fresh: restoring the previous one would drop it.

@@ -1,26 +1,9 @@
 import SwiftUI
 
-extension OllieFeature {
-    @MainActor var enabledKeyPath: ReferenceWritableKeyPath<AppSettings, Bool> {
-        switch self {
-        case .launcher: \.launcherEnabled
-        case .clipboard: \.clipboardEnabled
-        case .snippets: \.snippetsEnabled
-        case .dictation: \.dictationEnabled
-        case .windowSwitcher: \.windowSwitcherEnabled
-        case .spaces: \.spacesEnabled
-        case .ai: \.aiEnabled
-        case .typingSounds: \.typingSoundsEnabled
-        case .network: \.networkEnabled
-        case .notifications: \.notificationsEnabled
-        case .mediaImport: \.mediaImportEnabled
-        }
-    }
-}
 
 extension AppSettings {
     var enabledSettingsTabs: [SettingsTab] {
-        SettingsTab.visible(for: Set(OllieFeature.allCases.filter { self[keyPath: $0.enabledKeyPath] }))
+        SettingsTab.visible(for: featureAvailability.enabledFeatures)
     }
 }
 

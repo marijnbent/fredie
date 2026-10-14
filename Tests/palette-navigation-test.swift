@@ -147,6 +147,23 @@ struct PaletteNavigationTests {
             !pasted.collapseQueryLineBreaks() && pasted.query == "first pasted row, second pasted row third",
             "a single-line query is left alone")
 
+        let restricted = searchingLauncher()
+        restricted.push(mode: .ai)
+        restricted.push(mode: .clipboard)
+        restricted.allowsMode = { $0 != .launcher && $0 != .ai }
+        var dismissals = 0
+        restricted.onUnavailableMode = { dismissals += 1 }
+        expect(!restricted.pop() && restricted.mode == .clipboard,
+            "back skips disabled ancestors without exposing the launcher")
+        restricted.prepare(mode: .launcher)
+        expect(restricted.mode == .clipboard && dismissals == 1,
+            "Backspace and Command-Escape root reset dismiss when Launcher is off")
+        restricted.pushCarryingQuery(mode: .launcher)
+        expect(restricted.mode == .clipboard && dismissals == 2,
+            "mode cycling cannot enter a disabled launcher")
+        restricted.mode = .launcher
+        expect(dismissals == 3, "direct mode restoration also dismisses unavailable content")
+
         print("\(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
     }

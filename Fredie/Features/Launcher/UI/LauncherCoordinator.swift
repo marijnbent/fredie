@@ -152,6 +152,7 @@ final class LauncherCoordinator {
 
     /// The one funnel a built-in command runs through, from a palette row or its global shortcut.
     func runCommand(_ id: CommandID) {
+        guard id.capability.map(core.settings.allows) ?? true else { return }
         switch id {
         case .clipboardHistory:
             core.clipboard.show()

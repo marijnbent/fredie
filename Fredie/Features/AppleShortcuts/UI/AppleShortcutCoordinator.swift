@@ -24,6 +24,8 @@ final class AppleShortcutCoordinator {
     /// Nil until a read succeeds, so the first one after launch always sweeps.
     @ObservationIgnored private var shortcuts: [AppleShortcut]?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
+    @ObservationIgnored private var runs: [UUID: Task<Void, Never>] = [:]
+    @ObservationIgnored private var refreshGeneration = 0
 
     init(
         settings: AppSettings, appIndex: AppIndex, hotKeys: HotKeyManager,
@@ -49,7 +51,12 @@ final class AppleShortcutCoordinator {
 
     /// Off forgets the library but frees nothing: only a successful read may say what is gone.
     func applyPresence() {
-        guard settings.appleShortcutsEnabled else {
+        guard settings.allows(.appleShortcuts) else {
+            refreshGeneration += 1
+            refreshTask?.cancel()
+            refreshTask = nil
+            runs.values.forEach { $0.cancel() }
+            runs.removeAll()
             shortcuts = nil
             entries = []
             appIndex.setAppleShortcuts([])
@@ -60,12 +67,16 @@ final class AppleShortcutCoordinator {
 
     /// Re-read on every launcher open; the tool answers in milliseconds, so overlaps just drop.
     func refresh() {
-        guard settings.appleShortcutsEnabled, refreshTask == nil else { return }
-        refreshTask = Task {
+        guard settings.allows(.appleShortcuts), refreshTask == nil else { return }
+        refreshGeneration += 1
+        let revision = refreshGeneration
+        refreshTask = Task { [weak self] in
+            guard let self else { return }
+            defer { if revision == refreshGeneration { refreshTask = nil } }
             let found = try? await AppleShortcutRunner.list()
-            refreshTask = nil
             // A failed read keeps the last good library, and with it every alias and binding.
-            guard let found, settings.appleShortcutsEnabled, found != shortcuts else { return }
+            guard !Task.isCancelled, revision == refreshGeneration, let found,
+                  settings.allows(.appleShortcuts), found != shortcuts else { return }
             shortcuts = found
             entries = found.map { AppEntry($0, applicationURL: Self.applicationURL) }
             appIndex.setAppleShortcuts(entries)
@@ -99,14 +110,18 @@ final class AppleShortcutCoordinator {
 
     /// The one funnel for a launcher row and a global shortcut, so the switch can't be bypassed.
     func run(id: UUID) {
-        guard settings.appleShortcutsEnabled else { return }
+        guard settings.allows(.appleShortcuts) else { return }
         // Focus goes back first: a shortcut usually acts on whatever the user was in.
         if paletteCoordinator.isVisible { paletteCoordinator.hidePalette() }
         let name = name(of: id) ?? "Shortcut"
-        Task {
+        let runID = UUID()
+        runs[runID] = Task { [weak self] in
+            guard let self, !Task.isCancelled, settings.allows(.appleShortcuts) else { return }
+            defer { runs[runID] = nil }
             do throws(AppleShortcutRunner.Failure) {
                 try await AppleShortcutRunner.run(id: id)
             } catch {
+                guard !Task.isCancelled, settings.allows(.appleShortcuts) else { return }
                 await core.showNotice(
                     title: "Couldn’t Run \(name)", message: error.localizedDescription,
                     symbol: AppleShortcut.sfSymbol, tone: .danger)

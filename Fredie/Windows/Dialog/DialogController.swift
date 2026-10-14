@@ -8,6 +8,7 @@ final class DialogController: NSObject, NSWindowDelegate {
     private let onPresentationChanged: (Bool) -> Void
     private var panel: DialogPanel?
     private var continuation: CheckedContinuation<Int, Never>?
+    private var presentationID: UUID?
 
     init(settings: AppSettings, onPresentationChanged: @escaping (Bool) -> Void) {
         self.settings = settings
@@ -93,42 +94,53 @@ final class DialogController: NSObject, NSWindowDelegate {
     private func present(_ request: DialogRequest) async -> Int {
         // Keyed on the continuation, so a panel still fading can't swallow the next.
         guard continuation == nil else { return request.cancelIndex }
-        return await withCheckedContinuation { continuation in
-            self.continuation = continuation
-            onPresentationChanged(true)
-            let width =
-                switch request.accessory {
-                case nil, .volume: metrics.size.dialogCompactWidth
-                case .eventDraft: metrics.size.dialogWidth
+        let id = UUID()
+        let cancelIndex = request.cancelIndex
+        return await withTaskCancellationHandler {
+            guard !Task.isCancelled else { return request.cancelIndex }
+            return await withCheckedContinuation { continuation in
+                self.presentationID = id
+                self.continuation = continuation
+                onPresentationChanged(true)
+                let width =
+                    switch request.accessory {
+                    case nil, .volume: metrics.size.dialogCompactWidth
+                    case .eventDraft: metrics.size.dialogWidth
+                    }
+                let content = hostingView(
+                    DialogView(
+                        request: request, width: width,
+                        onChoose: { [weak self] index in
+                            guard Self.accepts(index, for: request) else { return }
+                            self?.finish(index)
+                        }),
+                    width: width, minHeight: 0)
+                let panel = DialogPanel(content: content, cornerRadius: metrics.radius.panel)
+                panel.handlesArrowKeys = request.accessory?.claimsArrowKeys ?? false
+                panel.delegate = self
+                panel.onKey = { [weak self] key in
+                    guard let self else { return }
+                    switch key {
+                    case .cancel:
+                        finish(request.cancelIndex)
+                    case .confirm:
+                        guard Self.accepts(request.defaultIndex, for: request) else { return }
+                        finish(request.defaultIndex)
+                    case .increment, .decrement:
+                        // Keying the slider lands on the same values Volume Up/Down produce.
+                        guard case .volume(let volume) = request.accessory else { return }
+                        volume.level = VolumeLevel.stepped(volume.level, up: key == .increment)
+                    }
                 }
-            let content = hostingView(
-                DialogView(
-                    request: request, width: width,
-                    onChoose: { [weak self] index in
-                        guard Self.accepts(index, for: request) else { return }
-                        self?.finish(index)
-                    }),
-                width: width, minHeight: 0)
-            let panel = DialogPanel(content: content, cornerRadius: metrics.radius.panel)
-            panel.handlesArrowKeys = request.accessory?.claimsArrowKeys ?? false
-            panel.delegate = self
-            panel.onKey = { [weak self] key in
-                guard let self else { return }
-                switch key {
-                case .cancel:
-                    finish(request.cancelIndex)
-                case .confirm:
-                    guard Self.accepts(request.defaultIndex, for: request) else { return }
-                    finish(request.defaultIndex)
-                case .increment, .decrement:
-                    // Keying the slider lands on the same values Volume Up/Down produce.
-                    guard case .volume(let volume) = request.accessory else { return }
-                    volume.level = VolumeLevel.stepped(volume.level, up: key == .increment)
-                }
+                self.panel = panel
+                place(panel)
+                show(panel)
             }
-            self.panel = panel
-            place(panel)
-            show(panel)
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                guard let self, self.presentationID == id else { return }
+                self.finish(cancelIndex)
+            }
         }
     }
 
@@ -163,6 +175,7 @@ final class DialogController: NSObject, NSWindowDelegate {
     private func finish(_ index: Int) {
         guard let continuation else { return }
         self.continuation = nil
+        presentationID = nil
         onPresentationChanged(false)
         let closing = panel
         panel = nil

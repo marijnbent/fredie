@@ -182,7 +182,11 @@ struct QuicklinkCoordinatorTests {
 
 // Platform collaborators are inert so the shipped coordinator never opens apps or reads selections.
 @MainActor
+enum FeatureCapability { case quicklinks }
+
 final class AppSettings {
+    var launcherEnabled = true
+    func allows(_ capability: FeatureCapability) -> Bool { launcherEnabled && quicklinksEnabled }
     var quicklinksEnabled = true
     var quicklinksShowInLauncher = true
     var quicklinkSelectionFallback = QuicklinkSelectionFallback.ask

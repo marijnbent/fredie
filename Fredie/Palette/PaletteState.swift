@@ -11,7 +11,11 @@ struct PaletteFrame: Equatable {
 @MainActor
 @Observable
 final class PaletteState {
-    var mode: PaletteMode = .launcher
+    var mode: PaletteMode = .launcher {
+        didSet { if !allowsMode(mode) { onUnavailableMode?() } }
+    }
+    @ObservationIgnored var allowsMode: (PaletteMode) -> Bool = { _ in true }
+    @ObservationIgnored var onUnavailableMode: (() -> Void)?
     /// The screens below `mode`, innermost last: a summon starts a new one, navigating pushes on.
     private(set) var backStack: [PaletteFrame] = []
     var query: String = ""
@@ -91,25 +95,32 @@ final class PaletteState {
 
     /// Open `mode` as the root: a fresh screen with nothing behind it to go back to.
     func prepare(mode: PaletteMode) {
+        guard permits(mode) else { return }
         backStack.removeAll()
         replace(mode: mode)
     }
 
     /// Swap the screen in place, leaving whatever it was opened over still behind it.
     func replace(mode: PaletteMode) {
+        guard permits(mode) else { return }
         openScreen(mode)
         resetToken = UUID()
     }
 
     /// Open `mode` over the current screen, which a back step returns to.
     func push(mode: PaletteMode) {
+        guard permits(mode) else { return }
         backStack.append(PaletteFrame(mode: self.mode, query: query, selection: selection))
         replace(mode: mode)
     }
 
     /// Restore the screen underneath, false when this one is the root.
     func pop() -> Bool {
-        guard let frame = backStack.popLast() else { return false }
+        var restored: PaletteFrame?
+        while let frame = backStack.popLast() {
+            if allowsMode(frame.mode) { restored = frame; break }
+        }
+        guard let frame = restored else { return false }
         openScreen(frame.mode)
         query = frame.query
         selection = frame.selection
@@ -120,6 +131,7 @@ final class PaletteState {
 
     /// Tab's step deeper into the ring: the screen crossed from is the step back, query and all.
     func pushCarryingQuery(mode: PaletteMode) {
+        guard permits(mode) else { return }
         backStack.append(PaletteFrame(mode: self.mode, query: query, selection: selection))
         self.mode = mode
     }
@@ -155,6 +167,14 @@ final class PaletteState {
         menuOpen = false
         menuQuery = ""
         focusToken = UUID()
+    }
+
+    private func permits(_ mode: PaletteMode) -> Bool {
+        guard allowsMode(mode) else {
+            onUnavailableMode?()
+            return false
+        }
+        return true
     }
 
     /// Long enough that ⌘↵ or ⌘K never flashes the numbering, short enough to feel like a reveal.

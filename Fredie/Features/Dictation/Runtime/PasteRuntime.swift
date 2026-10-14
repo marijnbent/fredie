@@ -82,7 +82,10 @@ final class PasteRuntime {
         self.pasteVerificationTimeout = pasteVerificationTimeout
     }
 
-    func process(session: FinalizedTranscriptSession, settings: PasteRuntimeSettings) async {
+    @discardableResult
+    func process(session: FinalizedTranscriptSession, settings: PasteRuntimeSettings) async -> Bool {
+        guard !Task.isCancelled else { return false }
+        var recordingAdopted = false
         cancelPendingVerification()
         let finalText = session.finalTranscript.trimmed
         let fallbackText = session.lastTranscript.trimmed
@@ -105,7 +108,7 @@ final class PasteRuntime {
             if settings.playSoundEffects || session.transcriptionError != nil {
                 emit(.playSound(session.transcriptionError != nil ? "Basso" : "Pop"))
             }
-            return
+            return true
         }
 
         defer {
@@ -210,6 +213,7 @@ final class PasteRuntime {
                     usedActiveAppPrompt: session.enhancementPrompt?.isForActiveApp ?? false
                 )
             ))
+            recordingAdopted = true
 
             if let transcriptionError = session.transcriptionError {
                 emit(.log("Transcript completed with warning: \(transcriptionError)", .warning))
@@ -235,7 +239,7 @@ final class PasteRuntime {
                 if settings.playSoundEffects || enhancementFailed {
                     emit(.playSound(enhancementFailed ? "Basso" : "Pop"))
                 }
-                return
+                return recordingAdopted
             }
 
             emit(.log("Paste command sent (Cmd+V).", .info))
@@ -244,10 +248,10 @@ final class PasteRuntime {
                 emit(.playSound(enhancementFailed ? "Basso" : "Pop"))
             }
 
-            guard settings.restoreClipboardAfterPaste, let snapshot else { return }
+            guard settings.restoreClipboardAfterPaste, let snapshot else { return recordingAdopted }
             guard let preparedVerification else {
                 emit(.log("Could not confirm auto-paste. Kept transcript on the clipboard.", .warning))
-                return
+                return recordingAdopted
             }
 
             schedulePasteVerification(
@@ -262,6 +266,7 @@ final class PasteRuntime {
             emit(.status(.cancelled))
             emit(.log("Recording cancelled.", .info))
         }
+        return recordingAdopted
     }
 
     private func emit(_ event: PasteRuntimeEvent) {

@@ -11,6 +11,7 @@ final class DictationRuntimeCoordinator {
     private let soundPort: SoundPort
     private let systemMuteController: SystemMuteController
     private let rawRecordingStore: RawRecordingStore
+    private let isEnabled: () -> Bool
 
     private let shortcutRuntime: ShortcutRuntime
     private let recordingRuntime: RecordingRuntime
@@ -35,8 +36,10 @@ final class DictationRuntimeCoordinator {
         audioCapturePort: AudioCapturePort,
         transcriptionStreamPort: TranscriptionStreamPort,
         eventMonitorPort: EventMonitorPort,
+        isEnabled: @escaping () -> Bool,
         activeApplicationProvider: @escaping () -> ActiveApplicationContext?
     ) {
+        self.isEnabled = isEnabled
         self.settingsStore = settingsStore
         self.sessionState = sessionState
         self.permissionService = permissionService
@@ -118,6 +121,7 @@ final class DictationRuntimeCoordinator {
     func recoverMonitor() { shortcutRuntime.recoverMonitor() }
 
     func start() {
+        guard isEnabled() else { return }
         shortcutRuntime.configure(shortcuts: settingsStore.shortcuts)
         shortcutRuntime.start()
     }
@@ -206,7 +210,8 @@ final class DictationRuntimeCoordinator {
             self?.sessionState.finalizeLatestInterimTranscript()
         }
         recordingRuntime.onRequestOpenSettings = { [weak self] in
-            self?.windowCoordinator.showSettings()
+            guard let self, self.isEnabled() else { return }
+            self.windowCoordinator.showSettings()
         }
         recordingRuntime.onMuteForRecording = { [weak self] in
             self?.systemMuteController.muteForRecording()
@@ -216,6 +221,10 @@ final class DictationRuntimeCoordinator {
         }
         recordingRuntime.onFinalizeRequested = { [weak self] finalization in
             guard let self else { return }
+            guard self.isEnabled() else {
+                self.rawRecordingStore.deleteRecording(at: finalization.rawRecordingFileURL)
+                return
+            }
             self.pasteTask?.cancel()
             self.pasteGeneration += 1
             let generation = self.pasteGeneration
@@ -228,7 +237,11 @@ final class DictationRuntimeCoordinator {
                         self.onProcessingChanged?(false)
                     }
                 }
-                await self.pasteRuntime.process(
+                guard !Task.isCancelled, self.isEnabled() else {
+                    self.rawRecordingStore.deleteRecording(at: finalization.rawRecordingFileURL)
+                    return
+                }
+                let recordingAdopted = await self.pasteRuntime.process(
                     session: FinalizedTranscriptSession(
                         finalTranscript: self.sessionState.finalTranscript,
                         lastTranscript: self.sessionState.lastTranscript,
@@ -245,6 +258,9 @@ final class DictationRuntimeCoordinator {
                         restoreClipboardAfterPaste: self.settingsStore.restoreClipboardAfterPaste
                     )
                 )
+                if !recordingAdopted {
+                    self.rawRecordingStore.deleteRecording(at: finalization.rawRecordingFileURL)
+                }
             }
         }
 
@@ -254,6 +270,7 @@ final class DictationRuntimeCoordinator {
     }
 
     private func handleShortcutActions(_ actions: [ShortcutAction]) {
+        guard isEnabled() else { stop(); return }
         for action in actions {
             if shouldRequestMicrophonePermission(for: action) {
                 requestMicrophonePermissionForRecording()

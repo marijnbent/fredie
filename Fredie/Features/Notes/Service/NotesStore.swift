@@ -74,6 +74,7 @@ final class NotesStore {
             pendingRelocation = repository
             return
         }
+        guard !Task.isCancelled else { return }
         cancelSearch()
         self.repository = repository
         notesDirectory = repository.notesDirectory

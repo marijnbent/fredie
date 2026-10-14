@@ -19,6 +19,9 @@ return `OSStatus` synchronously, preserving event order and hold-to-talk release
 
 ## Invariants
 
+- Feature availability gates both registration and dispatch. Disabling a capability unregisters its
+  Carbon chords and modifier taps without deleting saved bindings. Independent features retain theirs.
+
 - **Hotkeys persist as JSON strings under `hotkey.<action>` UserDefaults keys**, and
   `HotKeyAction.defaultsKey` is the one place that computes a key — it is also the `HotKeyCenter`
   registration id, so the two cannot drift.

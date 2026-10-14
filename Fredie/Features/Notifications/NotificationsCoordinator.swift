@@ -48,14 +48,12 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
     }
 
     func apply() {
-        generation += 1
+        stop()
         let revision = generation
-        transition?.cancel()
-        let previous = subscriber
-        subscriber = nil
-        connected = false
+        let previous = transition
+        guard settings.notificationsEnabled else { return }
         transition = Task { [weak self] in
-            await previous?.stop()
+            await previous?.value
             guard !Task.isCancelled, let self, revision == generation, settings.notificationsEnabled else { return }
             load()
             guard loaded, !topics.isEmpty else { return }
@@ -112,16 +110,25 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
         NSWorkspace.shared.open(url)
     }
 
-    func stop() async {
+    func stop() {
         generation += 1
         transition?.cancel()
-        await transition?.value
-        transition = nil
-        await subscriber?.stop()
+        let previousTransition = transition
+        let previousSubscriber = subscriber
         subscriber = nil
         connected = false
         deliveries.values.forEach { $0.cancel() }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: deliveries.keys.map { "ollie.ntfy.\($0)" })
         deliveries.removeAll()
+        transition = Task {
+            await previousTransition?.value
+            await previousSubscriber?.stop()
+        }
+    }
+
+    func finishStopping() async {
+        await transition?.value
     }
 
     private func save(_ values: [String]) {
@@ -149,12 +156,23 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
         content.title = message.title ?? "Notification"
         content.body = message.message ?? ""
         content.sound = .default
-        if let url = message.bestURLString { content.userInfo = ["url": url] }
+        let revision = generation
+        content.userInfo["ollieGeneration"] = revision
+        if let url = message.bestURLString { content.userInfo["url"] = url }
         let request = UNNotificationRequest(identifier: "ollie.ntfy.\(message.id)", content: content, trigger: nil)
         deliveries[message.id] = Task { [weak self] in
-            defer { self?.deliveries[message.id] = nil }
-            do { try await UNUserNotificationCenter.current().add(request) }
-            catch { self?.error = "Could not display a notification banner." }
+            guard let self, !Task.isCancelled, settings.notificationsEnabled, revision == generation else { return }
+            defer { if revision == generation { deliveries[message.id] = nil } }
+            do {
+                let center = UNUserNotificationCenter.current()
+                try await center.add(request)
+                if Task.isCancelled || !settings.notificationsEnabled || revision != generation {
+                    center.removePendingNotificationRequests(withIdentifiers: [request.identifier])
+                }
+            } catch {
+                guard !Task.isCancelled, settings.notificationsEnabled, revision == generation else { return }
+                self.error = "Could not display a notification banner."
+            }
         }
         return true
     }
@@ -182,6 +200,9 @@ final class NotificationsCoordinator: NSObject, UNUserNotificationCenterDelegate
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound]
+        let revision = notification.request.content.userInfo["ollieGeneration"] as? Int
+        return await MainActor.run {
+            settings.notificationsEnabled && revision == generation ? [.banner, .sound] : []
+        }
     }
 }
