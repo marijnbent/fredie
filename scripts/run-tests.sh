@@ -628,7 +628,7 @@ run ollie-services-test -parse-as-library \
     Ollie/Features/Updates/Model/UpdateReadiness.swift \
     Ollie/Platform/ProcessExit.swift \
     Ollie/Platform/AppPaths.swift
-run feature-availability-test -parse-as-library \
+run -O feature-availability-test -parse-as-library \
     Ollie/Features/Settings/SettingsTab.swift \
     Ollie/Features/Settings/Model/FeatureAvailability.swift \
     Ollie/Features/Settings/Service/FeatureAccess.swift \

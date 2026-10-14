@@ -11,8 +11,11 @@ replaces `/Applications/Ollie.app`, and opens the installed app.
 `project.yml` owns version, build number, bundle identifiers, and targets. `release/Release.plist`
 selects the installed Apple Development signing identity. No unsigned or ad-hoc fallback is allowed.
 
-`release/Icon.png` is the 1024px ribbon-F icon master. Its macOS sizes live in
+`release/Icon.png` is the 1024px Pocket Otter icon master. Its macOS sizes live in
 `Ollie/Assets.xcassets/AppIcon.appiconset`, selected by `project.yml` for both build configurations.
+Run `node scripts/gen-app-icon.js` after replacing the master to regenerate every catalog size.
+The menu bar uses the simpler monochrome `Ollie/Assets.xcassets/MenuBarIcon.imageset/otter.svg`
+as a vector template, so macOS supplies the light or dark foreground.
 
 A requested local release also includes committing and pushing the current Ollie repository
 changes on `main`, after verification. The scripts do not perform Git operations.

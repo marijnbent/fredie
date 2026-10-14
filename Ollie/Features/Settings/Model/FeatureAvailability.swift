@@ -36,14 +36,14 @@ struct FeatureAvailability: Equatable, Sendable {
 
     func allows(_ capability: FeatureCapability) -> Bool {
         switch capability {
-        case .feature(let feature): enabledFeatures.contains(feature)
+        case .feature(let feature): return enabledFeatures.contains(feature)
         case .clipboardHistory:
-            enabledFeatures.contains(.clipboard) || enabledFeatures.contains(.snippets)
+            return enabledFeatures.contains(.clipboard) || enabledFeatures.contains(.snippets)
         case .spaceNavigation:
-            enabledFeatures.contains(.spaces) || allows(.windowManagement)
+            return enabledFeatures.contains(.spaces) || allows(.windowManagement)
         default:
-            capability.owner.map(enabledFeatures.contains) == true
-                && enabledCapabilities.contains(capability)
+            guard let owner = capability.owner else { return false }
+            return enabledFeatures.contains(owner) && enabledCapabilities.contains(capability)
         }
     }
 }

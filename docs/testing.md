@@ -689,7 +689,8 @@ contain neither verification entry point.
 
 ## Feature lifecycles
 
-`feature-availability-test` compiles the shipped ownership policy and action mappings. It covers
+`feature-availability-test` runs the shipped ownership policy and action mappings with Release
+optimization, which reproduced a startup crash in a bound `Set.contains` call. It covers
 all eleven roots independently, all-off with saved child flags, global commands, palette modes,
 shared Clipboard/Snippets and Spaces navigation. `palette-navigation-test` rejects disabled roots and
 ancestors. `media-import-state-test` uses private defaults, a temporary ledger and an injected delayed
