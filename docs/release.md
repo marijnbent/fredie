@@ -14,7 +14,7 @@ selects the installed Apple Development signing identity. No unsigned or ad-hoc 
 `release/Icon.png` is the 1024px Happy Pocket Otter icon master. Its macOS sizes live in
 `Ollie/Assets.xcassets/AppIcon.appiconset`, selected by `project.yml` for both build configurations.
 Run `node scripts/gen-app-icon.js` after replacing the master to regenerate every catalog size.
-The menu bar uses the outlined Whiskers mark in `Ollie/Assets.xcassets/MenuBarIcon.imageset/otter.svg`
+The menu bar uses the outlined Happy otter mark in `Ollie/Assets.xcassets/MenuBarIcon.imageset/otter.svg`
 as a vector template, so macOS supplies the light or dark foreground.
 
 A requested local release also includes committing and pushing the current Ollie repository
