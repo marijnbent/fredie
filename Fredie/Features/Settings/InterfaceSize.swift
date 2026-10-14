@@ -9,7 +9,6 @@ enum PaletteDensity: String, CaseIterable, Identifiable, Sendable {
     var searchHeight: CGFloat { self == .compact ? Theme.Size.compactSearchHeight : Theme.Size.comfortableSearchHeight }
     var launcherRowHeight: CGFloat { self == .compact ? Theme.Size.compactLauncherRowHeight : Theme.Size.comfortablePaletteRowHeight }
     var clipboardRowHeight: CGFloat { self == .compact ? Theme.Size.compactClipboardRowHeight : Theme.Size.comfortablePaletteRowHeight }
-    var gap: CGFloat { self == .compact ? Theme.Size.compactPaletteGap : Theme.Size.comfortablePaletteGap }
 }
 
 /// How large the palette and its floating siblings render; an unset key reads as `.standard`.

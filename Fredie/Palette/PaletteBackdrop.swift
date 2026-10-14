@@ -5,14 +5,8 @@ struct PaletteBackdrop: View {
     let surface: PaletteSurface
 
     var body: some View {
-        if surface.detached {
-            VStack(spacing: surface.cardGap) {
-                glass.frame(height: surface.fieldHeight)
-                if surface.cardTop != nil {
-                    glass.frame(maxHeight: .infinity)
-                }
-            }
-            .allowsHitTesting(false)
+        if surface.isLauncherOrClipboard {
+            glass.allowsHitTesting(false)
         } else {
             Theme.Colors.panelScrim.background(GlassEffectView())
         }

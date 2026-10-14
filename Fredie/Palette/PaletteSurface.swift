@@ -12,17 +12,17 @@ struct PaletteSurface: Equatable {
     let fieldTop: CGFloat
     let fieldHeight: CGFloat
     let cardTop: CGFloat?
-    let detached: Bool
+    let isLauncherOrClipboard: Bool
     let radius: CGFloat
 
     init(mode: PaletteMode, collapsed: Bool, launcher: LauncherBody, metrics: InterfaceMetrics, density: PaletteDensity = .compact) {
         let size = metrics.size
         slotWidth = size.panelWidth
-        detached = mode == .launcher || mode == .clipboard
-        fieldHeight = detached ? metrics.scaled(density.searchHeight) : size.headerHeight
-        radius = detached ? metrics.scaled(Theme.Size.floatingRadius) : metrics.radius.panel
-        if detached {
-            let cardTop = fieldHeight + metrics.scaled(density.gap)
+        isLauncherOrClipboard = mode == .launcher || mode == .clipboard
+        fieldHeight = isLauncherOrClipboard ? metrics.scaled(density.searchHeight) : size.headerHeight
+        radius = isLauncherOrClipboard ? metrics.scaled(Theme.Size.floatingRadius) : metrics.radius.panel
+        if isLauncherOrClipboard {
+            let cardTop = fieldHeight
             width = metrics.scaled(mode == .clipboard ? Theme.Size.clipboardWidth : Theme.Size.launcherWidth)
             fieldTop = 0
             let rowHeight = metrics.scaled(density.launcherRowHeight)
@@ -48,8 +48,6 @@ struct PaletteSurface: Equatable {
 
     var headerExtent: CGFloat { fieldTop + fieldHeight }
 
-    var cardGap: CGFloat { cardTop.map { $0 - headerExtent } ?? 0 }
-
     private var inset: CGFloat { (slotWidth - width) / 2 }
 
     func frame(at anchor: CGPoint) -> CGRect {
@@ -60,10 +58,8 @@ struct PaletteSurface: Equatable {
         CGPoint(x: frame.minX - inset, y: frame.maxY)
     }
 
-    var shape: PaletteSurfaceShape {
-        PaletteSurfaceShape(
-            fieldTop: fieldTop, fieldHeight: fieldHeight, cardTop: cardTop, detached: detached,
-            radius: radius)
+    var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
     }
 }
 
@@ -85,29 +81,5 @@ struct PaletteCardMask: ViewModifier {
         } else {
             content
         }
-    }
-}
-
-struct PaletteSurfaceShape: Shape {
-    let fieldTop: CGFloat
-    let fieldHeight: CGFloat
-    let cardTop: CGFloat?
-    let detached: Bool
-    let radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        guard detached else {
-            return Path(roundedRect: rect, cornerRadius: radius, style: .continuous)
-        }
-        var path = Path(
-            roundedRect: CGRect(x: rect.minX, y: rect.minY + fieldTop, width: rect.width, height: fieldHeight),
-            cornerRadius: radius, style: .continuous)
-        if let cardTop, rect.height > cardTop {
-            path.addRoundedRect(
-                in: CGRect(
-                    x: rect.minX, y: rect.minY + cardTop, width: rect.width, height: rect.height - cardTop),
-                cornerSize: CGSize(width: radius, height: radius), style: .continuous)
-        }
-        return path
     }
 }

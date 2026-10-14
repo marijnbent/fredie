@@ -263,9 +263,17 @@ struct RootPaletteView: View {
                             .modifier(PaletteCardMask(top: surface.cardTop))
                     }
                 }
-                .safeAreaInset(edge: .top, spacing: surface.cardGap) { header }
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    header.overlay(alignment: .bottom) {
+                        if surface.isLauncherOrClipboard, !isCollapsed {
+                            Rectangle().fill(Theme.Colors.separator).frame(height: 0.5)
+                                .padding(.horizontal, metrics.spacing.xl)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if !isCollapsed, !surface.detached {
+                    if !isCollapsed, !surface.isLauncherOrClipboard {
                         bottomBar(
                             pillLabel: screen.primaryActionTitle, showActionGroup: showActionGroup,
                             formPrimaryShortcut: isExtensionForm,
@@ -308,12 +316,12 @@ struct RootPaletteView: View {
             selection: sel)
             .environment(\.paletteActionsAvailable, actionsAvailable)
             .environment(\.paletteActionsArrowAvailable,
-                actionsAvailable && surface.detached && headerAccessory == nil && searchFocused)
+                actionsAvailable && surface.isLauncherOrClipboard && headerAccessory == nil && searchFocused)
     }
 
     private var surface: PaletteSurface { core.paletteCoordinator.paletteSurface }
 
-    private var headerHangsMenus: Bool { surface.detached }
+    private var headerHangsMenus: Bool { surface.isLauncherOrClipboard }
 
     /// The emoji grid's observers, split out so `stateObservers` stays within type-checker reach.
     @ViewBuilder
@@ -782,7 +790,7 @@ struct RootPaletteView: View {
         @Bindable var vm = vm
         return TextField("", text: $vm.query)
             .textFieldStyle(.plain)
-            .font(surface.detached ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
+            .font(surface.isLauncherOrClipboard ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
             .tint(Theme.Colors.textPrimary)
             .focused($searchFocused)
             // Fills the row's height, so there's no gap above it for topDragStrip to meet.
@@ -791,7 +799,7 @@ struct RootPaletteView: View {
                 // An IME's marked text leaves `query` empty, so the placeholder would overlap it.
                 if vm.query.isEmpty, !vm.isComposing {
                     Text(searchPrompt)
-                        .font(surface.detached ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
+                        .font(surface.isLauncherOrClipboard ? .system(size: metrics.scaled(Theme.Size.floatingSearchFontSize)) : metrics.typography.searchField)
                         .foregroundStyle(Theme.Colors.textTertiary)
                         .lineLimit(1)
                         // Never a click target: tapping the placeholder must still land the caret.
@@ -1058,7 +1066,7 @@ struct RootPaletteView: View {
             menuPanel.hide()
             return
         }
-        let back: (() -> Void)? = openMenu == .actions && surface.detached ? { closeMenus() } : nil
+        let back: (() -> Void)? = openMenu == .actions && surface.isLauncherOrClipboard ? { closeMenus() } : nil
         let view = AnyView(content.view(corner).environment(\.paletteMenuBack, back))
         if presenting, let hostWindow {
             menuPanel.show(
@@ -1079,7 +1087,7 @@ struct RootPaletteView: View {
             escapeMenu()
             return true
         }
-        if openMenu == .actions, surface.detached, event.specialKey == .leftArrow,
+        if openMenu == .actions, surface.isLauncherOrClipboard, event.specialKey == .leftArrow,
             navigationModifiers.isEmpty, !event.isARepeat {
             let atStart: Bool
             if let editor = event.window?.firstResponder as? NSTextView {
@@ -1335,7 +1343,7 @@ struct RootPaletteView: View {
         panel.onHeaderFieldBoundaryArrow = { boundary in
             guard !menuOpen, !vm.isControlListOpen, !isCollapsed, !vm.isComposing else { return false }
             if boundary == .trailing, searchFocused, argumentFocused == nil,
-                surface.detached, headerAccessory == nil, actionsAvailable {
+                surface.isLauncherOrClipboard, headerAccessory == nil, actionsAvailable {
                 openActions()
                 return true
             }

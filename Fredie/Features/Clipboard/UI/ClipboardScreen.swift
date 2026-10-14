@@ -121,7 +121,7 @@ private struct ClipboardPaletteView: View {
                                 .id(result.id)
                         }
                     }
-                    .padding(metrics.scaled(4))
+                    .padding(metrics.scaled(Theme.Size.paletteCardInset))
                     .scrollOriginAnchor()
                 }
                 .hideNativeScrollers()
@@ -195,8 +195,8 @@ private struct ClipboardPalettePreview: View {
                     }
                 }
                 .font(.system(size: metrics.scaled(11)))
-                .padding(.horizontal, metrics.scaled(12))
-                .frame(height: metrics.scaled(36))
+                .padding(.horizontal, metrics.scaled(16))
+                .frame(height: metrics.scaled(40))
                 if case .item(let item) = result, item.type == .image {
                     ScrollView {
                         VStack(alignment: .leading, spacing: metrics.scaled(12)) {
@@ -233,8 +233,8 @@ private struct ClipboardPalettePreview: View {
                                 .font(.system(size: metrics.scaled(12)))
                             }
                         }
-                        .padding(.horizontal, metrics.scaled(12))
-                        .padding(.bottom, metrics.scaled(12))
+                        .padding(.horizontal, metrics.scaled(16))
+                        .padding(.bottom, metrics.scaled(16))
                     }
                     .hideNativeScrollers()
                     .thinScrollbar()
@@ -257,8 +257,8 @@ private struct ClipboardPalettePreview: View {
                             }
                         }
                         .font(.system(size: metrics.scaled(11)))
-                        .padding(.horizontal, metrics.scaled(12))
-                        .padding(.bottom, metrics.scaled(12))
+                        .padding(.horizontal, metrics.scaled(16))
+                        .padding(.bottom, metrics.scaled(16))
                     }
                     .hideNativeScrollers()
                     .thinScrollbar()
@@ -272,7 +272,7 @@ private struct ClipboardPalettePreview: View {
                 .frame(height: metrics.scaled(40))
                 .overlay(alignment: .top) {
                     Rectangle().fill(Theme.Colors.separator).frame(height: 0.5)
-                        .padding(.horizontal, metrics.scaled(12))
+                        .padding(.horizontal, metrics.scaled(16))
                 }
             } else {
                 Color.clear

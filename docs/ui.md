@@ -10,26 +10,26 @@ Read this before touching any view body, `Theme` value, or the panel chrome.
 
 ## The palette
 
-The Floating launcher is 506 points wide, with a separate search surface above a dense list.
+The unified launcher is 620 points wide, matching Command-Tab, with search and results sharing one glass panel.
 Launcher and clipboard use Tabbie's glass treatment: active within-window HUD material, an 18%
-window-background tint, a 14% white one-point border, and scaled 16-point corners. Each detached
-surface has its own material view, leaving the gap transparent. Reduce Transparency uses the
+window-background tint, a 14% white one-point border, and scaled 16-point corners. Search and results share one
+material view and outer border, with a subtle inset divider below search. Reduce Transparency uses the
 window-background material and a 96% tint. `PaletteBackdrop` owns these surfaces.
 Its height follows the result count up to ten visible rows. Clipboard is a scoped mode in the same
 panel, 620 points wide: a 260-point list and a text/image preview. Clipboard rows show only a small
 source application icon at the trailing edge; unknown sources leave no icon. Other modes retain the
 750 × 475-point panel. Interface Size scales all surfaces. General → Appearance → Density selects
-Compact or Comfortable spacing independently of text scale. Compact is the default: 40-point search,
-36-point launcher rows, 30-point clipboard rows, and a 6-point gap. Comfortable uses 54-point search,
-44-point rows, and an 8-point gap. `PaletteSurface` owns frame and clipping geometry, preserving the
+Compact or Comfortable spacing independently of text scale. Compact is the default: 48-point search,
+40-point launcher rows and 34-point clipboard rows, with 8-point list insets. Comfortable uses 54-point search and
+44-point rows. Neither density adds a gap between search and results. `PaletteSurface` owns frame and clipping geometry, preserving the
 same top edge and horizontal center when changing mode or result count. One search field stays mounted.
 Launcher and clipboard search fields have no leading icon; other modes retain their back button.
 The launcher search bar has no app-menu button; Ask AI remains available when enabled.
 The launcher has no footer; the selected row carries a clickable Actions control with a right chevron.
 The Actions control uses a hover-only background; ⌘K remains supported without a visible shortcut hint. Selected launcher titles
 use medium weight, with a 72-point trailing action lane. Clipboard uses the same control in a
-40-point preview footer, without a redundant paste label or button. Enter activates the selected item. Its 36-point metadata
-header and framed image preview share a 12-point inset. Right at the query's end opens Actions;
+40-point preview footer, without a redundant paste label or button. Enter activates the selected item. Its 40-point metadata
+header and framed image preview share a 16-point inset. Right at the query's end opens Actions;
 Left at the action search's start returns to the same query and selected result. Selected text,
 modified or repeated arrows, IME composition, and arrows inside text retain normal editing behavior. Inline
 command argument fields retain their existing arrow navigation. The action search also has a back
@@ -39,12 +39,9 @@ Refresh OCR & Copy reruns recognition. Empty extraction leaves the clipboard unc
 
 Ollie uses borderless floating panels. Modes outside launcher and clipboard retain Liquid Glass
 under the existing appearance-aware scrim. Launcher and clipboard use the HUD material above.
-The floating surface comes in two separate pieces: the search field is its own
-**capsule**, and the results sit on a **card** below it, `Spacing.md` apart; collapsed, only the
-capsule shows. Outside the launcher, the bottom bar **floats over the list as a fully transparent overlay**; there are no
-hard-edged bars, strips, or dividers inside the card. Rows don't clip under the bar, they
-**dissolve**: a scroll-driven gradient mask ghosts them as they pass beneath. Floating controls (the
-action pill, the menu circle, popover menus) are **Liquid Glass**.
+Launcher and clipboard keep search and results inside one rounded surface. Collapsed launcher
+shows only search; expansion extends the same panel downward. Clipboard retains its two columns.
+Other modes retain their transparent bottom controls and scroll-driven edge dissolve.
 
 That paragraph describes **Dark**, which is the design. Light is the same design with the ink
 inverted: a white scrim over the same blur, and a black-alpha ramp at matched stops. Nothing about
@@ -54,9 +51,9 @@ Five load-bearing ideas, in priority order:
 
 1. **Surface = scrim over behind-window blur.** No solid backgrounds. Depth comes from the desktop showing through.
 2. **One alpha ramp, never grays.** Ink at fixed stops — white over the dark surface, black over the light one.
-3. **Floating pieces, not chrome.** The field is its own capsule; the footer is a transparent overlay on the card the list fills.
+3. **Unified search.** Launcher and clipboard share one glass surface from search through results.
 4. **Edges dissolve, they don't clip.** Scroll-driven mask, no separators between list and bars.
-5. **Glass only on floating controls.** The main surface is never glass; pills/menus/circles are.
+5. **Consistent materials.** Launcher and clipboard use Tabbie HUD glass; other surfaces keep their existing materials.
 
 ---
 
@@ -70,7 +67,7 @@ These are the things that quietly break the look if changed. Preserve them unles
 - **Three things stay fixed in both appearances, on purpose.** The `EdgeDissolve`/`OverflowFade` gradients are **mask luminance, not color** — inverting them breaks the dissolve everywhere. `ExtensionTintColors` and a tinted `IconCache` tile keep white ink, because a saturated tile carries its own contrast. And `IconCache` cannot use a dynamic `NSColor` at all: it rasterizes off-main, so the surface is carried explicitly and is part of the cache key.
 - **An icon is drawn for a surface *and* a system icon style, and both move under you.** macOS restyles the icons `NSWorkspace` hands out when System Settings → Appearance → **Icon & widget style** changes, so `IconStyleMonitor` and Fredie's own appearance both call `IconCache.invalidateStyled()`. **The monitor may not invalidate on the notification itself.** AppKit posts `NSWorkspaceIconAppearanceConfigurationDidChange` before IconServices has swapped what `NSWorkspace` vends — measured at 25–120ms behind, jittering run to run — and the images it hands back are live objects macOS restyles in place, so flattening one on the signal freezes the *outgoing* style into a bitmap nothing ever invalidates again. `IconStyleMonitor` therefore polls `IconCache.styleFingerprint()` until the pixels actually move, and only then invalidates. Waiting also sidesteps the cost: re-flattening every icon the instant a restyle begins forces a cold IconServices regeneration, measured at 160× the settled draw cost. That drops the cached bitmaps, bumps every cache key so an in-flight decode cannot repopulate a stale one, and moves `IconCache.style.generation`. **Any view that draws an icon must key its fetch on that generation** — wrap the view's own key in `IconRequest`, or call `IconCache.observeStyle()` where the icon is resolved synchronously in a `body`. It is reached through `IconCache` rather than injected precisely because icons are drawn in menus, popovers and every list, where a missed injection would be a silent staleness bug.
 - **No hard dividers between the list and the bars.** The header and bottom bar are `safeAreaInset` overlays with no background of their own; the header's capsule is the root clip's, and the list's top inset adds the `Spacing.md` gap so rows rest inside the card. Separation comes from that gap and `edgeDissolve()`, nothing else. (One deliberate exception: the vertical hairline between a list and its preview pane, as the file search screen draw.)
-- **The surface is clipped once, at the root.** `RootPaletteView.body` ends with `.background(panelScrim) → .background(GlassEffectView()) → .clipShape(PaletteSurfaceShape)`. For the launcher, the shape is a `headerHeight` capsule at the top plus, unless collapsed, the card from `Spacing.md` below it to the window's bottom with `panel 26` corners. Other modes retain their rounded panel. Keep that order; the scrim goes _over_ the glass, and the clip is last. The window's shadow follows the clipped alpha, so the gap and the top margin have none.
+- **The surface is clipped at the root.** `PaletteBackdrop` supplies the material and `PaletteSurface.shape` supplies one rounded outline. Search stays mounted while the panel expands downward; there is no transparent gap or interior rounded seam.
 - **Don't use the native scroll edge effect.** Inside a transparent panel it renders a hard-bounded rectangle. Use `edgeDissolve()`, or a gradient `mask` where a surface owns its own fade — `scrollEdgeEffectStyle` draws a *material* where a scroll view meets a safe area, so over a panel that already has `panelScrim` + `GlassEffectView` it composites to nothing. Tried and rejected on `QuickActionResultView`, with and without `safeAreaBar`. This is a rule about the borderless panels; the Settings window is a titled `NSWindow` whose system titlebar draws the band itself (see "Settings").
 - **Test over a light desktop.** Transparency and corner masking bugs only show over bright wallpaper. Dark wallpaper hides them.
 - **No `NSAlert` or system popovers.** Every confirmation, failure report, value prompt and transient readout is Fredie's own SwiftUI surface (see "Dialogs & HUD"). An Aqua alert on an alpha-over-vibrancy app reads as a different product, and its `runModal` run loop keeps Carbon hotkeys firing underneath.
