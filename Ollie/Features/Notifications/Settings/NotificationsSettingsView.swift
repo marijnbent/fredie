@@ -14,13 +14,14 @@ struct NotificationsSettingsView: View {
             }
             Section("Topics") {
                 HStack {
-                    RevealableSecureField(title: "Topic name", text: $topic, prompt: Text("Topic name"))
+                    TextField("Topic name", text: $topic, prompt: Text("Topic name"))
                         .onSubmit(add)
                     Button("Add", action: add).disabled(topic.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                ForEach(Array(notifications.topics.enumerated()), id: \.element) { index, value in
-                    SettingsRow(title: "Topic \(index + 1)") {
-                        SettingsRemoveButton(label: "Remove topic \(index + 1)") { notifications.remove(value) }
+                ForEach(notifications.topics, id: \.self) { value in
+                    let label = String(value.prefix(24)) + (value.count > 24 ? "…" : "")
+                    SettingsRow(title: label) {
+                        SettingsRemoveButton(label: "Remove \(label)") { notifications.remove(value) }
                     }
                 }
                 if let error = notifications.error { SettingsNotice(error) }
