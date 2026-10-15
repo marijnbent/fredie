@@ -49,10 +49,10 @@ final class ClipboardCoordinator: HealthCheckable {
             searchSession.cancel()
             if core.paletteCoordinator.isShowing(.clipboard) { core.paletteCoordinator.hidePalette() }
         } else if core.paletteCoordinator.isShowing(.clipboard) {
-            let showingSnippets = core.palette.query.hasPrefix(":")
+            let showingSnippets = core.palette.query.hasPrefix(">")
             if (showingSnippets && !core.settings.snippetsEnabled)
                 || (!showingSnippets && !core.settings.clipboardEnabled) {
-                core.palette.query = core.settings.clipboardEnabled ? "" : ":"
+                core.palette.query = core.settings.clipboardEnabled ? "" : ">"
                 core.palette.selection = 0
                 refreshSearch()
             }
@@ -91,7 +91,7 @@ final class ClipboardCoordinator: HealthCheckable {
         contentTask?.cancel()
         searchSession.reset()
         snippetQuery = nil
-        core.paletteCoordinator.showPalette(mode: .clipboard, seeding: core.settings.clipboardEnabled ? "" : ":")
+        core.paletteCoordinator.showPalette(mode: .clipboard, seeding: core.settings.clipboardEnabled ? "" : ">")
         core.palette.selection = 0
         load { [weak self] in self?.refreshSearch() }
         refreshSearch()
@@ -100,7 +100,7 @@ final class ClipboardCoordinator: HealthCheckable {
     var snippetsEnabled: Bool { core.settings.snippetsEnabled }
 
     func results(for query: String) -> [ClipboardResult] {
-        if query.hasPrefix(":") {
+        if query.hasPrefix(">") {
             guard core.settings.snippetsEnabled else { return [] }
             if snippetQuery != query {
                 snippetQuery = query
@@ -339,7 +339,7 @@ final class ClipboardCoordinator: HealthCheckable {
     }
 
     func deleteSnippet(_ snippet: Snippet) async {
-        guard await core.confirm(title: "Delete :\(snippet.trigger)?", message: nil, symbol: "trash", confirmTitle: "Delete") else { return }
+        guard await core.confirm(title: "Delete >\(snippet.trigger)?", message: nil, symbol: "trash", confirmTitle: "Delete") else { return }
         snippets.deleteSnippet(id: snippet.id)
         snippetsChanged()
     }

@@ -159,7 +159,7 @@ private struct ClipboardPaletteView: View {
             ClipboardItemRow(item: item, store: coordinator.store, isSelected: selected)
         case .snippet(let snippet):
             HStack(spacing: metrics.scaled(8)) {
-                Text(":\(snippet.trigger)").foregroundStyle(.secondary)
+                Text(">\(snippet.trigger)").foregroundStyle(.secondary)
                 Text(snippet.displayTitle).lineLimit(1)
                 Spacer(minLength: 0)
             }
@@ -292,7 +292,7 @@ private struct ClipboardPalettePreview: View {
 
     private func title(_ result: ClipboardResult) -> String {
         switch result {
-        case .snippet(let snippet): ":\(snippet.trigger)"
+        case .snippet(let snippet): ">\(snippet.trigger)"
         case .item(let item):
             if let bytes = item.originalSizeBytes {
                 "\(item.type == .image ? "Image" : "Text") · \(ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file))"

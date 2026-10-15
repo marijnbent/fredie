@@ -20,9 +20,9 @@ final class ClipboardSearchSession {
             self.items = self.items.compactMap { currentItems[$0.id] }
         } else { self.items = [] }
         let normalized = ClipboardStorage.normalizeSearchText(text.trimmingCharacters(in: .whitespacesAndNewlines))
-        guard !text.hasPrefix(":"), !normalized.isEmpty else {
+        guard !text.hasPrefix(">"), !normalized.isEmpty else {
             let previousItems = self.items
-            self.items = text.hasPrefix(":") ? [] : Array(items.prefix(50))
+            self.items = text.hasPrefix(">") ? [] : Array(items.prefix(50))
             onReady(previousItems)
             return
         }

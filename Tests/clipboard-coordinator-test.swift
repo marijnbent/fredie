@@ -50,11 +50,13 @@ struct ClipboardCoordinatorTests {
         coordinator.apply()
         try await Task.sleep(for: .milliseconds(30))
         check("disabled history cancels queued copies", PasteController.copied.isEmpty)
-        check("disabled history switches the open panel to snippets", core.palette.query == ":")
+        check("disabled history switches the open panel to snippets", core.palette.query == ">")
         check("disabling history leaves snippets running", coordinator.snippetsRunning)
 
         try coordinator.snippets.saveSnippet(title: "", trigger: "fixture", content: "snippet text")
         let snippet = coordinator.snippets.snippets[0]
+        check("greater-than searches snippets", coordinator.results(for: ">fixture").map(\.id) == ["snippet-\(snippet.id)"])
+        check("colon no longer searches snippets", coordinator.results(for: ":fixture").isEmpty)
         core.settings.clipboardEnabled = true
         coordinator.activate(.snippet(snippet), copyOnly: true)
         core.settings.clipboardEnabled = false

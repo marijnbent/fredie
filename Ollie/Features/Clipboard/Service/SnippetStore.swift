@@ -58,7 +58,7 @@ final class SnippetStore {
             id: id ?? UUID(),
             title: title,
             trigger: normalizedTrigger,
-            content: trimmedContent,
+            content: content,
             usageCount: existingSnippet?.usageCount ?? 0,
             lastUsedAt: existingSnippet?.lastUsedAt
         )

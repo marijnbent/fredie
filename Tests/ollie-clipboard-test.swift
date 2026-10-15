@@ -157,15 +157,21 @@ struct OllieClipboardTests {
         let defaults = UserDefaults(suiteName: name)!
         defer { defaults.removePersistentDomain(forName: name) }
         let store = SnippetStore(defaults: defaults)
-        try store.saveSnippet(title: "", trigger: ":addr", content: "Address")
+        try store.saveSnippet(title: "", trigger: ">addr", content: "Address ")
         try store.saveSnippet(title: "", trigger: "address", content: "Long Address")
         check("exact trigger outranks longer prefix", store.expansionMatches(for: "addr").first?.trigger == "addr")
         do {
             try store.saveSnippet(title: "", trigger: "addr", content: "duplicate")
             check("duplicate triggers rejected", false)
         } catch SnippetStoreError.duplicateTrigger { }
+        check("trigger display uses greater-than", store.exactTriggerMatch(for: ">addr")?.displayTitle == ">addr")
+        check("colon trigger input is rejected", !Snippet.isSupportedTriggerInput(":addr"))
+        do {
+            try store.saveSnippet(title: "", trigger: "empty", content: " \n")
+            check("blank snippet text is rejected", false)
+        } catch SnippetStoreError.emptyContent { }
         let reopened = SnippetStore(defaults: defaults)
-        check("snippet text persists", reopened.snippets.count == 2 && reopened.exactTriggerMatch(for: "addr")?.content == "Address")
+        check("snippet text persists", reopened.snippets.count == 2 && reopened.exactTriggerMatch(for: "addr")?.content == "Address ")
         let damaged = Data("damaged snippets".utf8)
         defaults.set(damaged, forKey: "savedSnippets")
         let unreadable = SnippetStore(defaults: defaults)

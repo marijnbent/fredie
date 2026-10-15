@@ -191,7 +191,7 @@ final class SnippetExpansionController {
             return
         }
 
-        if characters == ":" && disallowedModifiers.isEmpty {
+        if characters == ">" && disallowedModifiers.isEmpty {
             startSession()
             return
         }
@@ -1187,7 +1187,7 @@ private struct SnippetSuggestionListView: View {
 
         return HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(":\(snippet.trigger)")
+                Text(">\(snippet.trigger)")
                     .font(.system(size: 13, weight: .semibold))
                     .lineLimit(1)
 

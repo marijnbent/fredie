@@ -75,7 +75,7 @@ struct SnippetsSettingsView: View {
                 }
                 ForEach(clipboard.snippets.snippets) { snippet in
                     SettingsRow(title: snippet.displayTitle, subtitle: snippet.content) {
-                        Text(":\(snippet.trigger)").font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
+                        Text(">\(snippet.trigger)").font(.system(.body, design: .monospaced)).foregroundStyle(.secondary)
                         Button("Edit…") { clipboard.snippetEditor = SnippetEditorTarget(snippet: snippet) }
                         SettingsRemoveButton(label: "Delete \(snippet.displayTitle)", deletesContent: true) {
                             Task { await clipboard.deleteSnippet(snippet) }
@@ -121,7 +121,7 @@ private struct SnippetEditorPanel: View {
             SettingsEditorHeader(title: target.snippet == nil ? "New Snippet" : "Edit Snippet")
             TextField("Title", text: $title, prompt: Text("Title"))
                 .settingsEditorTextField()
-            TextField("Trigger", text: $trigger, prompt: Text(":trigger"))
+            TextField("Trigger", text: $trigger, prompt: Text(">trigger"))
                 .settingsEditorTextField()
             TextEditor(text: $content)
                 .settingsEditorTextArea(height: Theme.Size.editorTextHeight)
