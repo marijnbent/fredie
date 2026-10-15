@@ -214,11 +214,11 @@ which is `[start - lead, start)` for **Automatically** and `[start - lead, min(s
 for the timed options. Because the earliest qualifying event wins, one hiding hands the space to the
 next with no extra logic.
 
-**The calendar's item and Ollie's own item are two independent `MenuBarExtra` scenes**, each
-inserted by one preference and reading nothing off the other: `showInMenuBar` on General for
-Ollie's, `calendarMenuBarDisplay` here for the calendar's. Either may be the only one in the menu
-bar, both may be, or neither. Dragging the calendar item out writes `.disabled`, which is what the
-picker already said — it never touches `showInMenuBar`.
+**The calendar's `MenuBarExtra` and Ollie's primary status item have independent display preferences**:
+`showInMenuBar` on General for Ollie's, `calendarMenuBarDisplay` here for the calendar's. The calendar
+item also requires Calendar and its owner, Launcher, to be enabled. Disabling either hides it without
+changing its display preference. Ollie's primary item stays available when Launcher is off so Settings
+remains reachable. Dragging the calendar item out writes `.disabled`; it never touches `showInMenuBar`.
 
 The display choice is **Disabled**, **Meeting Icon**, or **Meeting Title**; the title reads
 `title • in X min` and is capped at `MenuBarSummary.titleCap` characters — a hard cap is the only
@@ -235,7 +235,8 @@ scene has to read that fact, so `CalendarCoordinator.hasMenuBarEvent` is **store
 when it flips** — a derived read would re-run `OllieApp.body`, and the main menu with it, on every
 minute tick. SwiftUI writes
 `false` back through `isInserted` when it removes the item itself, so the insertion setter ignores a
-removal while the item is hidden for being empty: only a drag-out turns the display to `.disabled`.
+removal while the item is hidden for being empty or unavailable: only a drag-out turns the display to
+`.disabled`.
 
 `CalendarMenuBarMenu` lists calendar actions only — `Join <title>`, `Open in Calendar` and
 `Dismiss Event` for the displayed event, then the agenda, then `My Schedule` (⌘O) and

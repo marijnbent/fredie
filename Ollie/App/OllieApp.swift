@@ -22,7 +22,7 @@ struct OllieApp: App {
     /// Writes through `AppSettings`: dragging the item out must stop the clock and move the picker.
     private var calendarMenuBarInsertion: Binding<Bool> {
         let settings = AppCore.shared.settings
-        let isInserted = settings.calendarMenuBarDisplay != .disabled && !isCalendarMenuBarHiddenWhenEmpty
+        let isInserted = settings.calendarMenuBarDisplay != .disabled && !isCalendarMenuBarHidden
         return Binding(
             get: { isInserted },
             set: { inserted in
@@ -31,7 +31,7 @@ struct OllieApp: App {
                     settings.calendarMenuBarDisplay = .meetingIcon
                 } else {
                     // SwiftUI echoes our own removal back here; only a drag-out means "turn it off".
-                    guard !isCalendarMenuBarHiddenWhenEmpty, settings.calendarMenuBarDisplay != .disabled
+                    guard !isCalendarMenuBarHidden, settings.calendarMenuBarDisplay != .disabled
                     else { return }
                     settings.calendarMenuBarDisplay = .disabled
                 }
@@ -39,9 +39,10 @@ struct OllieApp: App {
     }
 
     /// Read in `body`, so Observation re-runs the scene when the coordinator's flag flips.
-    private var isCalendarMenuBarHiddenWhenEmpty: Bool {
-        AppCore.shared.settings.calendarMenuBarHidesWhenEmpty
-            && !AppCore.shared.calendarCoordinator.hasMenuBarEvent
+    private var isCalendarMenuBarHidden: Bool {
+        let core = AppCore.shared
+        return !core.settings.allows(.calendar)
+            || (core.settings.calendarMenuBarHidesWhenEmpty && !core.calendarCoordinator.hasMenuBarEvent)
     }
 
     /// Declared, not assigned to `NSApp.mainMenu`: SwiftUI rebuilds the menu on any scene change.

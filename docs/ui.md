@@ -62,8 +62,12 @@ Five load-bearing ideas, in priority order:
 The 320-point menu uses `HUDGlassBackground`, matching the launcher and clipboard material,
 tint, border, 16-point corners and Reduce Transparency treatment. The header is 42 points high;
 its app options button remains quiet until hovered. Feature actions stay in one icon strip with
-34-point targets, 4-point gaps and 12-point outer padding. Typing Sounds keeps a selected fill
-while enabled. Tooltips and accessibility labels identify every icon; shortcut labels are omitted.
+34-point targets, 4-point gaps and 12-point outer padding. Typing Sounds appears only while
+enabled, with a selected fill; clicking it turns the feature off and removes it. Tooltips and
+accessibility labels identify every icon; shortcut labels are omitted.
+
+Disabled features contribute no actions or status rows. Settings and app options remain available
+when every feature is off. The separate calendar and extension menu items follow feature availability.
 
 Notifications and Network use matching inset hover rows. An unread count appears only when nonzero.
 Recording and import controls retain their live status and cancellation actions. An inset divider

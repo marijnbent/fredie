@@ -108,12 +108,12 @@ struct CompactMenuView: View {
                     action("Media Import", symbol: "externaldrive.badge.plus") { core.mediaImport.show() }
                 }
                 Spacer(minLength: 0)
-                ActionButton(
-                    title: "Typing Sounds",
-                    symbol: core.settings.typingSoundsEnabled ? "speaker.wave.2" : "speaker.slash",
-                    selected: core.settings.typingSoundsEnabled
-                ) { core.settings.typingSoundsEnabled.toggle() }
-                .accessibilityValue(core.settings.typingSoundsEnabled ? "On" : "Off")
+                if core.settings.allows(.feature(.typingSounds)) {
+                    ActionButton(title: "Typing Sounds", symbol: "speaker.wave.2", selected: true) {
+                        core.settings.typingSoundsEnabled = false
+                    }
+                    .accessibilityValue("On")
+                }
                 action("Settings", symbol: "gearshape") { core.settingsCoordinator.showSettings() }
             }
             .padding(.horizontal, 12)
