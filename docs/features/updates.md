@@ -119,7 +119,8 @@ One route, whatever the install came from:
 5. `FileManager.replaceItemAt`. The staging folder is on the same volume as `/Applications`, which is
    what lets this be atomic. A non-writable `/Applications` is reported, not worked around; there is
    no privileged helper.
-6. Offer Relaunch, which spawns a detached waiter that reopens the app once this process exits —
+6. Offer Relaunch, using the same `AppCore.restart()` path as Restart Ollie. After pending data
+   saves successfully, it spawns a detached waiter that reopens the app once this process exits —
    `open` on a bundle id that is still running would only re-activate the instance on its way out.
 
 Nothing here touches `~/Library/Preferences`, `~/Library/Caches` or `Application Support`, so no

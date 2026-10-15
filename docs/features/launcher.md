@@ -614,7 +614,7 @@ id is what keeps "which pane owns this" out of the entry-ID namespace.
 Feature panes own their commands — AI, Quick Actions, File Search, Notes, Navigation,
 Window Management, Clipboard, Emoji, Calendar and Quicklinks. What is left in Settings › Commands is
 the set no feature switch governs: Calculator History, Open Camera, the three backup commands, Check
-for Updates, Ollie Settings, About, Support and Quit.
+for Updates, Ollie Settings, About, Support, Restart and Quit.
 
 A pane's list is also its display order, so `CommandID`'s declaration order is grouped by owner.
 Nothing keys on that order — `CommandCatalog.all` sorts by name and every preference keys on the raw
@@ -747,6 +747,12 @@ drop hides the palette through `PaletteCoordinator.dragLanded()`. Compact mode's
 not drag.
 
 ## Quitting and restarting apps
+
+**Restart Ollie** is available as a launcher command and in the menu-bar popover's app options,
+above Quit. It shares the updater's restart path through `AppCore.restart()`: normal termination
+saves pending data before scheduling a helper to reopen the same app bundle after its process exits.
+A failed save cancels the restart; a helper launch failure keeps Ollie open and reports the error.
+Like Quit Ollie, it cannot be assigned a global hotkey.
 
 `RunningAppsMonitor` (live from `NSWorkspace` launch/terminate notifications) drives both the row's
 running dot and the availability of the running-only actions:

@@ -96,6 +96,7 @@
 		1589362694FC2A066502B6DB /* WindowCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4DC9CF3973CD91F498DD5D /* WindowCommand.swift */; };
 		15A81162613ADCD04072E00A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACDF1FB018DF0C8D47908622 /* Models.swift */; };
 		15ADED63E30CC36B5ABBA83A /* MathLayoutEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDFB3C44F02E4C3A394AFDC /* MathLayoutEngine.swift */; };
+		164413AC89E563779300CB3D /* RelaunchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6DE0D17333808C49DA0785 /* RelaunchRunner.swift */; };
 		164B0E27748A827A22E51ADE /* MeetingDetailsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217DA62C61D40EBB88E63068 /* MeetingDetailsScreen.swift */; };
 		16A5C372CB2EB6F3CB59F3F9 /* CustomCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F5E45ACA0D673003706E4D /* CustomCommand.swift */; };
 		1806AA30036BC95A4E669F55 /* AIConnectionKeyPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171D8D1FFCED357A552DAD95 /* AIConnectionKeyPolicy.swift */; };
@@ -491,7 +492,6 @@
 		8C347E423191510F63ED31EC /* RaycastImportError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD78381F1C496F247A1BF6 /* RaycastImportError.swift */; };
 		8C43975368BBE2A0CA643E2B /* MeetingRowParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A0C4235682DD3BF3A663B6 /* MeetingRowParts.swift */; };
 		8D093B8950C13EB81280BE43 /* ColorFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BB6ED61387AE7053F9374B /* ColorFormat.swift */; };
-		8D666A341914DE50DD39D6A2 /* RelaunchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06883D5C6C2F7EF807AD4ECB /* RelaunchRunner.swift */; };
 		8D80378FB58ACB3C657D17E6 /* WindowLayoutDisplayTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED24B3729CA5E892EE1EDD84 /* WindowLayoutDisplayTabs.swift */; };
 		8D92AEB9914A677B075F2977 /* ThumbnailStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9D6B2E27F6AE2AEACFBF50 /* ThumbnailStore.swift */; };
 		8DA80663CA291D88EDDC671E /* PaletteFieldBoundary.swift in Sources */ = {isa = PBXBuildFile; fileRef = E927475087DEA9BA5121F2E4 /* PaletteFieldBoundary.swift */; };
@@ -891,7 +891,6 @@
 		0636813140A11F962562BF8A /* InstalledAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAI.swift; sourceTree = "<group>"; };
 		065EA340E4AD21B9F5F09E89 /* WindowSwitcherCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitcherCoordinator.swift; sourceTree = "<group>"; };
 		06686B97D7320DDC5EAFB2C1 /* MediaImportSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImportSettingsStore.swift; sourceTree = "<group>"; };
-		06883D5C6C2F7EF807AD4ECB /* RelaunchRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelaunchRunner.swift; sourceTree = "<group>"; };
 		068967B63D4DBF9A2B6DB668 /* ExtensionAppearancePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionAppearancePicker.swift; sourceTree = "<group>"; };
 		06979D807B65F54F0C3ED21E /* ExtensionStorePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStorePanel.swift; sourceTree = "<group>"; };
 		06E6D352FEE18EE5340A970E /* CameraButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraButton.swift; sourceTree = "<group>"; };
@@ -1235,6 +1234,7 @@
 		6C97048C6571DF03692CC094 /* AISettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettingsStore.swift; sourceTree = "<group>"; };
 		6D33B75E10F0148BEC68D9FD /* ChatCopyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCopyButton.swift; sourceTree = "<group>"; };
 		6D41B4560C8EFDBD533B1126 /* ShortcutRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorder.swift; sourceTree = "<group>"; };
+		6D6DE0D17333808C49DA0785 /* RelaunchRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelaunchRunner.swift; sourceTree = "<group>"; };
 		6D96F2B88571CB5C98669AA7 /* ExtensionStoreClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStoreClient.swift; sourceTree = "<group>"; };
 		6DA10B06BE3C6A42D2583281 /* QuickActionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionPanel.swift; sourceTree = "<group>"; };
 		6E6CD383826DF22C32A60302 /* EnhancementsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancementsSettingsView.swift; sourceTree = "<group>"; };
@@ -2546,7 +2546,6 @@
 			children = (
 				DA3D5BE609B7735B1F5F09B1 /* BundleSignature.swift */,
 				1D9A14F5611CA72194F3F2CA /* Quarantine.swift */,
-				06883D5C6C2F7EF807AD4ECB /* RelaunchRunner.swift */,
 				3B4F1C54EA3BF7D6DBEDB804 /* ToolRunner.swift */,
 				0F5E1E853FE51069E7ACFFB3 /* UpdateCheckStore.swift */,
 				E134DBC8E43AC921E863DBB7 /* UpdateDownloader.swift */,
@@ -3748,6 +3747,7 @@
 				6AD6534778B53D2712126DB8 /* ProcessExit.swift */,
 				9DC447919BADE44B5354CC5A /* PseudoTerminal.swift */,
 				4F9B1B9CB70510463C1036CB /* RegionCurrency.swift */,
+				6D6DE0D17333808C49DA0785 /* RelaunchRunner.swift */,
 				5AE5FAD48CE29AC592175458 /* ScreenTarget.swift */,
 				2FDEE3DD2E874A1063567AD3 /* Signposts.swift */,
 				8F7FB69B3E905782E1026005 /* WindowLevel.swift */,
@@ -4577,7 +4577,7 @@
 				77098F7001EFD85B83C8083D /* RedactedText.swift in Sources */,
 				E027FBEBAB24560BBC8291DD /* RegionCurrency.swift in Sources */,
 				71AA0FAC25E81EF22950C73B /* RegionNumberFormatMonitor.swift in Sources */,
-				8D666A341914DE50DD39D6A2 /* RelaunchRunner.swift in Sources */,
+				164413AC89E563779300CB3D /* RelaunchRunner.swift in Sources */,
 				71F8DE1E05CCA276C47A0425 /* ReleaseArchitecture.swift in Sources */,
 				6271337A563E7EBFB111A3F7 /* ReleaseChannel.swift in Sources */,
 				608F01B1732ADEADFB8EF98D /* ReleaseFeed.swift in Sources */,

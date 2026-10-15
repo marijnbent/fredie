@@ -6,6 +6,8 @@ import AppKit
 final class AppCore {
     static let shared = AppCore()
 
+    @ObservationIgnored private var restartRequested = false
+
     let launcherRanking: LauncherRankingStore
     let appIndex: AppIndex
     let customCommands = CustomCommandStore()
@@ -459,7 +461,13 @@ final class AppCore {
         }
     }
 
+    func restart() {
+        restartRequested = true
+        NSApp.terminate(nil)
+    }
+
     func flushNotesForTermination() async -> Bool {
+        defer { restartRequested = false }
         let dictationSaved = await dictation.prepareForTermination()
         let clipboardSaved = await clipboard.prepareForTermination()
         notifications.stop()
@@ -471,6 +479,19 @@ final class AppCore {
             notifications.apply()
             await showNotice(title: "History could not be saved", message: "Ollie is still open. Free up disk space or check folder permissions, then try quitting again.", symbol: "exclamationmark.triangle", tone: .danger)
             return false
+        }
+        if restartRequested {
+            do {
+                try RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL)
+            } catch {
+                dictation.apply()
+                clipboard.apply()
+                notifications.apply()
+                await showNotice(
+                    title: "Ollie could not restart", message: error.localizedDescription,
+                    symbol: "exclamationmark.triangle", tone: .danger)
+                return false
+            }
         }
         return true
     }

@@ -41,6 +41,7 @@ enum CommandID: String, CaseIterable, Sendable {
     case settings = "command:settings"
     case about = "command:about"
     case support = "command:support"
+    case restart = "command:restart"
     case quit = "command:quit"
 
     var name: String {
@@ -83,6 +84,7 @@ enum CommandID: String, CaseIterable, Sendable {
         case .settings: return "Ollie Settings"
         case .about: return "About Ollie"
         case .support: return "Support Ollie"
+        case .restart: return "Restart Ollie"
         case .quit: return "Quit Ollie"
         }
     }
@@ -127,6 +129,7 @@ enum CommandID: String, CaseIterable, Sendable {
         case .settings: return "gearshape"
         case .about: return "info.circle"
         case .support: return "heart"
+        case .restart: return "arrow.clockwise"
         case .quit: return "power"
         }
     }
@@ -178,6 +181,6 @@ enum CommandID: String, CaseIterable, Sendable {
 
     /// A chord carries no query, and none should be able to terminate the app outright.
     var hotKeyAction: HotKeyAction? {
-        isQueryDriven || self == .quit ? nil : .command(self)
+        isQueryDriven || self == .quit || self == .restart ? nil : .command(self)
     }
 }

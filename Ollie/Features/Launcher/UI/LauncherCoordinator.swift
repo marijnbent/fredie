@@ -245,6 +245,9 @@ final class LauncherCoordinator {
         case .support:
             dismissPalette()
             core.supportCoordinator.showSupport()
+        case .restart:
+            dismissPalette()
+            core.restart()
         case .quit:
             NSApp.terminate(nil)
         }

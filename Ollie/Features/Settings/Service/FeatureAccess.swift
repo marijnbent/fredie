@@ -40,7 +40,7 @@ extension CommandID {
         switch self {
         case .clipboardHistory: .clipboardHistory
         case .exportSettings, .importSettings, .importFromRaycast, .checkForUpdates,
-             .settings, .about, .support, .quit: nil
+             .settings, .about, .support, .restart, .quit: nil
         default: owner?.capability ?? .feature(.launcher)
         }
     }

@@ -2,7 +2,7 @@ import Foundation
 
 /// `open` on a running bundle id only re-activates it, so the relaunch outlives us.
 enum RelaunchRunner {
-    static func relaunchAfterExit(_ bundleURL: URL) {
+    static func relaunchAfterExit(_ bundleURL: URL) throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/sh")
         let quoted = bundleURL.path.replacingOccurrences(of: "'", with: "'\\''")
@@ -12,6 +12,6 @@ enum RelaunchRunner {
                 + "/usr/bin/open '\(quoted)'"
         ]
         // Orphaned on our exit and reparented to launchd, which is the whole point.
-        try? process.run()
+        _ = try process.runObservingExit()
     }
 }

@@ -15,6 +15,7 @@ struct CompactMenuView: View {
                     Button("Check for Updates…") { perform { core.updateCoordinator.checkForUpdates() } }
                     Button("About \(Bundle.main.appDisplayName)") { perform { core.settingsCoordinator.showAbout() } }
                     Divider()
+                    Button("Restart \(Bundle.main.appDisplayName)") { perform { core.restart() } }
                     Button("Quit \(Bundle.main.appDisplayName)") { NSApp.terminate(nil) }
                 } label: {
                     Image(systemName: "ellipsis")
